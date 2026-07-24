@@ -480,8 +480,10 @@ function AppShellWrapper() {
 }
 
 function MainApp() {
+  const basename = window.location.hostname.includes("github.io") ? "/grocart-webapp" : "/";
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <AuthProvider>
         <CartProvider>
           <AppShellWrapper />
