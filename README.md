@@ -31,8 +31,7 @@ GroCart is a premium grocery delivery web dashboard built with React and Vite. I
 * Lucide React icons
 * OpenStreetMap Nominatim API
 * `gh-pages` for GitHub Pages deployment
-* `oxlint` for linting
-* PostCSS + Autoprefixer
+
 
 ---
 
