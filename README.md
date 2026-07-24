@@ -1,128 +1,180 @@
 # GroCart 🛒
 
-GroCart is an aesthetic, ultra-fast grocery delivery web dashboard. The application features a highly responsive layout, a dynamic cream/warm-gold theme, real-time GPS reverse-geocoding, seasonal animations, and nested client-side routing.
+GroCart is a premium grocery delivery web dashboard built with React and Vite. It offers a polished shopping experience with route-based navigation, user authentication, cart management, animation-rich UI, location-aware delivery, and a fully responsive layout.
 
 ---
 
 ## 🌟 Key Features
 
-* **Aesthetic Sidebar Navigation**: Designed with a premium ivory/cream and gold styling, featuring serialized index numbers, active state vertical indicator bars, and theme toggling.
-* **Nested Client-Side Routing**: Implemented using `react-router` v7 to ensure smooth view transitions and clean browser path updates (e.g. `/home`, `/categories`, `/categories/:categoryId`, `/cart`, etc.).
-* **Dynamic Content Screens**:
-  * **Home Screen**: Interactive promo banners, horizontal recommendations slider, and category cards.
-  * **Categories Screen**: Visual category grids for direct route navigation.
-  * **Products Screen**: Real-time product listings filtered by route parameter with local "add-to-cart" flying animations.
-  * **Cart Screen**: Item quantity adjustment, live subtotal/tax summary calculations, and checkout portals.
-  * **Payment Screen**: Secured mock payment portal overlay.
-  * **Orders Screen**: Track past receipts and orders history.
-  * **Profile Screen**: User delivery address management synced with LocalStorage.
-* **Authentication and Guarded Sessions**: Integrated with Firebase Authentication, supporting email validation, account signup/signin, and fully functional Temporary Guest browsing.
-* **Predictive Search Bar**: Search matching suggestions updated in real time across the home and item list pages.
-* **GPS Address Reverse-Geocoding**: Utilizes the OpenStreetMap Nominatim reverse-geocoding API to dynamically locate the user's physical delivery coordinates.
-* **Aesthetic Seasonal Overlay**: Floating animations (snow, leaves, etc.) depending on active item categories.
-* **Optimized Bundling**: Configured manual vendor chunking and custom route redirections for seamless deployment to both GitHub Pages and Vercel.
+* **Modern grocery shopping UI** with ivory/cream and soft gold design accents.
+* **Responsive navigation**: desktop sidebar plus mobile-friendly controls.
+* **Protected routing** with guest session support and login/registration flows.
+* **Nested client-side routes** for categories and product browsing.
+* **Search-as-you-type suggestions** across product names and categories.
+* **Live geolocation reverse geocoding** using OpenStreetMap Nominatim.
+* **Firebase Authentication** for user sign-in, signup, logout, email verification, and profile updates.
+* **Cart management** with quantity controls, optimistic updates, and remote sync.
+* **Order placement flow** with payment overlay and order history storage.
+* **Seasonal overlay animations** that update based on active category context.
+* **Theme toggle** for light/dark styling.
+* **GitHub Pages + Vercel deployment support** with route rewrites and SPA fallback handling.
 
 ---
 
-## 🛠️ Tech Stack & Tools
+## 🧩 What This App Uses
 
-* **Core**: React 19, JavaScript (ES6+), Vite 8 (with Rolldown compiler).
-* **Routing**: React Router v7.
-* **Styling**: Tailwind CSS v4, Lucide React icons.
-* **Backend**: Firebase v12 (Authentication).
-* **API Integration**: OpenStreetMap Nominatim API.
-* **Deployment**: `gh-pages` deployment module (GitHub Pages), Vercel Routing Configuration (`vercel.json`).
+* React 19
+* Vite 8
+* Tailwind CSS 4
+* React Router 8
+* Firebase 12
+* Lucide React icons
+* OpenStreetMap Nominatim API
+* `gh-pages` for GitHub Pages deployment
+* `oxlint` for linting
+* PostCSS + Autoprefixer
 
 ---
 
-## 📐 Architecture & Structure
+## 🚧 Architecture Overview
 
-GroCart adheres to a clean, layered architectural pattern:
+GroCart is organized in a layered structure:
 
-* **Domain Layer (`src/domain/`)**: Holds business models (e.g., `User`, `Categories`) and core helper functions.
-* **Application Layer (`src/application/`)**: Manages business logic via custom hooks (e.g., GPS geolocator hook `useLocation`, products client `useProducts`) and React Contexts (e.g., `AuthContext`, `CartContext`).
-* **Infrastructure Layer (`src/infrastructure/`)**: Standard client API connections, such as the Firebase initialization and authorization services.
-* **Presentation Layer (`src/presentation/`)**: Responsive visual layouts, screens (e.g., `HomeScreen`, `ProductsScreen`), and UI components (`Sidebar`, `SeasonalOverlay`).
+* `src/domain/`
+  * business models and helper services
+  * examples: `User.js`, `Product.js`, `Order.js`, `Categories.js`, `CartItem.js`
+* `src/application/`
+  * state, hooks, and contexts
+  * `AuthContext.jsx`, `CartContext.jsx`, `useProducts.js`, `useLocation.js`
+* `src/infrastructure/`
+  * data access and integrations
+  * `firebaseAuth.js`, `productRepository.js`, `orderRepository.js`, `cartRepository.js`
+* `src/presentation/`
+  * UI screens and reusable components
+  * `HomeScreen.jsx`, `ProductsScreen.jsx`, `Sidebar.jsx`, `SeasonalOverlay.jsx`
 
-### Layer Dependencies
+### Architecture Flow
+
 ```mermaid
 graph TD
   subgraph Presentation Layer
-    App[App.jsx & Routes]
-    Screens[Screens: HomeScreen, ProductsScreen, etc.]
-    Components[Components: Sidebar, SeasonalOverlay, etc.]
+    App[App.jsx]
+    Screens[Presentation Screens]
+    Components[UI Components]
   end
 
   subgraph Application Layer
-    AuthCtx[AuthContext.jsx]
-    CartCtx[CartContext.jsx]
-    GPSHook[useLocation.js]
-    ProdHook[useProducts.js]
+    AuthCtx[AuthContext]
+    CartCtx[CartContext]
+    ProdHook[useProducts]
+    GeoHook[useLocation]
   end
 
   subgraph Infrastructure Layer
-    FirebaseAuth[firebaseAuth.js]
-    FirebaseApp[firebase.js]
-    NominatimAPI[Nominatim Geocoding API]
+    FirebaseAuth[firebaseAuth]
+    Repos[Repository APIs]
+    Nominatim[OpenStreetMap Nominatim]
   end
 
   subgraph Domain Layer
-    Models[Models: User, Categories]
+    Models[Domain Models]
+    Services[Calculations]
   end
 
   App --> Screens
   Screens --> Components
   Screens --> AuthCtx
   Screens --> CartCtx
-  CartCtx --> ProdHook
+  CartCtx --> Repos
   AuthCtx --> FirebaseAuth
-  FirebaseAuth --> FirebaseApp
-  GPSHook --> NominatimAPI
+  GeoHook --> Nominatim
   Screens --> Models
+  CartCtx --> Services
 ```
 
 ---
 
-## 🔄 User Navigation & Routing Flow
+## 🔄 User Journey & Route Flow
 
 ```mermaid
 stateDiagram-v2
   [*] --> LoginScreen : Unauthenticated
-  LoginScreen --> HomeScreen : Click 'Continue as Guest' or 'Login/Signup'
-  
-  state MainAppLayout {
-    [*] --> HomeScreen : Path: /home
-    HomeScreen --> CategoryScreen : Click 'Categories'
-    CategoryScreen --> ProductsScreen : Select Category (Path: /categories/:id)
-    ProductsScreen --> CartScreen : Add Item & View Cart (Path: /cart)
-    CartScreen --> PaymentScreen : Click 'Checkout'
-    PaymentScreen --> OrdersScreen : Confirm Payment (Path: /orders)
-    HomeScreen --> ProfileScreen : View/Edit Profile (Path: /profile)
+  LoginScreen --> HomeScreen : Login / Signup / Continue as Guest
+
+  state AppShell {
+    HomeScreen --> CategoryScreen : Open categories
+    CategoryScreen --> ProductsScreen : Select category
+    ProductsScreen --> CartScreen : Add to cart
+    CartScreen --> PaymentScreen : Checkout
+    PaymentScreen --> OrdersScreen : Confirm payment
+    HomeScreen --> ProfileScreen : Open profile
   }
-  
-  MainAppLayout --> LoginScreen : Click 'Logout'
+
+  AppShell --> LoginScreen : Logout
+  LoginScreen --> HomeScreen : Guest & Authenticated users
 ```
 
 ---
 
-## 🚀 Live Deployment Guide
+## 🗺️ Navigation Summary
 
-The codebase is pre-configured to build and deploy to both Vercel and GitHub Pages.
+* `/login` — authentication page for login and signup.
+* `/home` — landing dashboard with promotions and featured categories.
+* `/categories` — category discovery screen.
+* `/categories/:categoryId` — category-specific product listings.
+* `/cart` — cart review and checkout initiation.
+* `/orders` — past order history and order confirmation.
+* `/profile` — user profile and saved address management.
 
-### A. Deploying to Vercel
-Vercel hosts single-page apps from the domain root (default configuration):
-1. Import the repository into your Vercel Dashboard.
-2. The included `vercel.json` file handles all subroute rewrites automatically.
-3. Deploy!
+---
 
-### B. Deploying to GitHub Pages
-GitHub Pages hosts projects in subfolders (e.g., `/grocart-webapp/`).
-1. Install `gh-pages` as a dev dependency (pre-configured):
+## 📦 Deployment Support
+
+### Vercel
+* `vercel.json` rewrites all requests to `index.html` so the SPA correctly handles subroutes.
+* Deploy by connecting the repo to Vercel and using default Vite build settings.
+
+### GitHub Pages
+* Build command uses `vite build --base=/grocart-webapp/`.
+* The deploy script copies `dist/index.html` to `dist/404.html` so refreshes still load the app.
+* Run:
+  ```bash
+  npm run predeploy
+  npm run deploy
+  ```
+
+---
+
+## 🚀 Getting Started
+
+1. Install dependencies:
    ```bash
-   npm install gh-pages --save-dev
+   npm install
    ```
-2. Build and publish your assets automatically:
+2. Start the development server:
    ```bash
-   npm run deploy
+   npm run dev
    ```
-   *This executes a specialized build command (`vite build --base=/grocart-webapp/`) and duplicates the compilation index to `404.html` so subroutes load correctly on refreshes.*
+3. Open the app in the browser at `http://localhost:5173`.
+
+---
+
+## 💡 Notes
+
+* Location uses browser geolocation and OpenStreetMap reverse geocoding.
+* Cart state is synced to Firebase for authenticated users.
+* Address is saved locally in `localStorage`.
+* Email verification is supported for registered users.
+
+---
+
+## 📁 Relevant Files
+
+* `src/App.jsx` — main router, layout, search, and screen orchestration.
+* `src/application/context/AuthContext.jsx` — authentication state and session logic.
+* `src/application/context/CartContext.jsx` — cart state, order placement, and payment flow.
+* `src/application/hooks/useLocation.js` — geolocation and reverse geocoding.
+* `src/application/hooks/useProducts.js` — product fetch and loading states.
+* `src/infrastructure/auth/firebaseAuth.js` — Firebase auth wrappers.
+* `src/presentation/components/Sidebar.jsx` — navigation UI.
+* `src/presentation/components/SeasonalOverlay.jsx` — seasonal animation effects.
