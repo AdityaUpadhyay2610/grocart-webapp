@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useCart } from "../../application/context/CartContext";
+import { useCart } from "../context/CartContext";
 import { CreditCard, Truck, Smartphone, Wallet, CheckCircle, Loader2, ArrowLeft, Receipt, Check } from "lucide-react";
 
 const PAYMENT_METHODS = [

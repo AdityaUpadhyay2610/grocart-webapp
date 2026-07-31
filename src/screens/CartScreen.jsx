@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { useCart } from "../../application/context/CartContext";
+import { useCart } from "../context/CartContext";
 import { Plus, Minus, Tag, X, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
-import { COUPON_OFFERS } from "../../domain/services/calculations";
+import { COUPON_OFFERS } from "../services/calculations";
 
 export const CartScreen = React.memo(({ onBrowseProducts }) => {
   const {

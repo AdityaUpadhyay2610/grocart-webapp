@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useAuth } from "../../application/context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 export const LoginScreen = React.memo(() => {

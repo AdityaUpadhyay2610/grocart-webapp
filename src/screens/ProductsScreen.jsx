@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { useParams } from "react-router";
-import { useCart } from "../../application/context/CartContext";
-import { matchCategory, CATEGORIES } from "../../domain/models/Categories";
+import { useCart } from "../context/CartContext";
+import { matchCategory, CATEGORIES } from "../models/Categories";
 
 export const ProductsScreen = React.memo(({ category: propCategory, products }) => {
   const { addToCart, triggerAddToCartAnimation } = useCart();

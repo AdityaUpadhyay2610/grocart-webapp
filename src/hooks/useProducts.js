@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchProducts } from "../../infrastructure/repositories/productRepository";
+import { fetchProducts } from "../services/productRepository";
 
 export const useProducts = () => {
   const [products, setProducts] = useState([]);

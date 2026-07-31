@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from "react";
-import { CATEGORIES } from "../../domain/models/Categories";
-import { useCart } from "../../application/context/CartContext";
+import { CATEGORIES } from "../models/Categories";
+import { useCart } from "../context/CartContext";
 
 export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
   const { addToCart, triggerAddToCartAnimation } = useCart();

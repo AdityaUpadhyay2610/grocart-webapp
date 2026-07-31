@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Home, LayoutGrid, ShoppingCart, ShoppingBag, User } from "lucide-react";
-import { useAuth } from "../../application/context/AuthContext";
-import { useCart } from "../../application/context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 export const BottomNavBar = React.memo(({ currentScreen, onNavigate, onRequestLogin }) => {
   const { isGuestSession } = useAuth();

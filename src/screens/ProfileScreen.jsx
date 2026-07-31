@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../../application/context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { User, Mail, MapPin, Loader2, Save } from "lucide-react";
 
 export const ProfileScreen = React.memo(({ onNavigateBack }) => {

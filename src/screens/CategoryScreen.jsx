@@ -1,5 +1,5 @@
 import React from "react";
-import { CATEGORIES } from "../../domain/models/Categories";
+import { CATEGORIES } from "../models/Categories";
 
 export const CategoryScreen = React.memo(({ onCategoryClick }) => {
   return (

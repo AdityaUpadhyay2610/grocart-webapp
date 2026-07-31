@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate, useLocation as useRouterLocation } from "react-router";
-import { AuthProvider, useAuth } from "./application/context/AuthContext";
-import { CartProvider, useCart } from "./application/context/CartContext";
-import { useProducts } from "./application/hooks/useProducts";
-import { useLocation as useGPSLocation } from "./application/hooks/useLocation";
-import { CATEGORIES } from "./domain/models/Categories";
-import { SeasonalOverlay, getSeasonalGradientClass } from "./presentation/components/SeasonalOverlay";
-import { Sidebar } from "./presentation/components/Sidebar";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider, useCart } from "./context/CartContext";
+import { useProducts } from "./hooks/useProducts";
+import { useLocation as useGPSLocation } from "./hooks/useLocation";
+import { CATEGORIES } from "./models/Categories";
+import { SeasonalOverlay, getSeasonalGradientClass } from "./components/SeasonalOverlay";
+import { Sidebar } from "./components/Sidebar";
 
 // Import Screens
-import { LoginScreen } from "./presentation/screens/LoginScreen";
-import { HomeScreen } from "./presentation/screens/HomeScreen";
-import { CategoryScreen } from "./presentation/screens/CategoryScreen";
-import { ProductsScreen } from "./presentation/screens/ProductsScreen";
-import { CartScreen } from "./presentation/screens/CartScreen";
-import { PaymentScreen } from "./presentation/screens/PaymentScreen";
-import { OrdersScreen } from "./presentation/screens/OrdersScreen";
-import { ProfileScreen } from "./presentation/screens/ProfileScreen";
+import { LoginScreen } from "./screens/LoginScreen";
+import { HomeScreen } from "./screens/HomeScreen";
+import { CategoryScreen } from "./screens/CategoryScreen";
+import { ProductsScreen } from "./screens/ProductsScreen";
+import { CartScreen } from "./screens/CartScreen";
+import { PaymentScreen } from "./screens/PaymentScreen";
+import { OrdersScreen } from "./screens/OrdersScreen";
+import { ProfileScreen } from "./screens/ProfileScreen";
 
 // Import Icons
 import { MapPin, ChevronDown, User, Search, X, Moon, Sun, ArrowLeft, Loader2, LogOut } from "lucide-react";

@@ -1,9 +1,9 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { useAuth } from "./AuthContext";
-import { fetchCart, saveCartItem, removeCartItem, clearCart } from "../../infrastructure/repositories/cartRepository";
-import { placeOrder as dbPlaceOrder } from "../../infrastructure/repositories/orderRepository";
-import { CartItem } from "../../domain/models/CartItem";
-import { Order } from "../../domain/models/Order";
+import { fetchCart, saveCartItem, removeCartItem, clearCart } from "../services/cartRepository";
+import { placeOrder as dbPlaceOrder } from "../services/orderRepository";
+import { CartItem } from "../models/CartItem";
+import { Order } from "../models/Order";
 import {
   calculateItemTotal,
   calculateHandlingCharge,
@@ -11,7 +11,7 @@ import {
   calculateCouponDiscount,
   calculateGrandTotal,
   applyCoupon
-} from "../../domain/services/calculations";
+} from "../services/calculations";
 
 const CartContext = createContext(null);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { fetchOrders } from "../../infrastructure/repositories/orderRepository";
+import { fetchOrders } from "../services/orderRepository";
 
 export const useOrders = () => {
   const { user } = useAuth();

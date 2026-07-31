@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import { useNavigate, useLocation as useRouterLocation } from "react-router";
 import { Home, LayoutGrid, ShoppingCart, ShoppingBag, User, LogOut, Sun, Moon } from "lucide-react";
-import { useAuth } from "../../application/context/AuthContext";
-import { useCart } from "../../application/context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 export const Sidebar = React.memo(({ onRequestLogin, onLogoutClick, isDarkTheme, onThemeToggle }) => {
   const { isGuestSession, user } = useAuth();

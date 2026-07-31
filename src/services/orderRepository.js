@@ -1,7 +1,7 @@
 import { ref, get, push, set } from "firebase/database";
 import { database } from "../config/firebaseConfig";
-import { Order } from "../../domain/models/Order";
-import { CartItem } from "../../domain/models/CartItem";
+import { Order } from "../models/Order";
+import { CartItem } from "../models/CartItem";
 
 export const fetchOrders = async (userId) => {
   if (!userId) return [];

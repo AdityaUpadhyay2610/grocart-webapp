@@ -16,7 +16,11 @@ export const CATEGORIES = [
   { id: 15, name: "Frozen Food", image: "/deserts.webp", bgColor: "#FFF3E0", accentColor: "#F57C00" },
   { id: 16, name: "Pharmacy", image: "/pharmacy.webp", bgColor: "#E3F2FD", accentColor: "#1E88E5" },
   { id: 17, name: "Breakfast & Cereals", image: "/breakfast.webp", bgColor: "#FCE4EC", accentColor: "#E91E63" },
-  { id: 18, name: "Home Care", image: "/decore.webp", bgColor: "#F1F8E9", accentColor: "#7CB342" }
+  { id: 18, name: "Home Care", image: "/decore.webp", bgColor: "#F1F8E9", accentColor: "#7CB342" },
+  { id: 19, name: "Men's Clothing", image: "https://cdn-icons-png.flaticon.com/512/3050/3050229.png", bgColor: "#E3F2FD", accentColor: "#1E88E5" },
+  { id: 20, name: "Women's Clothing", image: "https://cdn-icons-png.flaticon.com/512/3050/3050229.png", bgColor: "#FCE4EC", accentColor: "#E91E63" },
+{id:21, name: "Electronics", image: "https://cdn-icons-png.flaticon.com/512/2777/2777142.png", bgColor: "#E3F2FD", accentColor: "#1E88E5"},
+{id:22,name: "Jwellery",image:"https://www.flaticon.com/free-icon/set_15896951?term=jewellery+set&page=1&position=3&origin=search&related_id=15896951",bgColor: "#E3F2FD", accentColor: "#1E88E5"}
 ];
 
 export const matchCategory = (itemCategory, selectedCategory) => {

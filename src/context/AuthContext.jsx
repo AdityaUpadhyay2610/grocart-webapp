@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
-import { onAuthStateChange, login as authLogin, register as authRegister, logout as authLogout, resendVerificationEmail, updateProfile as authUpdateProfile, refreshUser } from "../../infrastructure/auth/firebaseAuth";
-import { User } from "../../domain/models/User";
+import { onAuthStateChange, login as authLogin, register as authRegister, logout as authLogout, resendVerificationEmail, updateProfile as authUpdateProfile, refreshUser } from "../services/firebaseAuth";
+import { User } from "../models/User";
 
 const AuthContext = createContext(null);
 

@@ -1,6 +1,6 @@
 import { ref, get } from "firebase/database";
 import { database } from "../config/firebaseConfig";
-import { Product } from "../../domain/models/Product";
+import { Product } from "../models/Product";
 
 export const fetchProducts = async () => {
   try {
