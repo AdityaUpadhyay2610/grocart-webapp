@@ -2,9 +2,10 @@ import React, { useMemo, useState, useCallback } from "react";
 import { useParams } from "react-router";
 import { useCart } from "../context/CartContext";
 import { matchCategory, CATEGORIES } from "../models/Categories";
+import { Minus, Plus } from "lucide-react";
 
 export const ProductsScreen = React.memo(({ category: propCategory, products }) => {
-  const { addToCart, triggerAddToCartAnimation } = useCart();
+  const { cartItems, addToCart, decreaseCartItem, triggerAddToCartAnimation } = useCart();
   const [flyingItems, setFlyingItems] = useState([]);
   const { categoryId } = useParams();
 
@@ -68,6 +69,8 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
           {filteredProducts.map(item => {
             const originalPrice = item.itemPrice;
             const discountedPrice = Math.floor(originalPrice * 75 / 100);
+            const cartItem = cartItems.find(i => i.id === item.id);
+            const quantity = cartItem ? cartItem.quantity : 0;
 
             return (
               <div 
@@ -100,12 +103,38 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
                       </span>
                     </div>
                     
-                    <button
-                      onClick={(e) => handleAddClick(e, item)}
-                      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-violet-200 transition-all active:scale-95 cursor-pointer"
-                    >
-                      ADD
-                    </button>
+                    {quantity > 0 ? (
+                      <div className="flex items-center space-x-2.5 bg-gray-50 dark:bg-slate-850 border border-gray-150 dark:border-slate-800 rounded-xl px-2 py-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            decreaseCartItem(cartItem);
+                          }}
+                          className="w-6 h-6 rounded-lg bg-white dark:bg-[#151C2C] flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-xs font-black text-slate-700 dark:text-slate-300 min-w-[12px] text-center">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(item);
+                          }}
+                          className="w-6 h-6 rounded-lg bg-white dark:bg-[#151C2C] flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => handleAddClick(e, item)}
+                        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-violet-200 transition-all active:scale-95 cursor-pointer"
+                      >
+                        ADD
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

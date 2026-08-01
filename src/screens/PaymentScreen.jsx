@@ -25,6 +25,7 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
 
   const [orderStage, setOrderStage] = useState(null); // 'processing' | 'success' | null
   const [orderId, setOrderId] = useState("");
+  const [finalTotal, setFinalTotal] = useState(0);
 
   const handleMethodSelect = useCallback((methodId) => {
     setPaymentMethod(methodId);
@@ -33,6 +34,7 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
   const handleBuyClick = useCallback(async () => {
     if (!selectedPaymentMethod) return;
 
+    setFinalTotal(grandTotal);
     setOrderStage("processing");
     try {
       const newOrderId = await placeOrder();
@@ -54,7 +56,7 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
       alert("Order placement failed. Please try again.");
       setOrderStage(null);
     }
-  }, [selectedPaymentMethod, placeOrder, completePayment, onPaymentConfirmed]);
+  }, [selectedPaymentMethod, placeOrder, completePayment, onPaymentConfirmed, grandTotal]);
 
   const activeMethodDetails = useMemo(() => {
     return PAYMENT_METHODS.find(m => m.id === selectedPaymentMethod);
@@ -82,7 +84,7 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
                   Payment: {activeMethodDetails?.label || "Cash on Delivery"}
                 </p>
                 <p className="text-lg font-black text-violet-600 dark:text-violet-400 mt-2">
-                  Total: ₹{grandTotal}
+                  Total: ₹{finalTotal}
                 </p>
                 {orderId && (
                   <p className="text-[10px] text-gray-400 dark:text-slate-500 font-mono mt-1">

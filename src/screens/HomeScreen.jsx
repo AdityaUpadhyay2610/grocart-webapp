@@ -1,9 +1,10 @@
 import React, { useMemo, useCallback } from "react";
 import { CATEGORIES } from "../models/Categories";
 import { useCart } from "../context/CartContext";
+import { Minus, Plus } from "lucide-react";
 
 export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
-  const { addToCart, triggerAddToCartAnimation } = useCart();
+  const { cartItems, addToCart, decreaseCartItem, triggerAddToCartAnimation } = useCart();
 
   // Shuffled recommended items (take 8 on larger screens, 6 on mobile, memoized)
   const recommendedItems = useMemo(() => {
@@ -48,11 +49,15 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
         <div className="flex flex-col space-y-4 text-left">
           <h2 className="text-2xl font-black text-slate-850 dark:text-slate-100 tracking-tight">Recommended for you</h2>
           <div className="flex space-x-4 overflow-x-auto no-scrollbar py-2 px-1">
-            {recommendedItems.map(item => (
-              <div 
-                key={item.id}
-                className="w-40 flex-shrink-0 bg-white dark:bg-[#111724] border border-gray-100 dark:border-slate-800/80 rounded-3xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none transition-all relative"
-              >
+            {recommendedItems.map(item => {
+              const cartItem = cartItems.find(i => i.id === item.id);
+              const quantity = cartItem ? cartItem.quantity : 0;
+
+              return (
+                <div 
+                  key={item.id}
+                  className="w-40 flex-shrink-0 bg-white dark:bg-[#111724] border border-gray-100 dark:border-slate-800/80 rounded-3xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none transition-all relative"
+                >
                 <div className="flex justify-center mb-3">
                   <img 
                     src={item.imageUrl} 
@@ -72,16 +77,43 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
                     <span className="text-sm font-black text-violet-600 dark:text-violet-400">
                       ₹{Math.floor(item.itemPrice * 75 / 100)}
                     </span>
-                    <button
-                      onClick={(e) => handleAddToCart(e, item)}
-                      className="px-3.5 py-1.5 bg-cyan-50 dark:bg-cyan-950/40 text-violet-600 dark:text-violet-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 font-extrabold text-[10px] rounded-lg border border-cyan-100 dark:border-violet-900/40 transition-colors cursor-pointer"
-                    >
-                      ADD
-                    </button>
+                    {quantity > 0 ? (
+                      <div className="flex items-center space-x-2 bg-gray-50 dark:bg-slate-850 border border-gray-100 dark:border-slate-800 rounded-lg px-1.5 py-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            decreaseCartItem(cartItem);
+                          }}
+                          className="w-5 h-5 rounded bg-white dark:bg-[#151C2C] flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Minus size={10} />
+                        </button>
+                        <span className="text-[11px] font-black text-slate-700 dark:text-slate-300 min-w-[10px] text-center">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(item);
+                          }}
+                          className="w-5 h-5 rounded bg-white dark:bg-[#151C2C] flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Plus size={10} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => handleAddToCart(e, item)}
+                        className="px-3.5 py-1.5 bg-cyan-50 dark:bg-cyan-950/40 text-violet-600 dark:text-violet-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 font-extrabold text-[10px] rounded-lg border border-cyan-100 dark:border-violet-900/40 transition-colors cursor-pointer"
+                      >
+                        ADD
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       )}

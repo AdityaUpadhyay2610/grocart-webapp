@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider, useCart } from "./context/CartContext";
 import { useProducts } from "./hooks/useProducts";
 import { useLocation as useGPSLocation } from "./hooks/useLocation";
-import { CATEGORIES } from "./models/Categories";
+import { CATEGORIES, matchCategory } from "./models/Categories";
 import { SeasonalOverlay, getSeasonalGradientClass } from "./components/SeasonalOverlay";
 import { Sidebar } from "./components/Sidebar";
 
@@ -72,6 +72,7 @@ function AppShell() {
   const [showLoginRequired, setShowLoginRequired] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // Sync dark mode class
   useEffect(() => {
@@ -95,14 +96,25 @@ function AppShell() {
     }
   }, [routerLocation.pathname, navigate]);
 
+  const activeCategory = useMemo(() => {
+    const match = routerLocation.pathname.match(/\/categories\/(.+)/);
+    if (!match) return null;
+    const catIdOrName = decodeURIComponent(match[1]);
+    return CATEGORIES.find(c => String(c.id) === catIdOrName || c.name.toLowerCase() === catIdOrName.toLowerCase()) || { name: catIdOrName, nameDisplay: catIdOrName };
+  }, [routerLocation.pathname]);
+
   // Search filter
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return products.filter(item => 
+    let list = products;
+    if (activeCategory) {
+      list = list.filter(item => matchCategory(item.itemCategory, activeCategory.name));
+    }
+    return list.filter(item => 
       item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.itemCategory.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, products]);
+  }, [searchQuery, products, activeCategory]);
 
   const handleSearchResultClick = useCallback((item) => {
     const matched = CATEGORIES.find(cat => 
@@ -115,12 +127,12 @@ function AppShell() {
     setSearchQuery("");
   }, [navigate]);
 
-  const activeCategory = useMemo(() => {
-    const match = routerLocation.pathname.match(/\/categories\/(.+)/);
-    if (!match) return null;
-    const catIdOrName = decodeURIComponent(match[1]);
-    return CATEGORIES.find(c => String(c.id) === catIdOrName || c.name.toLowerCase() === catIdOrName.toLowerCase()) || { name: catIdOrName, nameDisplay: catIdOrName };
-  }, [routerLocation.pathname]);
+  const handleSearchSubmit = useCallback((e) => {
+    if (e) e.preventDefault();
+    if (searchResults.length > 0) {
+      handleSearchResultClick(searchResults[0]);
+    }
+  }, [searchResults, handleSearchResultClick]);
 
   const activeScreenTitle = useMemo(() => {
     const path = routerLocation.pathname;
@@ -266,30 +278,86 @@ function AppShell() {
             </div>
 
             {/* Search Bar */}
+            {/* Search Bar */}
             {isSearchableScreen && (
-              <div className="relative mt-4">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search size={18} className="text-gray-400 dark:text-slate-550" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder='Search "milk", "bread"...'
-                  className="w-full pl-11 pr-10 py-3 bg-slate-100 dark:bg-slate-800/80 border border-transparent dark:border-slate-800 rounded-2xl focus:outline-none focus:bg-white dark:focus:bg-[#111724] focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm transition-all shadow-inner text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
-                />
-                {searchQuery && (
+              <div className="relative mt-4 flex flex-col sm:flex-row items-stretch gap-2.5">
+                {/* Category Dropdown */}
+                <div className="relative flex-shrink-0">
                   <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                    type="button"
+                    onClick={() => setShowCategoryDropdown(prev => !prev)}
+                    className="h-full w-full sm:w-auto flex items-center justify-between space-x-2 px-4 py-3 bg-slate-100 dark:bg-slate-800/80 border border-transparent dark:border-slate-800 rounded-2xl text-sm font-black text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 transition-all cursor-pointer min-w-[150px]"
                   >
-                    <X size={18} />
+                    <span className="truncate">
+                      {activeCategory ? (activeCategory.nameDisplay || activeCategory.name) : "All Categories"}
+                    </span>
+                    <ChevronDown size={16} className={`transition-transform duration-200 text-slate-500 ${showCategoryDropdown ? 'rotate-180' : ''}`} />
                   </button>
-                )}
+                  
+                  {showCategoryDropdown && (
+                    <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-[#111724] border border-gray-150 dark:border-slate-800 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800/60 animate-fade-in">
+                      <div
+                        onClick={() => {
+                          navigate("/home");
+                          setShowCategoryDropdown(false);
+                        }}
+                        className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer text-left text-xs font-bold text-slate-700 dark:text-slate-355"
+                      >
+                        All Categories
+                      </div>
+                      {CATEGORIES.map(cat => (
+                        <div
+                          key={cat.id}
+                          onClick={() => {
+                            handleCategoryClick(cat);
+                            setShowCategoryDropdown(false);
+                          }}
+                          className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer text-left text-xs font-bold text-slate-700 dark:text-slate-355"
+                        >
+                          {cat.nameDisplay || cat.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Input and Action Buttons Container */}
+                <form onSubmit={handleSearchSubmit} className="relative flex-1 flex items-stretch gap-2.5">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Search size={18} className="text-gray-400 dark:text-slate-550" />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={activeCategory ? `Search in ${activeCategory.nameDisplay || activeCategory.name}...` : 'Search "milk", "bread"...'}
+                      className="w-full pl-11 pr-10 py-3 bg-slate-100 dark:bg-slate-800/80 border border-transparent dark:border-slate-800 rounded-2xl focus:outline-none focus:bg-white dark:focus:bg-[#111724] focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm transition-all shadow-inner text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 h-full"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Search Button */}
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-sm rounded-2xl shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center space-x-1.5 flex-shrink-0"
+                  >
+                    <Search size={16} />
+                    <span>Search</span>
+                  </button>
+                </form>
 
                 {/* Predictive results dropdown list */}
                 {searchQuery && (
-                  <div className="absolute left-0 right-0 top-13 bg-white dark:bg-[#111724] border border-gray-150 dark:border-slate-800 rounded-3xl shadow-2xl z-50 max-h-60 overflow-y-auto animate-fade-in divide-y divide-gray-50 dark:divide-slate-800/60">
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#111724] border border-gray-150 dark:border-slate-800 rounded-3xl shadow-2xl z-50 max-h-60 overflow-y-auto animate-fade-in divide-y divide-gray-50 dark:divide-slate-800/60">
                     {searchResults.length > 0 ? (
                       searchResults.map(item => (
                         <div
@@ -299,7 +367,7 @@ function AppShell() {
                         >
                           <div>
                             <p className="text-sm font-extrabold text-slate-800 dark:text-slate-200">{item.itemName}</p>
-                            <p className="text-xs text-gray-400 dark:text-slate-400 font-semibold mt-0.5">Category: {item.itemCategory}</p>
+                            <p className="text-xs text-gray-400 dark:text-slate-450 font-semibold mt-0.5">Category: {item.itemCategory}</p>
                           </div>
                           <span className="text-sm font-black text-emerald-600 dark:text-emerald-500">
                             ₹{Math.floor(item.itemPrice * 75 / 100)}
