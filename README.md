@@ -4,6 +4,16 @@ GroCart is a premium, high-fidelity grocery delivery web dashboard built with Re
 
 ---
 
+## 🎥 Demo Video
+
+Below is a demonstration of GroCart's interface and key features:
+
+<video src="grocart-demo.mp4" width="100%" controls></video>
+
+
+
+---
+
 ## 🌟 Key Features
 
 * **Modern Grocery Shopping UI**: Beautiful layout with ivory/cream and soft gold design accents, optimized for both desktop sidebars and mobile bottombar controls.
