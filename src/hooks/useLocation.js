@@ -132,6 +132,19 @@ export const useLocation = () => {
     requestLocation();
   }, [requestLocation]);
 
+  useEffect(() => {
+    if (locationText && 
+        !locationText.includes("Fetching") && 
+        !locationText.includes("Disabled") && 
+        !locationText.includes("Unable") && 
+        !locationText.includes("Permission") &&
+        !locationText.includes("Required") &&
+        !locationText.includes("GPS")) {
+      localStorage.setItem("grocart_local_address", locationText);
+      window.dispatchEvent(new Event("storage"));
+    }
+  }, [locationText]);
+
   return {
     locationText,
     permissionGranted,

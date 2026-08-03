@@ -14,7 +14,8 @@ const initialState = {
   isLoading: false,
   authError: null,
   isEmailVerified: false,
-  savedAddress: localStorage.getItem("grocart_address") || ""
+  savedAddress: localStorage.getItem("grocart_address") || "",
+  localAddress: localStorage.getItem("grocart_local_address") || ""
 };
 
 // Async Thunks
@@ -90,11 +91,14 @@ export const resendVerificationThunk = createAsyncThunk(
 
 export const updateProfileThunk = createAsyncThunk(
   "auth/updateProfile",
-  async ({ name, address }, { rejectWithValue }) => {
+  async ({ name, address, localAddress }, { rejectWithValue }) => {
     try {
       await authUpdateProfile(name.trim());
       localStorage.setItem("grocart_address", address);
-      return { username: name.trim(), address };
+      if (localAddress !== undefined) {
+        localStorage.setItem("grocart_local_address", localAddress);
+      }
+      return { username: name.trim(), address, localAddress };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -222,6 +226,9 @@ const authSlice = createSlice({
           state.user.username = action.payload.username;
         }
         state.savedAddress = action.payload.address;
+        if (action.payload.localAddress !== undefined) {
+          state.localAddress = action.payload.localAddress;
+        }
       })
       .addCase(updateProfileThunk.rejected, (state, action) => {
         state.isLoading = false;

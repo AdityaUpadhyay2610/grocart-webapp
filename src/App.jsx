@@ -412,7 +412,7 @@ function AppShell() {
         )}
         {/* Main Route Content Area */}
         <main className="flex-1 w-full relative z-20 pointer-events-auto px-6 py-4 pb-28 md:pb-4">
-          <Outlet context={{ setSelectedProduct: setSelectedProductDetail }} />
+          <Outlet context={{ setSelectedProduct: setSelectedProductDetail, requestLocation, locationText }} />
         </main>
       </div>
 

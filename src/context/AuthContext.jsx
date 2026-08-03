@@ -35,9 +35,9 @@ export const useAuth = () => {
   const resendVerification = useCallback(() => dispatch(resendVerificationThunk()), [dispatch]);
   const startGuestSession = useCallback(() => dispatch(startGuestSessionAction()), [dispatch]);
   const endGuestSession = useCallback(() => dispatch(endGuestSessionAction()), [dispatch]);
-  const updateProfile = useCallback(async (name, address) => {
+  const updateProfile = useCallback(async (name, address, localAddress) => {
     try {
-      await dispatch(updateProfileThunk({ name, address })).unwrap();
+      await dispatch(updateProfileThunk({ name, address, localAddress })).unwrap();
       return { success: true };
     } catch (error) {
       return { success: false, error };

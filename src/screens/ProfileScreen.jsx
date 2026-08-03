@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../hooks/useOrders";
-import { User, Mail, MapPin, Loader2, Save, Award, ShoppingBag, CreditCard, Sparkles } from "lucide-react";
+import { User, Mail, MapPin, Loader2, Save, Award, ShoppingBag, CreditCard, Sparkles, Home, Briefcase, Trash2 } from "lucide-react";
+import { useOutletContext } from "react-router";
 
 const AVATARS = [
   { emoji: "🍎", label: "Apple", bgColor: "bg-red-50 dark:bg-red-950/20" },
@@ -15,12 +16,31 @@ const AVATARS = [
 ];
 
 export const ProfileScreen = React.memo(({ onNavigateBack }) => {
-  const { user, savedAddress, updateProfile, isLoading } = useAuth();
+  const { user, savedAddress, localAddress, updateProfile, isLoading } = useAuth();
   const { orders } = useOrders();
+  const { requestLocation, locationText } = useOutletContext() || {};
   
   const [name, setName] = useState(user?.username || "");
   const [email, setEmail] = useState(user?.email || "");
   const [address, setAddress] = useState(savedAddress || "");
+  const [localAddr, setLocalAddr] = useState(localAddress || "");
+  
+  // State for multiple saved locations
+  const [savedLocations, setSavedLocations] = useState(() => {
+    try {
+      const stored = localStorage.getItem("grocart_saved_locations");
+      return stored ? JSON.parse(stored) : [
+        { id: "1", label: "Home", address: savedAddress || "" }
+      ].filter(l => l.address);
+    } catch {
+      return [];
+    }
+  });
+
+  // State for new address form
+  const [newLabelType, setNewLabelType] = useState("Home"); // "Home" | "Office" | "Other"
+  const [newCustomLabel, setNewCustomLabel] = useState("");
+  const [newAddressText, setNewAddressText] = useState("");
   
   // Avatar selection state (persisted locally)
   const [selectedAvatar, setSelectedAvatar] = useState(() => {
@@ -40,6 +60,41 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
     setAddress(savedAddress || "");
   }, [savedAddress]);
 
+  useEffect(() => {
+    setLocalAddr(localAddress || localStorage.getItem("grocart_local_address") || "");
+  }, [localAddress]);
+
+  // Sync geocoded location changes from app shell mapping
+  useEffect(() => {
+    if (locationText && 
+        !locationText.includes("Fetching") && 
+        !locationText.includes("Disabled") && 
+        !locationText.includes("Unable") && 
+        !locationText.includes("Permission") &&
+        !locationText.includes("Required") &&
+        !locationText.includes("GPS")) {
+      setLocalAddr(locationText);
+    }
+  }, [locationText]);
+
+  // Sync changes in savedLocations to localStorage
+  useEffect(() => {
+    localStorage.setItem("grocart_saved_locations", JSON.stringify(savedLocations));
+  }, [savedLocations]);
+
+  // Sync background storage updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setLocalAddr(localStorage.getItem("grocart_local_address") || "");
+      try {
+        const stored = localStorage.getItem("grocart_saved_locations");
+        if (stored) setSavedLocations(JSON.parse(stored));
+      } catch (e) {}
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const handleSave = useCallback(async (e) => {
     e.preventDefault();
     if (name.trim() === "" || address.trim() === "") {
@@ -47,7 +102,7 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
       return;
     }
 
-    const { success, error } = await updateProfile(name, address);
+    const { success, error } = await updateProfile(name, address, localAddr);
     if (success) {
       localStorage.setItem("grocart_avatar", selectedAvatar);
       // Trigger local storage event to update other components
@@ -57,7 +112,34 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
     } else {
       alert(`Save failed: ${error}`);
     }
-  }, [name, address, selectedAvatar, updateProfile, onNavigateBack]);
+  }, [name, address, localAddr, selectedAvatar, updateProfile, onNavigateBack]);
+
+  const handleAddLocation = (e) => {
+    e.preventDefault();
+    const label = newLabelType === "Other" ? (newCustomLabel.trim() || "Other") : newLabelType;
+    if (newAddressText.trim() === "") {
+      alert("Address text is required!");
+      return;
+    }
+    const newLoc = {
+      id: Date.now().toString(),
+      label,
+      address: newAddressText.trim()
+    };
+    setSavedLocations(prev => [...prev, newLoc]);
+    setNewAddressText("");
+    setNewCustomLabel("");
+    alert("Location added successfully!");
+  };
+
+  const handleDeleteLocation = (id) => {
+    setSavedLocations(prev => prev.filter(l => l.id !== id));
+  };
+
+  const handleSetDefaultAddress = (addressText) => {
+    setAddress(addressText);
+    alert("Set as default delivery address!");
+  };
 
   // Shopping Stats computations
   const totalOrders = orders.length;
@@ -66,10 +148,41 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
   }, [orders]);
 
   const memberTier = useMemo(() => {
-    if (totalOrders >= 5) return { name: "Gold Member", color: "text-amber-500", cardGradient: "from-primary-600 via-teal-700 to-amber-500" };
-    if (totalOrders >= 2) return { name: "Silver Member", color: "text-slate-400", cardGradient: "from-slate-700 via-slate-800 to-primary-600" };
-    return { name: "Club Member", color: "text-primary-500", cardGradient: "from-primary-700 via-teal-800 to-primary-600" };
-  }, [totalOrders]);
+    if (totalOrders >= 10 && totalSpent >= 2500) {
+      return {
+        name: "VIP Elite Member",
+        color: "text-pink-400",
+        cardGradient: "from-rose-600 via-pink-700 to-purple-600",
+        benefits: "Free Instant Delivery • 10% Extra Cashback • VIP Support",
+        badge: "VIP ELITE"
+      };
+    }
+    if (totalOrders >= 4 || totalSpent >= 1000) {
+      return {
+        name: "Gold Member",
+        color: "text-amber-400",
+        cardGradient: "from-amber-600 via-yellow-500 to-amber-400",
+        benefits: "Free Express Delivery • 5% Extra Cashback • Priority Support",
+        badge: "GOLD"
+      };
+    }
+    if (totalOrders >= 1 || totalSpent >= 300) {
+      return {
+        name: "Premium Member",
+        color: "text-indigo-400",
+        cardGradient: "from-blue-600 via-indigo-600 to-teal-500",
+        benefits: "Free Delivery on Orders > ₹299 • Premium Perks",
+        badge: "PREMIUM"
+      };
+    }
+    return {
+      name: "Club Member",
+      color: "text-slate-400",
+      cardGradient: "from-slate-600 to-slate-800",
+      benefits: "Free Delivery on Orders > ₹499",
+      badge: "BASIC"
+    };
+  }, [totalOrders, totalSpent]);
 
   const memberId = useMemo(() => {
     if (!user?.id) return "GC-0000-0000";
@@ -80,13 +193,13 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
   }, [user]);
 
   return (
-    <div className="flex flex-col pb-28 select-none w-full max-w-4xl mx-auto min-h-screen bg-transparent relative px-4 gap-6 text-left">
+    <div className="flex flex-col pb-28 select-none w-full max-w-7xl mx-auto min-h-screen bg-transparent relative px-4 gap-6 text-left">
       
       {/* 2-Column Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-4">
         
         {/* Left Column: Avatar, Card & Stats */}
-        <div className="lg:col-span-5 space-y-6 flex flex-col">
+        <div className="lg:col-span-4 space-y-6 flex flex-col">
           
           {/* Visual Avatar Card */}
           <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 text-center shadow-sm dark:shadow-none relative flex flex-col items-center overflow-hidden">
@@ -167,7 +280,7 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
             {/* Bottom Row: Name & Barcode */}
             <div className="flex justify-between items-end z-10">
               <div className="text-left max-w-[65%]">
-                <p className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Club Member</p>
+                <p className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">{memberTier.benefits}</p>
                 <h5 className="text-sm font-black truncate mt-0.5 tracking-wide text-white">
                   {(name || "User").toUpperCase()}
                 </h5>
@@ -190,7 +303,7 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
                   <div className="w-[2px] bg-slate-900 mr-[2px]"></div>
                   <div className="w-[1px] bg-slate-900"></div>
                 </div>
-                <span className="text-[7px] font-mono tracking-widest mt-0.5 text-white/70">MEMBER GOLD</span>
+                <span className="text-[7px] font-mono tracking-widest mt-0.5 text-white/70">MEMBER {memberTier.badge}</span>
               </div>
             </div>
           </div>
@@ -220,8 +333,8 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
 
         </div>
 
-        {/* Right Column: Edit Account & Address Form */}
-        <div className="lg:col-span-7">
+        {/* Middle Column: Edit Account & Address Form */}
+        <div className="lg:col-span-4">
           <form 
             onSubmit={handleSave}
             className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-none space-y-6 text-left relative overflow-hidden"
@@ -280,7 +393,7 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
 
               {/* Delivery Address */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Delivery Address</label>
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-550 uppercase tracking-wider">Delivery Address</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 pt-3.5 flex items-start pointer-events-none">
                     <MapPin size={16} className="text-slate-400 dark:text-slate-600" />
@@ -295,6 +408,36 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
                   />
                 </div>
               </div>
+
+              {/* Local Address (Auto-saved via GPS Mapping) */}
+              <div className="space-y-1.5 text-left">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Local Address (Auto-saved)</label>
+                  {requestLocation && (
+                    <button
+                      type="button"
+                      onClick={requestLocation}
+                      className="text-[9px] font-black text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 bg-primary-50 dark:bg-primary-950/20 hover:bg-primary-100 dark:hover:bg-primary-900/35 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center space-x-1"
+                    >
+                      <MapPin size={10} />
+                      <span>Detect Location</span>
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 pt-3.5 flex items-start pointer-events-none">
+                    <MapPin size={16} className="text-slate-400 dark:text-slate-600" />
+                  </div>
+                  <textarea
+                    value={localAddr}
+                    onChange={(e) => setLocalAddr(e.target.value)}
+                    placeholder="Fetch coordinates/local address or enter here..."
+                    rows={2}
+                    className="block w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all shadow-inner placeholder-slate-400 dark:placeholder-slate-600 resize-none"
+                  />
+                </div>
+              </div>
+
             </div>
 
             {/* Action Row */}
@@ -326,6 +469,157 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
             </div>
 
           </form>
+        </div>
+
+        {/* Right Column: Multiple Saved Locations Card */}
+        <div className="lg:col-span-4">
+          <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-none space-y-6 text-left relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 to-indigo-600" />
+            
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/20 flex items-center justify-center text-primary-500 animate-pulse">
+                <MapPin size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-800 dark:text-slate-200">My Saved Locations</h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-0.5">Manage multiple addresses like Home, Office, etc.</p>
+              </div>
+            </div>
+
+            <hr className="border-slate-100 dark:border-slate-800/60" />
+
+            {/* List of Saved Locations */}
+            <div className="space-y-3">
+              {savedLocations.length > 0 ? (
+                savedLocations.map((loc) => {
+                  const isDefault = address.trim() === loc.address.trim();
+                  return (
+                    <div 
+                      key={loc.id} 
+                      className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
+                        isDefault 
+                          ? "bg-primary-50/30 dark:bg-primary-950/5 border-primary-200 dark:border-primary-900/40" 
+                          : "bg-slate-50/50 dark:bg-slate-900/30 border-slate-150 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-900/60"
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3 text-left flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-100 dark:border-slate-700/50 mt-0.5 shrink-0">
+                          {loc.label.toLowerCase() === "home" ? (
+                            <Home size={16} className="text-primary-500" />
+                          ) : loc.label.toLowerCase() === "office" ? (
+                            <Briefcase size={16} className="text-accent-500" />
+                          ) : (
+                            <MapPin size={16} className="text-slate-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">{loc.label}</span>
+                            {isDefault && (
+                              <span className="text-[8px] font-black tracking-widest text-primary-600 bg-primary-100 dark:bg-primary-950/40 px-1.5 py-0.5 rounded-full uppercase">Default</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold break-words leading-relaxed">{loc.address}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 shrink-0">
+                        {!isDefault && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetDefaultAddress(loc.address)}
+                            className="text-[10px] font-black text-primary-500 hover:text-white hover:bg-primary-500 border border-primary-200 dark:border-primary-900/40 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
+                          >
+                            Set Default
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLocation(loc.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer"
+                          title="Delete Location"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 font-bold">No additional addresses saved yet.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Form to Add New Location */}
+            <form onSubmit={handleAddLocation} className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+              <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Add New Location</h4>
+              
+              <div className="space-y-1.5 text-left">
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Location Tag / Label</label>
+                <div className="flex flex-wrap gap-2">
+                  {["Home", "Office", "Other"].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setNewLabelType(type)}
+                      className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+                        newLabelType === type
+                          ? "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm"
+                          : "bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-900"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {newLabelType === "Other" && (
+                <div className="space-y-1.5 text-left animate-fade-in">
+                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Custom Label</label>
+                  <input
+                    type="text"
+                    value={newCustomLabel}
+                    onChange={(e) => setNewCustomLabel(e.target.value)}
+                    placeholder="e.g. Gym, Parent's House"
+                    className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all placeholder-slate-400 dark:placeholder-slate-600"
+                    required={newLabelType === "Other"}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5 text-left">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Address details</label>
+                  {localAddr && (
+                    <button
+                      type="button"
+                      onClick={() => setNewAddressText(localAddr)}
+                      className="text-[9px] font-black text-primary-500 hover:underline transition-all cursor-pointer flex items-center space-x-0.5"
+                    >
+                      <span>Use Local Address</span>
+                    </button>
+                  )}
+                </div>
+                <textarea
+                  value={newAddressText}
+                  onChange={(e) => setNewAddressText(e.target.value)}
+                  placeholder="Enter detailed address..."
+                  rows={2}
+                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all placeholder-slate-400 dark:placeholder-slate-600 resize-none"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-100 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-black text-xs rounded-xl shadow-sm transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-1.5"
+              >
+                <span>Add Address</span>
+              </button>
+            </form>
+          </div>
         </div>
 
       </div>
