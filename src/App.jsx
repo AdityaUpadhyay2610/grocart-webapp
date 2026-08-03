@@ -72,6 +72,20 @@ function PublicRoute({ children }) {
   return children;
 }
 
+const getThemeClassFromEmoji = (emoji) => {
+  switch (emoji) {
+    case "🍎": return "theme-apple";
+    case "🥑": return "theme-avocado";
+    case "🍪": return "theme-cookie";
+    case "🥛": return "theme-milk";
+    case "☕": return "theme-coffee";
+    case "🍉": return "theme-watermelon";
+    case "🧁": return "theme-cupcake";
+    case "🍕": return "theme-pizza";
+    default: return "theme-avocado";
+  }
+};
+
 function AppShell() {
   const { user, logout } = useAuth();
   const { showPaymentScreen } = useCart();
@@ -100,6 +114,17 @@ function AppShell() {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  // Sync avatar theme class
+  useEffect(() => {
+    const themeClasses = [
+      "theme-apple", "theme-avocado", "theme-cookie", "theme-milk",
+      "theme-coffee", "theme-watermelon", "theme-cupcake", "theme-pizza"
+    ];
+    document.documentElement.classList.remove(...themeClasses);
+    const newThemeClass = getThemeClassFromEmoji(avatarEmoji);
+    document.documentElement.classList.add(newThemeClass);
+  }, [avatarEmoji]);
 
   // Sync dark mode class
   useEffect(() => {

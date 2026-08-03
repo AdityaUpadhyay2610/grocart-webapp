@@ -238,6 +238,8 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
                       type="button"
                       onClick={() => {
                         setSelectedAvatar(av.emoji);
+                        localStorage.setItem("grocart_avatar", av.emoji);
+                        window.dispatchEvent(new Event("storage"));
                         setShowAvatarPicker(false);
                       }}
                       className={`h-11 rounded-2xl flex items-center justify-center text-2xl transition-all hover:scale-110 cursor-pointer ${av.bgColor} ${

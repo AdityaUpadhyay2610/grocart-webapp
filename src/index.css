@@ -83,3 +83,139 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Dynamic Avatar-based Themes */
+:root {
+  /* Default theme is avocado (green) */
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
+}
+
+/* 🍎 Apple: Red Theme */
+.theme-apple {
+  --color-primary-50: #fef2f2;
+  --color-primary-100: #fee2e2;
+  --color-primary-200: #fecaca;
+  --color-primary-300: #fca5a5;
+  --color-primary-400: #f87171;
+  --color-primary-500: #ef4444;
+  --color-primary-600: #dc2626;
+  --color-primary-700: #b91c1c;
+  --color-primary-800: #991b1b;
+  --color-primary-900: #7f1d1d;
+  --color-primary-950: #450a0a;
+}
+
+/* 🥑 Avocado: Emerald Green Theme (standard) */
+.theme-avocado {
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
+}
+
+/* 🍪 Cookie: Warm Amber/Cookie Theme */
+.theme-cookie {
+  --color-primary-50: #fffbeb;
+  --color-primary-100: #fef3c7;
+  --color-primary-200: #fde68a;
+  --color-primary-300: #fcd34d;
+  --color-primary-400: #fbbf24;
+  --color-primary-500: #d97706;
+  --color-primary-600: #b45309;
+  --color-primary-700: #92400e;
+  --color-primary-800: #78350f;
+  --color-primary-900: #451a03;
+  --color-primary-950: #301103;
+}
+
+/* 🥛 Milk: Sky Blue Theme */
+.theme-milk {
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0284c7;
+  --color-primary-600: #0369a1;
+  --color-primary-700: #075985;
+  --color-primary-800: #0c4a6e;
+  --color-primary-900: #0a3d62;
+  --color-primary-950: #031b2f;
+}
+
+/* ☕ Coffee: Espresso/Stone Neutral Theme */
+.theme-coffee {
+  --color-primary-50: #fafaf9;
+  --color-primary-100: #f5f5f4;
+  --color-primary-200: #e7e5e4;
+  --color-primary-300: #d6d3d1;
+  --color-primary-400: #a8a29e;
+  --color-primary-500: #78716c;
+  --color-primary-600: #57534e;
+  --color-primary-700: #44403c;
+  --color-primary-800: #292524;
+  --color-primary-900: #1c1917;
+  --color-primary-950: #0c0a09;
+}
+
+/* 🍉 Watermelon: Rose/Watermelon Pink Theme */
+.theme-watermelon {
+  --color-primary-50: #fff1f2;
+  --color-primary-100: #ffe4e6;
+  --color-primary-200: #fecdd3;
+  --color-primary-300: #fda4af;
+  --color-primary-400: #fb7185;
+  --color-primary-500: #f43f5e;
+  --color-primary-600: #e11d48;
+  --color-primary-700: #be123c;
+  --color-primary-800: #9f1239;
+  --color-primary-900: #881337;
+  --color-primary-950: #4c0519;
+}
+
+/* 🧁 Cupcake: Pink/Fuchsia Dessert Theme */
+.theme-cupcake {
+  --color-primary-50: #fdf2f8;
+  --color-primary-100: #fce7f3;
+  --color-primary-200: #fbcfe8;
+  --color-primary-300: #f9a8d4;
+  --color-primary-400: #f472b6;
+  --color-primary-500: #db2777;
+  --color-primary-600: #c2185b;
+  --color-primary-700: #9d174d;
+  --color-primary-800: #831843;
+  --color-primary-900: #500724;
+  --color-primary-950: #300315;
+}
+
+/* 🍕 Pizza: Orange Theme */
+.theme-pizza {
+  --color-primary-50: #fff7ed;
+  --color-primary-100: #ffedd5;
+  --color-primary-200: #fed7aa;
+  --color-primary-300: #fdba74;
+  --color-primary-400: #fb923c;
+  --color-primary-500: #f97316;
+  --color-primary-600: #ea580c;
+  --color-primary-700: #c2410c;
+  --color-primary-800: #9a3412;
+  --color-primary-900: #7c2d12;
+  --color-primary-950: #431407;
+}
