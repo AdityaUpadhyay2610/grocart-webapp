@@ -7,25 +7,40 @@ export const CATEGORIES = [
   { id: 6, name: "Kitchen Essentials", image: "/kitchen.webp", bgColor: "#F1F8E9", accentColor: "#7CB342" },
   { id: 7, name: "Munchies", image: "/munchies.webp", bgColor: "#FFF8E1", accentColor: "#FFB300" },
   { id: 8, name: "Packed Food", image: "/packaged.webp", bgColor: "#E0F7FA", accentColor: "#00ACC1" },
-  { id: 9, name: "choclates\n", nameDisplay: "Chocolates", image: "/chocolates.webp", bgColor: "#FBE9E7", accentColor: "#E64A19" },
+  { id: 9, name: "Chocolates", image: "/chocolates.webp", bgColor: "#FBE9E7", accentColor: "#E64A19" },
   { id: 10, name: "Fresh Vegetables", image: "/vegetables.webp", bgColor: "#E8F5E9", accentColor: "#2E7D32" },
   { id: 11, name: "Cleaning Essentials", image: "/clean.webp", bgColor: "#EDE7F6", accentColor: "#512DA8" },
   { id: 12, name: "Stationery", image: "/stationary.webp", bgColor: "#FFF9C4", accentColor: "#F9A825" },
-  { id: 13, name: "Pet Food", image: "/pet_food.webp", bgColor: "#FFECB3", accentColor: "#FFFF6F00" },
-  { id: 14, name: "dairy\n", nameDisplay: "Dairy & Eggs", image: "/dairy.webp", bgColor: "#E8F5E9", accentColor: "#2E7D32" },
+  { id: 13, name: "Pet Supplies", image: "/pet_food.webp", bgColor: "#FFECB3", accentColor: "#FF6F00" },
+  { id: 14, name: "Dairy", nameDisplay: "Dairy & Eggs", image: "/dairy.webp", bgColor: "#E8F5E9", accentColor: "#2E7D32" },
   { id: 15, name: "Frozen Food", image: "/deserts.webp", bgColor: "#FFF3E0", accentColor: "#F57C00" },
   { id: 16, name: "Pharmacy", image: "/pharmacy.webp", bgColor: "#E3F2FD", accentColor: "#1E88E5" },
   { id: 17, name: "Breakfast & Cereals", image: "/breakfast.webp", bgColor: "#FCE4EC", accentColor: "#E91E63" },
   { id: 18, name: "Home Care", image: "/decore.webp", bgColor: "#F1F8E9", accentColor: "#7CB342" },
   { id: 19, name: "Men's Clothing", image: "https://cdn-icons-png.flaticon.com/512/3050/3050229.png", bgColor: "#E3F2FD", accentColor: "#1E88E5" },
-  { id: 20, name: "Women's Clothing", image: "https://cdn-icons-png.flaticon.com/512/3050/3050229.png", bgColor: "#FCE4EC", accentColor: "#E91E63" },
-{id:21, name: "Electronics", image: "https://cdn-icons-png.flaticon.com/512/2777/2777142.png", bgColor: "#E3F2FD", accentColor: "#1E88E5"},
-{id:22,name: "Jwellery",image:"https://www.flaticon.com/free-icon/set_15896951?term=jewellery+set&page=1&position=3&origin=search&related_id=15896951",bgColor: "#E3F2FD", accentColor: "#1E88E5"}
+  { id: 20, name: "Women's Clothing", image: "https://cdn-icons-png.flaticon.com/512/3050/3050244.png", bgColor: "#FCE4EC", accentColor: "#E91E63" },
+  { id: 21, name: "Electronics", image: "https://cdn-icons-png.flaticon.com/512/2777/2777142.png", bgColor: "#E3F2FD", accentColor: "#1E88E5" },
+  { id: 22, name: "Jewelery", nameDisplay: "Jewelry", image: "https://cdn-icons-png.flaticon.com/512/3081/3081648.png", bgColor: "#E3F2FD", accentColor: "#1E88E5" },
+  { id: 23, name: "Beauty", image: "https://cdn-icons-png.flaticon.com/512/3120/3120531.png", bgColor: "#FCE4EC", accentColor: "#E91E63" },
+  { id: 24, name: "Fragrances", image: "https://cdn-icons-png.flaticon.com/512/3120/3120616.png", bgColor: "#F3E5F5", accentColor: "#8E24AA" },
+  { id: 25, name: "Furniture", image: "https://cdn-icons-png.flaticon.com/512/2635/2635445.png", bgColor: "#EFEBE9", accentColor: "#6D4C41" },
+  { id: 26, name: "Meat", image: "https://cdn-icons-png.flaticon.com/512/1046/1046774.png", bgColor: "#FFEBEE", accentColor: "#C62828" },
+  { id: 27, name: "Seafood", image: "https://cdn-icons-png.flaticon.com/512/2347/2347311.png", bgColor: "#E0F7FA", accentColor: "#00838F" }
 ];
 
 export const matchCategory = (itemCategory, selectedCategory) => {
   if (!itemCategory || !selectedCategory) return false;
   const dbCat = itemCategory.trim().toLowerCase();
   const uiCat = selectedCategory.trim().toLowerCase();
-  return dbCat === uiCat || uiCat.includes(dbCat) || dbCat.includes(uiCat);
+  
+  if (dbCat === uiCat) return true;
+
+  // Prevent incorrect partial matches between Men's and Women's categories
+  const isMen = (str) => str.includes("men") && !str.includes("women");
+  const isWomen = (str) => str.includes("women");
+  if ((isMen(dbCat) && isWomen(uiCat)) || (isWomen(dbCat) && isMen(uiCat))) {
+    return false;
+  }
+
+  return uiCat.includes(dbCat) || dbCat.includes(uiCat);
 };

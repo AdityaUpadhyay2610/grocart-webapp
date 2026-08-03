@@ -1,11 +1,12 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { useParams } from "react-router";
+import { useParams, useOutletContext } from "react-router";
 import { useCart } from "../context/CartContext";
 import { matchCategory, CATEGORIES } from "../models/Categories";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, ShieldCheck } from "lucide-react";
 
 export const ProductsScreen = React.memo(({ category: propCategory, products }) => {
   const { cartItems, addToCart, decreaseCartItem, triggerAddToCartAnimation } = useCart();
+  const { setSelectedProduct } = useOutletContext();
   const [flyingItems, setFlyingItems] = useState([]);
   const { categoryId } = useParams();
 
@@ -52,14 +53,20 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
   }, [addToCart, triggerAddToCartAnimation]);
 
   return (
-    <div className="flex flex-col pb-28 select-none w-full max-w-7xl mx-auto min-h-screen bg-transparent relative px-4">
+    <div className="flex flex-col pb-28 select-none w-full max-w-7xl mx-auto min-h-screen bg-transparent relative px-4 animate-fade-in">
+      
       {/* Category Header */}
-      <div className="flex justify-between items-center py-5 border-b border-gray-150 dark:border-slate-800/80">
-        <h2 className="text-2xl font-black text-slate-850 dark:text-slate-100 tracking-tight">
-          {categoryName}
-        </h2>
-        <span className="text-sm font-bold text-gray-400 dark:text-slate-400">
-          {filteredProducts.length} items available
+      <div className="flex justify-between items-end py-6 border-b border-slate-100 dark:border-slate-800/40">
+        <div className="text-left">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            {categoryName}
+          </h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-1">
+            Carefully sourced premium {categoryName.toLowerCase()} products
+          </p>
+        </div>
+        <span className="text-xs font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-transparent dark:border-slate-850">
+          {filteredProducts.length} items
         </span>
       </div>
 
@@ -75,46 +82,52 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
             return (
               <div 
                 key={item.id}
-                className="bg-white dark:bg-[#111724] border border-gray-100 dark:border-slate-800/80 rounded-3xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none transition-all relative"
+                onClick={() => setSelectedProduct(item)}
+                className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none transition-all cursor-pointer hover:scale-[1.02] active:scale-98 relative group"
               >
-                <div className="flex justify-center mb-3">
+                {/* Floating Off percentage tag */}
+                <div className="absolute top-3 left-3 bg-accent-50 dark:bg-accent-950/40 text-accent-600 dark:text-accent-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-accent-100/10">
+                  25% OFF
+                </div>
+
+                <div className="flex justify-center mb-3 mt-2 overflow-hidden rounded-2xl">
                   <img 
                     src={item.imageUrl} 
                     alt={item.itemName} 
-                    className="w-32 h-32 object-cover rounded-2xl"
-                    onError={(e) => { e.target.src = "https://placehold.co/100x100/f1f5f9/7c3aed?text=Product"; }}
+                    className="w-32 h-32 object-cover rounded-2xl group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => { e.target.src = "https://placehold.co/120x120/f1f5f9/10b981?text=Fresh+Cart"; }}
                   />
                 </div>
                 <div className="flex flex-col flex-1 justify-between text-center">
                   <div>
-                    <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 line-clamp-2 leading-tight min-h-[40px]">
+                    <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 line-clamp-2 leading-tight min-h-[40px] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {item.itemName}
                     </h4>
-                    <p className="text-xs text-gray-400 dark:text-slate-450 mt-1 font-semibold">{item.itemQuantity}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-bold">{item.itemQuantity}</p>
                   </div>
 
-                  <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-50 dark:border-slate-800/60">
+                  <div className="flex justify-between items-center mt-5 pt-3 border-t border-slate-50 dark:border-slate-800/40">
                     <div className="flex flex-col items-start">
-                      <span className="text-[10px] text-gray-400 dark:text-slate-500 line-through">
+                      <span className="text-[10px] text-slate-400 line-through">
                         ₹{originalPrice}
                       </span>
-                      <span className="text-base font-black text-violet-600 dark:text-violet-400">
+                      <span className="text-base font-black text-slate-850 dark:text-white">
                         ₹{discountedPrice}
                       </span>
                     </div>
                     
                     {quantity > 0 ? (
-                      <div className="flex items-center space-x-2.5 bg-gray-50 dark:bg-slate-850 border border-gray-150 dark:border-slate-800 rounded-xl px-2 py-1">
+                      <div className="flex items-center space-x-2 bg-primary-50 dark:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-xl px-1.5 py-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             decreaseCartItem(cartItem);
                           }}
-                          className="w-6 h-6 rounded-lg bg-white dark:bg-[#151C2C] flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                          className="w-5.5 h-5.5 rounded-lg bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
                         >
-                          <Minus size={12} />
+                          <Minus size={11} />
                         </button>
-                        <span className="text-xs font-black text-slate-700 dark:text-slate-300 min-w-[12px] text-center">
+                        <span className="text-xs font-black text-slate-700 dark:text-slate-200 min-w-[12px] text-center">
                           {quantity}
                         </span>
                         <button
@@ -122,15 +135,15 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
                             e.stopPropagation();
                             addToCart(item);
                           }}
-                          className="w-6 h-6 rounded-lg bg-white dark:bg-[#151C2C] flex items-center justify-center text-violet-600 dark:text-violet-400 shadow-sm border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                          className="w-5.5 h-5.5 rounded-lg bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
                         >
-                          <Plus size={12} />
+                          <Plus size={11} />
                         </button>
                       </div>
                     ) : (
                       <button
                         onClick={(e) => handleAddClick(e, item)}
-                        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-violet-200 transition-all active:scale-95 cursor-pointer"
+                        className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                       >
                         ADD
                       </button>
@@ -145,7 +158,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <img src="/empty_box.webp" alt="No items" className="w-40 h-40 object-contain opacity-50" />
-          <p className="text-gray-400 font-medium mt-4">No items available in this category</p>
+          <p className="text-slate-400 font-medium mt-4">No items available in this category</p>
         </div>
       )}
 
@@ -164,7 +177,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
           <img 
             src={fly.imageUrl} 
             alt="flying" 
-            className="w-12 h-12 object-cover rounded-full border border-cyan-200 shadow-lg bg-white"
+            className="w-12 h-12 object-cover rounded-full border-2 border-primary-500 shadow-lg bg-white"
           />
         </div>
       ))}
@@ -194,4 +207,3 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
 });
 
 ProductsScreen.displayName = "ProductsScreen";
-

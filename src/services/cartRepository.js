@@ -4,6 +4,25 @@ import { CartItem } from "../models/CartItem";
 
 export const fetchCart = async (userId) => {
   if (!userId) return [];
+  if (userId === "guest_user") {
+    try {
+      const localData = localStorage.getItem("grocart_guest_cart");
+      if (!localData) return [];
+      const list = JSON.parse(localData);
+      return list
+        .filter(item => item !== null && item !== undefined)
+        .map(item => new CartItem({
+          id: item.id || 0,
+          itemName: item.itemName || "",
+          itemPrice: Number(item.itemPrice) || 0,
+          imageUrl: item.imageUrl || "",
+          quantity: Number(item.quantity) || 1
+        }));
+    } catch (e) {
+      console.error("Failed to fetch guest cart from local storage:", e);
+      return [];
+    }
+  }
   try {
     const cartRef = ref(database, `carts/${userId}`);
     const snapshot = await get(cartRef);
@@ -31,6 +50,23 @@ export const fetchCart = async (userId) => {
 
 export const saveCartItem = async (userId, cartItem) => {
   if (!userId || !cartItem) return;
+  if (userId === "guest_user") {
+    try {
+      const localData = localStorage.getItem("grocart_guest_cart");
+      let list = localData ? JSON.parse(localData) : [];
+      const idx = list.findIndex(item => item.id === cartItem.id);
+      if (idx > -1) {
+        list[idx] = cartItem;
+      } else {
+        list.push(cartItem);
+      }
+      localStorage.setItem("grocart_guest_cart", JSON.stringify(list));
+      return;
+    } catch (e) {
+      console.error("Failed to save guest cart item in local storage:", e);
+      throw e;
+    }
+  }
   try {
     const itemRef = ref(database, `carts/${userId}/${cartItem.id}`);
     await set(itemRef, {
@@ -48,6 +84,19 @@ export const saveCartItem = async (userId, cartItem) => {
 
 export const removeCartItem = async (userId, itemId) => {
   if (!userId || !itemId) return;
+  if (userId === "guest_user") {
+    try {
+      const localData = localStorage.getItem("grocart_guest_cart");
+      if (!localData) return;
+      let list = JSON.parse(localData);
+      list = list.filter(item => item.id !== itemId);
+      localStorage.setItem("grocart_guest_cart", JSON.stringify(list));
+      return;
+    } catch (e) {
+      console.error("Failed to remove guest cart item from local storage:", e);
+      throw e;
+    }
+  }
   try {
     const itemRef = ref(database, `carts/${userId}/${itemId}`);
     await remove(itemRef);
@@ -59,6 +108,10 @@ export const removeCartItem = async (userId, itemId) => {
 
 export const clearCart = async (userId) => {
   if (!userId) return;
+  if (userId === "guest_user") {
+    localStorage.removeItem("grocart_guest_cart");
+    return;
+  }
   try {
     const cartRef = ref(database, `carts/${userId}`);
     await remove(cartRef);

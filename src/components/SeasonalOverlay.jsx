@@ -30,26 +30,56 @@ const getCurrentSeason = () => {
   }
 };
 
-export const getSeasonalGradientClass = () => {
-  const season = getCurrentSeason();
-  switch (season) {
-    case Season.SPRING:
-      return "bg-gradient-to-b from-[#FDF2F8] to-[#FCE7F3]"; // Soft pinks
-    case Season.SUMMER:
-      return "bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7]"; // Warm yellows
-    case Season.MONSOON:
-      return "bg-gradient-to-b from-[#F1F5F9] to-[#E2E8F0]"; // Rainy slate/blue
-    case Season.AUTUMN:
-      return "bg-gradient-to-b from-[#FFF7ED] to-[#FFFFEDD5]"; // Orange/peach
-    case Season.WINTER:
-    default:
-      return "bg-gradient-to-b from-[#F0FDF4] to-[#E0F2FE]"; // Icy mint/blue
+export const getSeasonFromWeather = (weather) => {
+  if (!weather || weather.temperature === null) {
+    return getCurrentSeason();
+  }
+
+  const temp = weather.temperature;
+
+  // 1. Monsoon: if it is raining
+  if (weather.isRaining) {
+    return Season.MONSOON;
+  }
+
+  // 2. Winter: if it is snowing or temperature is very cold
+  if (weather.isSnowing || temp < 15) {
+    return Season.WINTER;
+  }
+
+  // 3. Summer: if it is warm/hot
+  if (temp >= 28) {
+    return Season.SUMMER;
+  }
+
+  // 4. Mild (15 to 27): Fallback to month-based calculation to distinguish between Spring and Autumn
+  const month = new Date().getMonth();
+  if (month >= 1 && month <= 5) {
+    return Season.SPRING;
+  } else {
+    return Season.AUTUMN;
   }
 };
 
-export const SeasonalOverlay = ({ categoryName = "" }) => {
+export const getSeasonalGradientClass = (season = getCurrentSeason()) => {
+  switch (season) {
+    case Season.SPRING:
+      return "bg-gradient-to-b from-[#FDF2F8] to-[#FCE7F3] dark:from-[#1E1120] dark:to-[#2D1630]"; // Soft pinks / Deep plum
+    case Season.SUMMER:
+      return "bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7] dark:from-[#1C160C] dark:to-[#2D1E0A]"; // Warm yellows / Deep warm amber
+    case Season.MONSOON:
+      return "bg-gradient-to-b from-[#F1F5F9] to-[#E2E8F0] dark:from-[#0F172A] dark:to-[#1E293B]"; // Slate/blue / Slate/indigo
+    case Season.AUTUMN:
+      return "bg-gradient-to-b from-[#FFF7ED] to-[#FFFFEDD5] dark:from-[#1F140E] dark:to-[#331C0E]"; // Orange/peach / Deep burnt orange
+    case Season.WINTER:
+    default:
+      return "bg-gradient-to-b from-[#F0FDF4] to-[#E0F2FE] dark:from-[#0B1528] dark:to-[#0F2042]"; // Icy mint/blue / Deep icy blue
+  }
+};
+
+export const SeasonalOverlay = ({ categoryName = "", weather = null }) => {
   const canvasRef = useRef(null);
-  const season = useMemo(() => getCurrentSeason(), []);
+  const season = useMemo(() => getSeasonFromWeather(weather), [weather]);
   
   const isFreezing = useMemo(() => {
     return season === Season.SUMMER && 
@@ -72,12 +102,14 @@ export const SeasonalOverlay = ({ categoryName = "" }) => {
     handleResize();
     window.addEventListener("resize", handleResize);
 
+    const isExtremeHeat = season === Season.SUMMER && weather?.temperature >= 35;
+
     const particleCount = isFreezing ? 40 : {
       [Season.WINTER]: 35,
       [Season.SPRING]: 18,
       [Season.MONSOON]: 45,
       [Season.AUTUMN]: 18,
-      [Season.SUMMER]: 20
+      [Season.SUMMER]: isExtremeHeat ? 35 : 20
     }[season] || 20;
 
     class Particle {
@@ -133,13 +165,21 @@ export const SeasonalOverlay = ({ categoryName = "" }) => {
               this.color = "rgba(255, 255, 255, " + this.alpha + ")";
             } else {
               // Floating heat/dust/solar circles going upwards
-              this.size = 1.5 + Math.random() * 3.5;
+              this.size = isExtremeHeat ? 2 + Math.random() * 4.5 : 1.5 + Math.random() * 3.5;
               this.x = Math.random() * canvas.width;
               this.y = initial ? Math.random() * canvas.height : canvas.height + 10;
               this.speedX = -0.3 + Math.random() * 0.6;
-              this.speedY = -(0.5 + Math.random() * 1);
-              this.alpha = 0.2 + Math.random() * 0.3;
-              this.color = "rgba(253, 224, 71, " + this.alpha + ")"; // light yellow
+              this.speedY = isExtremeHeat ? -(1 + Math.random() * 1.8) : -(0.5 + Math.random() * 1);
+              this.alpha = isExtremeHeat ? 0.35 + Math.random() * 0.35 : 0.2 + Math.random() * 0.3;
+              
+              if (isExtremeHeat) {
+                // Mix in orange and yellow heatwave colors
+                this.color = Math.random() > 0.5 
+                  ? "rgba(251, 146, 60, " + this.alpha + ")" 
+                  : "rgba(253, 224, 71, " + this.alpha + ")";
+              } else {
+                this.color = "rgba(253, 224, 71, " + this.alpha + ")"; // light yellow
+              }
             }
             break;
         }
@@ -261,7 +301,7 @@ export const SeasonalOverlay = ({ categoryName = "" }) => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
     };
-  }, [season, isFreezing]);
+  }, [season, isFreezing, weather?.temperature]);
 
   return (
     <canvas 

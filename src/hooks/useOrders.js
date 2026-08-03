@@ -24,7 +24,7 @@ export const useOrders = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     loadOrders();
