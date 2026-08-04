@@ -17,10 +17,9 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
           <button
             key={cat.name}
             onClick={() => onCategoryClick(cat)}
-            className="flex flex-col bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800 rounded-3xl p-4 items-center justify-between text-left group transition-all duration-300 hover:shadow-md dark:hover:shadow-none hover:border-primary-100/50 active:scale-95 aspect-[0.9] cursor-pointer"
-            style={{ backgroundColor: `${cat.bgColor}15` }} // 8% opacity version of background
+            className="flex flex-col bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800 rounded-3xl p-4 items-center justify-between text-left group transition-all duration-300 hover:shadow-md dark:hover:shadow-none hover:border-primary-100/50 active:scale-95 aspect-auto min-h-[135px] sm:min-h-[155px] cursor-pointer"
+            style={{ backgroundColor: `${cat.bgColor}15` }}
           >
-            {/* Image box */}
             <div className="w-16 h-16 bg-white dark:bg-[#0c101a] rounded-2xl flex items-center justify-center shadow-sm border border-slate-100/50 dark:border-slate-800/40 group-hover:scale-105 transition-transform duration-300">
               <img 
                 src={cat.image} 

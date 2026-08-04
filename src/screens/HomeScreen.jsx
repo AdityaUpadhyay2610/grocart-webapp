@@ -71,31 +71,31 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
     <div className="flex flex-col space-y-10 pb-28 select-none w-full max-w-7xl mx-auto mt-2">
       
       {/* ── SECTION: PROMOTIONAL CAROUSEL ── */}
-      <div className="relative w-full aspect-[2.6] md:aspect-[3.6] overflow-hidden rounded-3xl group shadow-sm border border-slate-100 dark:border-slate-800/40">
+      <div className="relative w-full aspect-[1.] sm:aspect-[2.5] md:aspect-[3.6] overflow-hidden rounded-3xl group shadow-sm border border-slate-100 dark:border-slate-800/40">
         <div 
-          className="flex h-full transition-transform duration-700 ease-in-out"
+          className="flex h-[150px] md:h-full transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${activeBanner * 100}%)` }}
         >
           {PROMO_BANNERS.map(promo => (
             <div 
               key={promo.id}
-              className={`w-full h-full flex-shrink-0 bg-gradient-to-r ${promo.gradient} text-white flex items-center justify-between p-6 md:p-12 relative`}
+              className={`w-full h-full flex-shrink-0 bg-gradient-to-r ${promo.gradient} text-white flex items-center justify-between p-5 sm:p-8 md:p-12 relative`}
             >
               {/* Overlay graphics */}
               <div className="absolute inset-0 bg-black/10 z-0" />
               <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
               
               {/* Left Column Text */}
-              <div className="text-left z-10 max-w-[60%] flex flex-col justify-center space-y-1 md:space-y-2">
-                <div className="flex items-center space-x-1 bg-white/20 px-2.5 py-1 rounded-md text-[10px] md:text-xs font-black tracking-widest uppercase w-fit">
+              <div className="text-left z-10 w-full sm:max-w-[60%] flex flex-col justify-center space-y-1.5 md:space-y-2">
+                <div className="flex items-center space-x-1 bg-white/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-black tracking-widest uppercase w-fit">
                   <Percent size={12} />
                   <span>{promo.discount}</span>
                 </div>
-                <h2 className="text-xl md:text-4xl font-black tracking-tight leading-tight">{promo.title}</h2>
-                <p className="text-xs md:text-sm text-white/80 font-bold leading-normal truncate">{promo.tagline}</p>
+                <h2 className="text-lg sm:text-2xl md:text-4xl font-black tracking-tight leading-tight">{promo.title}</h2>
+                <p className="text-[11px] sm:text-sm text-white/80 font-bold leading-normal truncate">{promo.tagline}</p>
                 <button 
                   onClick={() => navigate("/categories")}
-                  className="mt-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-50 text-[10px] md:text-xs font-black rounded-xl shadow transition-colors w-fit uppercase tracking-wider cursor-pointer"
+                  className="mt-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white text-slate-900 hover:bg-slate-50 text-[9px] sm:text-xs font-black rounded-xl shadow transition-colors w-fit uppercase tracking-wider cursor-pointer"
                 >
                   Shop Now
                 </button>
@@ -242,7 +242,7 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
             <button
               key={cat.name}
               onClick={() => onCategoryClick(cat)}
-              className="flex flex-col bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-3.5 items-center justify-between text-center group transition-all duration-300 hover:shadow-md dark:hover:shadow-none hover:scale-105 active:scale-95 cursor-pointer aspect-square"
+              className="flex flex-col bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-3.5 items-center justify-between text-center group transition-all duration-300 hover:shadow-md dark:hover:shadow-none hover:scale-105 active:scale-95 cursor-pointer aspect-auto min-h-[110px] sm:min-h-[125px]"
               style={{ backgroundColor: `${cat.bgColor}15` }}
             >
               {/* Image box */}

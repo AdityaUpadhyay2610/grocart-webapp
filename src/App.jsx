@@ -228,7 +228,7 @@ function AppShell() {
       <div className="flex-1 flex flex-col md:pl-64 w-full">
         {/* Top Header Bar */}
         {!showPaymentScreen && (
-          <header className="sticky top-0 bg-white/80 dark:bg-[#090D16]/80 backdrop-blur-md text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800/40 px-6 py-4.5 z-40 w-full transition-colors duration-300">
+          <header className="sticky top-0 bg-white/80 dark:bg-[#090D16]/80 backdrop-blur-md text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800/40 px-4 py-3.5 sm:px-6 sm:py-4.5 z-40 w-full transition-colors duration-300">
             <div className="flex items-center justify-between">
               {/* Back button or Location icon */}
               <div className="flex items-center space-x-3">
@@ -251,13 +251,13 @@ function AppShell() {
                 {/* Title & Location details */}
                 <div className="text-left">
                   <div className="flex items-center space-x-1 cursor-pointer" onClick={requestLocation}>
-                    <h1 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-tight">
+                    <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 leading-tight">
                       {isHome ? "Grocery in 10 minutes" : activeScreenTitle}
                     </h1>
                     <ChevronDown size={14} className="text-slate-900 dark:text-slate-200 mt-0.5" />
                   </div>
                   <div className="flex items-center space-x-1.5 mt-0.5 text-xs text-slate-400 dark:text-slate-500 font-semibold">
-                    <span className="line-clamp-1 max-w-[200px]">Delivery: {displayLocation}</span>
+                    <span className="line-clamp-1 max-w-[120px] sm:max-w-[200px]">Delivery: {displayLocation}</span>
                     {weather?.temperature !== null && (
                       <span className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded-md text-[10px] font-black tracking-wider transition-all duration-300">
                         {getWeatherIcon(weather)}

@@ -101,7 +101,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
         </button>
 
         {/* Left Side: Product Image & Badges */}
-        <div className="w-full md:w-1/2 bg-slate-50 dark:bg-[#0c101a] p-6 flex flex-col justify-center items-center relative min-h-[220px] md:min-h-full border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800/80">
+        <div className="w-full md:w-1/2 bg-slate-50 dark:bg-[#0c101a] p-4 md:p-6 flex flex-col justify-center items-center relative min-h-[160px] md:min-h-full border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800/80">
           <div className="absolute top-4 left-4 flex flex-col space-y-1.5 items-start">
             <span className="bg-primary-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
               {product.itemCategory}
@@ -114,7 +114,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
           <img
             src={product.imageUrl}
             alt={product.itemName}
-            className="w-48 h-48 md:w-64 md:h-64 object-cover rounded-3xl shadow-sm dark:brightness-95 animate-float mt-4"
+            className="w-32 h-32 sm:w-40 sm:h-40 md:w-64 md:h-64 object-cover rounded-3xl shadow-sm dark:brightness-95 animate-float mt-4"
             onError={(e) => { e.target.src = "https://placehold.co/200x200/f1f5f9/10b981?text=Fresh+Product"; }}
           />
 
@@ -125,7 +125,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
         </div>
 
         {/* Right Side: Details & Actions */}
-        <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between overflow-y-auto">
+        <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between flex-1 overflow-y-auto">
           <div>
             {/* Title & Size */}
             <div className="text-left">
