@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { fetchOrders } from "../services/orderRepository";
+import { fetchOrders, updateOrderStatus as dbUpdateOrderStatus } from "../services/orderRepository";
 
 export const useOrders = () => {
   const { user } = useAuth();
@@ -30,10 +30,21 @@ export const useOrders = () => {
     loadOrders();
   }, [loadOrders]);
 
+  const updateOrderStatus = useCallback(async (orderId, status) => {
+    try {
+      await dbUpdateOrderStatus(orderId, status);
+      await loadOrders(); // Refresh after update
+    } catch (e) {
+      console.error("Failed to update status:", e);
+      alert("Failed to update order status. Please try again.");
+    }
+  }, [loadOrders]);
+
   return {
     orders,
     isLoading,
     isError,
-    loadOrders
+    loadOrders,
+    updateOrderStatus
   };
 };

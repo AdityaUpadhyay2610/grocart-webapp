@@ -154,7 +154,11 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
             {recommendedItems.map(item => {
               const cartItem = cartItems.find(i => i.id === item.id);
               const quantity = cartItem ? cartItem.quantity : 0;
-              const discountedPrice = Math.floor(item.itemPrice * 75 / 100);
+              const originalPrice = item.itemCost || item.itemPrice;
+              const discountedPrice = item.itemPrice;
+              const discountPercent = originalPrice > discountedPrice 
+                ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
+                : 0;
 
               return (
                 <div 
@@ -163,9 +167,11 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
                   className="w-44 flex-shrink-0 bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none transition-all cursor-pointer hover:scale-[1.02] active:scale-98 relative group"
                 >
                   {/* Floating Off percentage tag */}
-                  <div className="absolute top-2 left-2 bg-accent-50 dark:bg-accent-950/40 text-accent-600 dark:text-accent-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-accent-100/10">
-                    25% OFF
-                  </div>
+                  {discountPercent > 0 && (
+                    <div className="absolute top-2 left-2 bg-accent-50 dark:bg-accent-950/40 text-accent-600 dark:text-accent-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-accent-100/10">
+                      {discountPercent}% OFF
+                    </div>
+                  )}
 
                   <div className="flex justify-center mb-3 mt-2 overflow-hidden rounded-2xl">
                     <img 
@@ -186,13 +192,22 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
 
                     <div className="flex justify-between items-center mt-4 pt-2 border-t border-slate-50 dark:border-slate-800/40">
                       <div className="flex flex-col">
-                        <span className="text-[9px] text-slate-400 line-through">₹{item.itemPrice}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold line-through">
+                          ₹{originalPrice}
+                        </span>
                         <span className="text-sm font-black text-slate-850 dark:text-white">
                           ₹{discountedPrice}
                         </span>
                       </div>
 
-                      {quantity > 0 ? (
+                      {item.itemStock <= 0 ? (
+                        <button
+                          disabled
+                          className="px-4 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-[9px] rounded-xl cursor-not-allowed"
+                        >
+                          OUT OF STOCK
+                        </button>
+                      ) : quantity > 0 ? (
                         <div className="flex items-center space-x-2 bg-primary-50 dark:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-xl px-1.5 py-0.5">
                           <button
                             onClick={(e) => {
@@ -209,9 +224,14 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              addToCart(item);
+                              if (quantity < item.itemStock) addToCart(item);
                             }}
-                            className="w-5 h-5 rounded bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
+                            disabled={quantity >= item.itemStock}
+                            className={`w-5 h-5 rounded flex items-center justify-center shadow-sm border transition-colors ${
+                              quantity >= item.itemStock
+                                ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 border-slate-100 cursor-not-allowed'
+                                : 'bg-white dark:bg-[#111724] text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
+                            }`}
                           >
                             <Plus size={10} />
                           </button>

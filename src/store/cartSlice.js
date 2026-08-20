@@ -62,12 +62,20 @@ export const addToCartThunk = createAsyncThunk(
 
     const existing = cart.cartItems.find(item => item.id === product.id);
     const newQuantity = (existing?.quantity || 0) + 1;
+    const stockLimit = product.itemStock || 0;
+
+    if (newQuantity > stockLimit) {
+      return rejectWithValue("Out of stock");
+    }
 
     const cartItem = {
       id: product.id,
       itemName: product.itemName,
-      itemPrice: product.itemPrice,
-      imageUrl: product.imageUrl,
+      itemPrice: product.itemPrice || 0,
+      itemCost: product.itemCost || product.costPrice || 0,
+      imageUrl: product.imageUrl || product.image || '',
+      retailerId: product.retailerId || "",
+      itemStock: stockLimit,
       quantity: newQuantity
     };
 

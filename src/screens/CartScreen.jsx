@@ -61,8 +61,8 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
             {/* Left Column: Cart items list */}
             <div className="lg:col-span-7 space-y-4">
               {cartItems.map(item => {
-                const discountedPrice = Math.floor(item.itemPrice * 75 / 100);
-                const itemRowTotal = discountedPrice * item.quantity;
+                const discountedPrice = Math.round(item.itemPrice);
+                const itemRowTotal = Math.round(discountedPrice * item.quantity);
                 
                 return (
                   <div 
@@ -92,8 +92,15 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => addToCart(item)}
-                          className="w-7 h-7 rounded-full bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
+                          onClick={() => {
+                            if (item.quantity < (item.itemStock || 0)) addToCart(item);
+                          }}
+                          disabled={item.quantity >= (item.itemStock || 0)}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm border transition-colors ${
+                            item.quantity >= (item.itemStock || 0)
+                              ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 border-slate-100 cursor-not-allowed'
+                              : 'bg-white dark:bg-[#111724] text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
+                          }`}
                         >
                           <Plus size={14} />
                         </button>

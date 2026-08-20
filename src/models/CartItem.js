@@ -1,14 +1,17 @@
 export class CartItem {
-  constructor({ id, itemName, itemPrice, imageUrl, quantity = 1 }) {
+  constructor({ id, itemName, itemPrice, imageUrl, itemStock = 0, quantity = 1, itemCost = 0, retailerId = "" }) {
     this.id = id;
     this.itemName = itemName;
     this.itemPrice = itemPrice;
     this.imageUrl = imageUrl;
+    this.itemStock = itemStock;
     this.quantity = quantity;
+    this.itemCost = itemCost;
+    this.retailerId = retailerId;
   }
 
-  // Pure domain method to calculate total price for this item row (applying 25% discount)
+  // Pure domain method to calculate total price for this item row
   get rowTotal() {
-    return Math.floor((this.itemPrice * 75 / 100) * this.quantity);
+    return this.itemPrice * this.quantity;
   }
 }

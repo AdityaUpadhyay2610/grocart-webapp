@@ -3,7 +3,7 @@ import { useOrders } from "../hooks/useOrders";
 import { Download, Construction, CheckCircle, ShoppingBag, Clock, Package, Bike, Home, Check, ChevronDown, ChevronUp } from "lucide-react";
 
 export const OrdersScreen = React.memo(() => {
-  const { orders, isLoading, isError } = useOrders();
+  const { orders, isLoading, isError, updateOrderStatus } = useOrders();
   const [showWipDialog, setShowWipDialog] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   
@@ -82,7 +82,7 @@ export const OrdersScreen = React.memo(() => {
     const dateStr = formatTimestamp(order.timestamp);
     
     const subtotal = order.items.reduce((sum, item) => {
-      const discountedPrice = Math.floor(item.itemPrice * 75 / 100);
+      const discountedPrice = Math.round(item.itemPrice);
       return sum + (discountedPrice * item.quantity);
     }, 0);
     const handling = Math.floor(subtotal * 0.01);
@@ -97,8 +97,8 @@ export const OrdersScreen = React.memo(() => {
     }
 
     const itemsRows = order.items.map(item => {
-      const discountedPrice = Math.floor(item.itemPrice * 75 / 100);
-      const rowTotal = discountedPrice * item.quantity;
+      const discountedPrice = Math.round(item.itemPrice);
+      const rowTotal = Math.round(discountedPrice * item.quantity);
       return `
         <tr>
           <td style="padding: 6px 0; font-family: monospace; font-size: 13px;">
@@ -304,7 +304,7 @@ export const OrdersScreen = React.memo(() => {
           <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl shadow-sm dark:shadow-none divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
             {orders.slice().sort((a, b) => b.timestamp - a.timestamp).map(order => {
               const subtotal = order.items.reduce((sum, item) => {
-                const discountedPrice = Math.floor(item.itemPrice * 75 / 100);
+                const discountedPrice = Math.round(item.itemPrice);
                 return sum + (discountedPrice * item.quantity);
               }, 0);
               const handling = Math.floor(subtotal * 0.01);
@@ -360,6 +360,18 @@ export const OrdersScreen = React.memo(() => {
                       </div>
 
                       <div className="flex items-center space-x-3">
+                        {order.status !== 'cancelled' && order.status !== 'returned' && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to ${order.status === 'delivered' ? 'return' : 'cancel'} this order?`)) {
+                                updateOrderStatus(order.id, order.status === 'delivered' ? 'returned' : 'cancelled');
+                              }
+                            }}
+                            className="px-4 py-2 border border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-450 hover:bg-red-50 dark:hover:bg-red-950/20 text-xs font-black rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer"
+                          >
+                            <span>{order.status === 'delivered' ? 'Return Order' : 'Cancel Order'}</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => handleTrackClick(order)}
                           className="px-4 py-2 border border-slate-250 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-xs font-black rounded-xl flex items-center space-x-1 transition-colors cursor-pointer"
@@ -384,7 +396,11 @@ export const OrdersScreen = React.memo(() => {
                     <div className="mt-2 p-5 bg-slate-50 dark:bg-[#0c101a] border border-slate-100 dark:border-slate-800/60 rounded-2xl animate-fade-in text-left">
                       <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800/40 pb-3">
                         <h4 className="text-[11px] font-black text-slate-405 dark:text-slate-500 uppercase tracking-wider">Live Delivery Tracker</h4>
-                        {elapsedMins < 5 ? (
+                        {order.status === 'cancelled' || order.status === 'returned' ? (
+                          <span className="text-[10px] font-black text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2.5 py-0.5 rounded-md">
+                            ORDER {order.status.toUpperCase()}
+                          </span>
+                        ) : elapsedMins < 5 ? (
                           <span className="text-[10px] font-black text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-950/20 px-2 py-0.5 rounded-md animate-pulse">
                             ARRIVING IN {Math.ceil(5 - elapsedMins)} MIN{Math.ceil(5 - elapsedMins) > 1 ? 'S' : ''}
                           </span>

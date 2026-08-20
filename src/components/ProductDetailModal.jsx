@@ -82,8 +82,11 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
 
   if (!product) return null;
 
-  const originalPrice = product.itemPrice;
-  const discountedPrice = Math.floor(originalPrice * 75 / 100);
+  const originalPrice = product.itemCost || product.itemPrice;
+  const discountedPrice = product.itemPrice;
+  const discountPercent = originalPrice > discountedPrice 
+    ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
+    : 0;
   const cartItem = cartItems.find(i => i.id === product.id);
   const quantity = cartItem ? cartItem.quantity : 0;
 
@@ -106,9 +109,11 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             <span className="bg-primary-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
               {product.itemCategory}
             </span>
-            <span className="bg-accent-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
-              25% OFF
-            </span>
+            {discountPercent > 0 && (
+              <span className="bg-accent-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
+                {discountPercent}% OFF
+              </span>
+            )}
           </div>
 
           <img
@@ -132,6 +137,14 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               <h3 className="text-xl md:text-2xl font-black text-slate-850 dark:text-white tracking-tight leading-tight">
                 {product.itemName}
               </h3>
+              {product.retailerStoreName && (
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-500 mt-1 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  Sold by: {product.retailerStoreName}
+                </p>
+              )}
               <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-1.5 bg-slate-50 dark:bg-slate-850/50 inline-block px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-800/40">
                 Pack Size: {product.itemQuantity}
               </p>
@@ -188,7 +201,14 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               </span>
             </div>
 
-            {quantity > 0 ? (
+            {product.itemStock <= 0 ? (
+              <button
+                disabled
+                className="flex-1 py-3.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2 cursor-not-allowed max-w-[200px]"
+              >
+                <span>Out of Stock</span>
+              </button>
+            ) : quantity > 0 ? (
               <div className="flex items-center space-x-3.5 bg-primary-50 dark:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-2xl px-3.5 py-1.5">
                 <button
                   onClick={() => decreaseCartItem(cartItem)}
@@ -200,8 +220,15 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
                   {quantity}
                 </span>
                 <button
-                  onClick={() => addToCart(product)}
-                  className="w-7 h-7 rounded-xl bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (quantity < product.itemStock) addToCart(product);
+                  }}
+                  disabled={quantity >= product.itemStock}
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center shadow-sm border transition-colors ${
+                    quantity >= product.itemStock
+                      ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 border-slate-100 cursor-not-allowed'
+                      : 'bg-white dark:bg-[#111724] text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
+                  }`}
                 >
                   <Plus size={14} />
                 </button>

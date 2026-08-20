@@ -29,6 +29,15 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
     return products.filter(product => matchCategory(product.itemCategory, category.name));
   }, [category, products]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProducts, currentPage]);
+
   const handleAddClick = useCallback((e, item) => {
     e.stopPropagation();
     
@@ -71,11 +80,15 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
       </div>
 
       {/* Grid */}
-      {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-6">
-          {filteredProducts.map(item => {
-            const originalPrice = item.itemPrice;
-            const discountedPrice = Math.floor(originalPrice * 75 / 100);
+      {paginatedProducts.length > 0 ? (
+        <div className="flex flex-col space-y-6 pb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-6">
+            {paginatedProducts.map(item => {
+            const originalPrice = item.itemCost || item.itemPrice;
+            const discountedPrice = item.itemPrice;
+            const discountPercent = originalPrice > discountedPrice 
+              ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
+              : 0;
             const cartItem = cartItems.find(i => i.id === item.id);
             const quantity = cartItem ? cartItem.quantity : 0;
 
@@ -86,9 +99,11 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
                 className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none transition-all cursor-pointer hover:scale-[1.02] active:scale-98 relative group"
               >
                 {/* Floating Off percentage tag */}
-                <div className="absolute top-3 left-3 bg-accent-50 dark:bg-accent-950/40 text-accent-600 dark:text-accent-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-accent-100/10">
-                  25% OFF
-                </div>
+                {discountPercent > 0 && (
+                  <div className="absolute top-3 left-3 bg-accent-50 dark:bg-accent-950/40 text-accent-600 dark:text-accent-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-accent-100/10">
+                    {discountPercent}% OFF
+                  </div>
+                )}
 
                 <div className="flex justify-center mb-3 mt-2 overflow-hidden rounded-2xl">
                   <img 
@@ -116,7 +131,14 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
                       </span>
                     </div>
                     
-                    {quantity > 0 ? (
+                    {item.itemStock <= 0 ? (
+                      <button
+                        disabled
+                        className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-[10px] rounded-xl cursor-not-allowed"
+                      >
+                        OUT OF STOCK
+                      </button>
+                    ) : quantity > 0 ? (
                       <div className="flex items-center space-x-2 bg-primary-50 dark:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-xl px-1.5 py-1">
                         <button
                           onClick={(e) => {
@@ -133,9 +155,14 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            addToCart(item);
+                            if (quantity < item.itemStock) addToCart(item);
                           }}
-                          className="w-5.5 h-5.5 rounded-lg bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
+                          disabled={quantity >= item.itemStock}
+                          className={`w-5.5 h-5.5 rounded-lg bg-white dark:bg-[#111724] flex items-center justify-center shadow-sm border transition-colors ${
+                            quantity >= item.itemStock
+                              ? 'text-slate-300 border-slate-100 cursor-not-allowed'
+                              : 'text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
+                          }`}
                         >
                           <Plus size={11} />
                         </button>
@@ -153,6 +180,29 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
               </div>
             );
           })}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-4 mt-6">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-50 cursor-pointer"
+              >
+                Previous
+              </button>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl disabled:opacity-50 cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
       ) : (

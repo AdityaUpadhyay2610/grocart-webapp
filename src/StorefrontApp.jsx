@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate, useLocation as useRouterLocation, useOutletContext } from "react-router";
+import { store as legacyStore } from "./store";
+import { Provider as LegacyProvider } from "react-redux";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider, useCart } from "./context/CartContext";
 import { useProducts } from "./hooks/useProducts";
@@ -8,8 +10,7 @@ import { CATEGORIES, matchCategory } from "./models/Categories";
 import { SeasonalOverlay, getSeasonalGradientClass, getSeasonFromWeather } from "./components/SeasonalOverlay";
 import { Sidebar } from "./components/Sidebar";
 import { ProductDetailModal } from "./components/ProductDetailModal";
-import { Provider, useDispatch } from "react-redux";
-import { store } from "./store";
+import { useDispatch } from "react-redux";
 import { onAuthStateChange } from "./services/firebaseAuth";
 import { setUserState, setAuthLoading } from "./store/authSlice";
 
@@ -422,7 +423,7 @@ function AppShell() {
                             <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-0.5">Category: {item.itemCategory}</p>
                           </div>
                           <span className="text-sm font-black text-primary-600 dark:text-primary-400">
-                            ₹{Math.floor(item.itemPrice * 75 / 100)}
+                            ₹{item.itemPrice}
                           </span>
                         </div>
                       ))
@@ -635,20 +636,17 @@ function AppShellWrapper() {
   );
 }
 
-function MainApp() {
-  const basename = window.location.hostname.includes("github.io") ? "/grocart-webapp" : "/";
-
+// Legacy store imports moved to top
+function StorefrontApp() {
   return (
-    <Provider store={store}>
-      <BrowserRouter basename={basename}>
-        <AuthProvider>
-          <CartProvider>
-            <AppShellWrapper />
-          </CartProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </Provider>
+    <LegacyProvider store={legacyStore}>
+      <AuthProvider>
+        <CartProvider>
+          <AppShellWrapper />
+        </CartProvider>
+      </AuthProvider>
+    </LegacyProvider>
   );
 }
 
-export default MainApp;
+export default StorefrontApp;

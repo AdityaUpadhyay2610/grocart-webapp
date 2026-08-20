@@ -7,10 +7,10 @@ export const COUPON_OFFERS = [
 ];
 
 export const calculateItemTotal = (cartItems) => {
-  return cartItems.reduce((sum, item) => {
-    const discountedPrice = Math.floor(item.itemPrice * 75 / 100);
-    return sum + (discountedPrice * item.quantity);
+  const total = cartItems.reduce((sum, item) => {
+    return sum + (item.itemPrice * item.quantity);
   }, 0);
+  return Math.round(total);
 };
 
 export const calculateHandlingCharge = (itemTotal) => {
@@ -36,7 +36,7 @@ export const calculateCouponDiscount = (coupon, itemTotal) => {
 };
 
 export const calculateGrandTotal = (itemTotal, handlingCharge, deliveryFee, couponDiscount) => {
-  return itemTotal + handlingCharge + deliveryFee - couponDiscount;
+  return Math.round(itemTotal + handlingCharge + deliveryFee - couponDiscount);
 };
 
 export const applyCoupon = (code, itemTotal) => {
