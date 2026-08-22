@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router';
-import { useSelector } from 'react-redux';
-import { RootState } from './application/store';
-import { RoleGuard } from './presentation/components/RoleGuard';
-import LoginPage from './presentation/pages/LoginPage';
-import RetailerDashboard from './presentation/pages/RetailerDashboard';
-import AdminDashboard from './presentation/pages/AdminDashboard';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, setUserProfile, clearSession } from '@global/store';
+import { RoleGuard } from '@global/routes/ProtectedRoute';
+import LoginPage from './modules/customer/pages/LoginPage';
+import RetailerDashboard from './modules/retailer/pages/RetailerOperationsPage';
+import AdminDashboard from './modules/admin/pages/AdminDashboardPage';
 import StorefrontApp from './StorefrontApp.jsx';
+import { onAuthStateChange } from '@global/services/firebaseAuth';
+import { authApi } from '@global/services/api/authApi';
 
 const StorefrontGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -18,6 +20,32 @@ const StorefrontGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 };
 
 export default function App() {
+  const dispatch = useDispatch();
+  const { isLoading } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const profile = await authApi.fetchUserProfile(firebaseUser.uid);
+          dispatch(setUserProfile(profile));
+        } catch (error) {
+          console.error("Error fetching user profile", error);
+          dispatch(clearSession());
+        }
+      } else {
+        dispatch(clearSession());
+      }
+    });
+
+    return unsubscribe;
+  }, [dispatch]);
+
+  // Optionally wait for initial auth loading
+  // if (isLoading) {
+  //  return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  // }
+
   return (
     <Routes>
       {/* 1. Public Multi-Role Login Route */}

@@ -18,7 +18,10 @@
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitReturns": false
+    "noImplicitReturns": false,
+    "paths": {
+      "@global/*": ["./src/global/*"]
+    }
   },
   "include": ["src"]
 }

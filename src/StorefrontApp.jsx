@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate, useLocation as useRouterLocation, useOutletContext } from "react-router";
-import { store as legacyStore } from "./store";
+import { store as legacyStore } from "@global/store/legacyStore";
 import { Provider as LegacyProvider } from "react-redux";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { CartProvider, useCart } from "./context/CartContext";
-import { useProducts } from "./hooks/useProducts";
-import { useLocation as useGPSLocation } from "./hooks/useLocation";
-import { CATEGORIES, matchCategory } from "./models/Categories";
-import { SeasonalOverlay, getSeasonalGradientClass, getSeasonFromWeather } from "./components/SeasonalOverlay";
-import { Sidebar } from "./components/Sidebar";
-import { ProductDetailModal } from "./components/ProductDetailModal";
+import { AuthProvider, useAuth } from "@global/context/AuthContext";
+import { CartProvider, useCart } from './modules/customer/state/CartContext';
+import { useProducts } from './modules/customer/hooks/useProducts';
+import { useLocation as useGPSLocation } from "@global/hooks/useLocation";
+import { CATEGORIES, matchCategory } from "@global/models/Categories";
+import { SeasonalOverlay, getSeasonalGradientClass, getSeasonFromWeather } from './modules/customer/components/SeasonalOverlay';
+import { Sidebar } from '@global/components/layout/Sidebar';
+import { ProductDetailModal } from './modules/customer/components/ProductDetailModal';
 import { useDispatch } from "react-redux";
-import { onAuthStateChange } from "./services/firebaseAuth";
-import { setUserState, setAuthLoading } from "./store/authSlice";
+import { onAuthStateChange } from "@global/services/firebaseAuth";
+import { setUserState, setAuthLoading } from "@global/store/legacyAuthSlice";
 
 // Import Screens
-import { LoginScreen } from "./screens/LoginScreen";
-import { HomeScreen } from "./screens/HomeScreen";
-import { CategoryScreen } from "./screens/CategoryScreen";
-import { ProductsScreen } from "./screens/ProductsScreen";
-import { CartScreen } from "./screens/CartScreen";
-import { PaymentScreen } from "./screens/PaymentScreen";
-import { OrdersScreen } from "./screens/OrdersScreen";
-import { ProfileScreen } from "./screens/ProfileScreen";
+import { LoginScreen } from './modules/customer/pages/LoginScreen';
+import { HomeScreen } from './modules/customer/pages/HomeScreen';
+import { CategoryScreen } from './modules/customer/pages/CategoryScreen';
+import { ProductsScreen } from "./modules/customer/pages/ProductsScreen";
+import { CartScreen } from "./modules/customer/pages/CartScreen";
+import { PaymentScreen } from './modules/customer/pages/PaymentScreen';
+import { OrdersScreen } from './modules/customer/pages/OrdersScreen';
+import { ProfileScreen } from './modules/customer/pages/ProfileScreen';
 
 // Import Icons
 import { MapPin, ChevronDown, Search, X, Moon, Sun, ArrowLeft, Loader2, LogOut, Cloud, CloudRain, CloudSnow } from "lucide-react";
@@ -226,7 +226,7 @@ function AppShell() {
       )}
 
       {/* Main Content Container Offset on Desktop */}
-      <div className="flex-1 flex flex-col md:pl-64 w-full">
+      <div className="flex-1 flex flex-col md:pl-56 w-full">
         {/* Top Header Bar */}
         {!showPaymentScreen && (
           <header className="sticky top-0 bg-white/80 dark:bg-[#090D16]/80 backdrop-blur-md text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800/40 px-4 py-3.5 sm:px-6 sm:py-4.5 z-40 w-full transition-colors duration-300">
