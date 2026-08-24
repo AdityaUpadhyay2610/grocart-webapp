@@ -8,6 +8,7 @@ import App from './App';
 import './index.css';
 import { ThemeProvider } from '@global/context/ThemeContext';
 import { ToastProvider } from '@global/context/ToastContext';
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <ThemeProvider>
               <ToastProvider>
                 <App />
+                <Analytics />
               </ToastProvider>
             </ThemeProvider>
           </BrowserRouter>
