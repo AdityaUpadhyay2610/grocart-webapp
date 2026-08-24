@@ -8,14 +8,19 @@ export interface UserProfile {
   storeName?: string;
   phoneNumber?: string;
   address?: string;
+  avatarStyle?: string;
+  avatarSeed?: string;
+  avatarUrl?: string;
   createdAt: number;
 }
 
 export interface ProductCategory {
   id: string;
   name: string;
-  slug: string;
-  isActive: boolean;
+  slug?: string;
+  isActive?: boolean;
+  description?: string;
+  image?: string;
 }
 
 export interface ProductItem {
@@ -29,7 +34,8 @@ export interface ProductItem {
   costPrice: number;       // Base acquisition cost
   sellingPrice: number;    // Public catalog price
   stockQuantity: number;   // Unit inventory
-  unit: 'kg' | 'pcs' | 'pack' | 'liter';
+  unit: 'kg' | 'pcs' | 'pack' | 'liter' | string;
+  unitSize?: number;
   imageUrl: string;        // External CDN/Image URL
   status: 'active' | 'out_of_stock' | 'inactive';
   createdAt: number;

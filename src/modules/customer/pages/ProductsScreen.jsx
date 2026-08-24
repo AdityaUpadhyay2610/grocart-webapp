@@ -1,12 +1,21 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { useParams, useOutletContext } from "react-router";
 import { useCart } from "../state/CartContext";
-import { matchCategory, CATEGORIES } from "@global/models/Categories";
+import { matchCategory } from "@global/models/Categories";
 import { Minus, Plus, ShieldCheck } from "lucide-react";
+
+const getUniqueImageUrl = (url, id, title) => {
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
+  if (!url) return fallback;
+  if (typeof url === 'string' && (url.includes("loremflickr.com") || url.includes("pollinations.ai"))) {
+    return fallback;
+  }
+  return url;
+};
 
 export const ProductsScreen = React.memo(({ category: propCategory, products }) => {
   const { cartItems, addToCart, decreaseCartItem, triggerAddToCartAnimation } = useCart();
-  const { setSelectedProduct } = useOutletContext();
+  const { setSelectedProduct, categories = [] } = useOutletContext();
   const [flyingItems, setFlyingItems] = useState([]);
   const { categoryId } = useParams();
 
@@ -14,11 +23,11 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
     if (propCategory) return propCategory;
     if (!categoryId) return null;
     const decoded = decodeURIComponent(categoryId);
-    return CATEGORIES.find(c => 
+    return categories.find(c => 
       String(c.id) === decoded || 
       c.name.toLowerCase() === decoded.toLowerCase()
     ) || { name: decoded, nameDisplay: decoded };
-  }, [propCategory, categoryId]);
+  }, [propCategory, categoryId, categories]);
 
   const categoryName = useMemo(() => {
     return category?.nameDisplay || category?.name || "Products";
@@ -51,7 +60,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
     
     setFlyingItems(prev => [...prev, {
       id,
-      imageUrl: item.imageUrl,
+      imageUrl: getUniqueImageUrl(item.imageUrl, item.id, item.itemName),
       startX: rect.left,
       startY: rect.top
     }]);
@@ -107,7 +116,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
 
                 <div className="flex justify-center mb-3 mt-2 overflow-hidden rounded-2xl">
                   <img 
-                    src={item.imageUrl} 
+                    src={getUniqueImageUrl(item.imageUrl, item.id, item.itemName)} 
                     alt={item.itemName} 
                     className="w-32 h-32 object-cover rounded-2xl group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => { e.target.src = "https://placehold.co/120x120/f1f5f9/10b981?text=Fresh+Cart"; }}
@@ -126,9 +135,14 @@ export const ProductsScreen = React.memo(({ category: propCategory, products }) 
                       <span className="text-[10px] text-slate-400 line-through">
                         ₹{originalPrice}
                       </span>
-                      <span className="text-base font-black text-slate-850 dark:text-white">
-                        ₹{discountedPrice}
-                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-base font-black text-slate-850 dark:text-white">
+                          ₹{discountedPrice}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-500">
+                          / {item.unitSize ? `${item.unitSize} ${item.unit || 'pcs'}` : (item.unit || item.itemQuantity || '1 pcs')}
+                        </span>
+                      </div>
                     </div>
                     
                     {item.itemStock <= 0 ? (

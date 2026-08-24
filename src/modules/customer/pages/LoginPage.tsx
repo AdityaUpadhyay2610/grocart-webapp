@@ -4,8 +4,9 @@ import { useDispatch } from 'react-redux';
 import { authApi } from '@global/services/api/authApi';
 import { setUserProfile } from '@global/store';
 import { UserRole } from '@global/models';
+import { useTheme } from '@global/context/ThemeContext';
 
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Store } from 'lucide-react';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isDark } = useTheme();
 
   const handleReset = () => {
     setEmail('');
@@ -56,20 +58,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 p-4 relative overflow-hidden">
-      {/* Background Decorative Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-
-      <div className="w-full max-w-lg rounded-3xl bg-white/80 backdrop-blur-xl p-10 shadow-2xl border border-white/50 relative z-10 transition-all duration-300">
+    <div 
+      className="flex min-h-screen items-center justify-center p-4 relative overflow-hidden text-slate-900 dark:text-slate-100 transition-colors selection:bg-emerald-500/30"
+      style={{
+        backgroundImage: isDark 
+          ? `linear-gradient(to bottom right, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000')`
+          : `linear-gradient(to bottom right, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      <div className="w-full max-w-lg rounded-[2rem] bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-10 shadow-2xl border border-white/50 dark:border-slate-700/50 relative z-10 transition-all duration-300">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mb-4 shadow-inner">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500 text-white mb-4 shadow-lg shadow-emerald-500/20">
+            <Store size={32} />
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Grocart Platform</h1>
-          <p className="text-sm font-medium text-gray-500 mt-2">{isRegister ? 'Create your new account' : 'Welcome back, sign in to your portal'}</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">GroCart</h1>
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mt-2">{isRegister ? 'Create your new account' : 'Welcome back, sign in to your portal'}</p>
         </div>
 
         {errorMsg && (
@@ -84,55 +90,55 @@ export default function LoginPage() {
             <div className="animate-fade-in-up">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Full Name</label>
-                  <input required value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/50 p-3.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all placeholder-gray-400" placeholder="John Doe" />
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Full Name</label>
+                  <input required value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-white/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-3 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" placeholder="John Doe" />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Account Type</label>
+                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Account Type</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setRole('customer')} className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${role === 'customer' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md' : 'border-gray-100 bg-white/50 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}>
+                    <button type="button" onClick={() => setRole('customer')} className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${role === 'customer' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'border-white/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-700/80 backdrop-blur-sm'}`}>
                       <svg className="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                      <span className="text-xs font-bold">Customer</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide">Customer</span>
                     </button>
-                    <button type="button" onClick={() => setRole('retailer')} className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${role === 'retailer' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md' : 'border-gray-100 bg-white/50 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}>
+                    <button type="button" onClick={() => setRole('retailer')} className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${role === 'retailer' ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm' : 'border-white/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-700/80 backdrop-blur-sm'}`}>
                       <svg className="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                      <span className="text-xs font-bold">Retailer</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide">Retailer</span>
                     </button>
                   </div>
                 </div>
 
                 {role === 'retailer' && (
                   <div className="animate-fade-in-up">
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Store / Business Name</label>
-                    <input required value={storeName} onChange={(e) => setStoreName(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/50 p-3.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400" placeholder="Green Valley Organics" />
+                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Store / Business Name</label>
+                    <input required value={storeName} onChange={(e) => setStoreName(e.target.value)} className="w-full rounded-xl border border-white/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-3 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" placeholder="Green Valley Organics" />
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email Address</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/50 p-3.5 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all placeholder-gray-400" placeholder="name@domain.com" />
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Email Address</label>
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-xl border border-white/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-3 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" placeholder="name@domain.com" />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Password</label>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Password</label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
                   required 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
-                  className="w-full rounded-xl border border-gray-200 bg-white/50 p-3.5 pr-10 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all placeholder-gray-400" 
+                  className="w-full rounded-xl border border-white/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-3 pr-10 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" 
                   placeholder="••••••••" 
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -141,7 +147,7 @@ export default function LoginPage() {
           </div>
 
           <div className="pt-2">
-            <button type="submit" disabled={loading} className="w-full flex justify-center items-center rounded-xl bg-emerald-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 hover:shadow-xl focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 transition-all">
+            <button type="submit" disabled={loading} className="w-full flex justify-center items-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl active:scale-95 disabled:opacity-50 transition-all border border-emerald-400/30">
               {loading ? (
                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               ) : isRegister ? 'Register Account' : 'Sign In'}
@@ -149,10 +155,10 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="mt-8 text-center pt-6 border-t border-gray-100">
-          <p className="text-sm text-gray-500">
+        <div className="mt-8 text-center pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
             {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button onClick={() => { setIsRegister(!isRegister); handleReset(); }} className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
+            <button onClick={() => { setIsRegister(!isRegister); handleReset(); }} className="font-black text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">
               {isRegister ? 'Sign In' : "Register"}
             </button>
           </p>

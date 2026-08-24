@@ -6,7 +6,8 @@ import { AuthProvider, useAuth } from "@global/context/AuthContext";
 import { CartProvider, useCart } from './modules/customer/state/CartContext';
 import { useProducts } from './modules/customer/hooks/useProducts';
 import { useLocation as useGPSLocation } from "@global/hooks/useLocation";
-import { CATEGORIES, matchCategory } from "@global/models/Categories";
+import { matchCategory } from "@global/models/Categories";
+import { useCategories } from './modules/customer/hooks/useCategories';
 import { SeasonalOverlay, getSeasonalGradientClass, getSeasonFromWeather } from './modules/customer/components/SeasonalOverlay';
 import { Sidebar } from '@global/components/layout/Sidebar';
 import { ProductDetailModal } from './modules/customer/components/ProductDetailModal';
@@ -87,7 +88,7 @@ const getThemeClassFromEmoji = (emoji) => {
   }
 };
 
-function AppShell() {
+function AppShell({ categories }) {
   const { user, logout } = useAuth();
   const { showPaymentScreen } = useCart();
   const { products, isLoading: productsLoading, isError: productsError } = useProducts();
@@ -153,8 +154,8 @@ function AppShell() {
     const match = routerLocation.pathname.match(/\/categories\/(.+)/);
     if (!match) return null;
     const catIdOrName = decodeURIComponent(match[1]);
-    return CATEGORIES.find(c => String(c.id) === catIdOrName || c.name.toLowerCase() === catIdOrName.toLowerCase()) || { name: catIdOrName, nameDisplay: catIdOrName };
-  }, [routerLocation.pathname]);
+    return categories.find(c => String(c.id) === catIdOrName || c.name.toLowerCase() === catIdOrName.toLowerCase()) || { name: catIdOrName, nameDisplay: catIdOrName };
+  }, [routerLocation.pathname, categories]);
 
   // Search filter
   const searchResults = useMemo(() => {
@@ -170,7 +171,7 @@ function AppShell() {
   }, [searchQuery, products, activeCategory]);
 
   const handleSearchResultClick = useCallback((item) => {
-    const matched = CATEGORIES.find(cat => matchCategory(item.itemCategory, cat.name));
+    const matched = categories.find(cat => matchCategory(item.itemCategory, cat.name));
     const catName = matched ? matched.name : item.itemCategory;
     navigate(`/categories/${encodeURIComponent(catName)}`);
     setSearchQuery("");
@@ -342,7 +343,7 @@ function AppShell() {
                         >
                           All Categories
                         </div>
-                        {CATEGORIES.map(cat => (
+                        {categories.map(cat => (
                           <div
                             key={cat.id}
                             onClick={() => {
@@ -438,7 +439,7 @@ function AppShell() {
         )}
         {/* Main Route Content Area */}
         <main className="flex-1 w-full relative z-20 pointer-events-auto px-6 py-4 pb-28 md:pb-4">
-          <Outlet context={{ setSelectedProduct: setSelectedProductDetail, requestLocation, locationText }} />
+          <Outlet context={{ setSelectedProduct: setSelectedProductDetail, requestLocation, locationText, categories }} />
         </main>
       </div>
 
@@ -556,6 +557,7 @@ function CategoriesLayout() {
 
 function AppShellWrapper() {
   const { products, isLoading: productsLoading, isError: productsError } = useProducts();
+  const { categories, isLoading: categoriesLoading, isError: categoriesError } = useCategories();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useAuth();
@@ -589,7 +591,7 @@ function AppShellWrapper() {
   }, [navigate]);
 
   const renderHome = () => {
-    if (productsLoading) {
+    if (productsLoading || categoriesLoading) {
       return (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <Loader2 className="w-10 h-10 text-primary-500 animate-spin" />
@@ -597,7 +599,7 @@ function AppShellWrapper() {
         </div>
       );
     }
-    if (productsError) {
+    if (productsError || categoriesError) {
       return (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <img src="/error.webp" alt="Error" className="w-40 h-40 object-contain" />
@@ -618,7 +620,7 @@ function AppShellWrapper() {
       
       <Route path="/" element={
         <ProtectedRoute>
-          <AppShell />
+          <AppShell categories={categories} />
         </ProtectedRoute>
       }>
         <Route index element={<Navigate to="/home" replace />} />

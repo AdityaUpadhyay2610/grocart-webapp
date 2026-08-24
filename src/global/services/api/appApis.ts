@@ -97,13 +97,27 @@ export const retailerApi = {
 
 export const adminApi = {
   fetchAllUsers: async (): Promise<UserProfile[]> => {
-    const res = await apiClient.get<Record<string, UserProfile>>('/users.json');
-    return res.data ? Object.values(res.data) : [];
+    const snap = await get(ref(db, 'users'));
+    return snap.exists() ? Object.values(snap.val() as Record<string, UserProfile>) : [];
+  },
+
+  fetchAllOrders: async (): Promise<Order[]> => {
+    const snap = await get(ref(db, 'orders'));
+    if (!snap.exists()) return [];
+    
+    const rawData = snap.val();
+    return Object.entries(rawData).map(([id, order]: [string, any]) => ({
+      ...order,
+      id,
+      items: Array.isArray(order.items) 
+        ? order.items 
+        : (typeof order.items === 'object' ? Object.values(order.items || {}) : [])
+    })) as Order[];
   },
 
   fetchPlatformAnalytics: async (): Promise<PlatformAnalytics | null> => {
-    const res = await apiClient.get<PlatformAnalytics>('/platform_analytics.json');
-    return res.data || null;
+    const snap = await get(ref(db, 'platform_analytics'));
+    return snap.exists() ? (snap.val() as PlatformAnalytics) : null;
   },
 
   createCategory: async (category: ProductCategory): Promise<void> => {
@@ -163,8 +177,37 @@ export const storefrontApi = {
   },
 
   fetchCategories: async (): Promise<ProductCategory[]> => {
-    const res = await apiClient.get<Record<string, ProductCategory>>('/categories.json');
-    return res.data ? Object.values(res.data) : [];
+    const res = await apiClient.get<any>('/categories.json');
+    if (!res.data) return [];
+    const normalizedCategories: ProductCategory[] = [];
+    Object.entries(res.data).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        normalizedCategories.push({ id: value.toLowerCase().replace(/[^a-z0-9]+/g, '-'), name: value });
+      } else if (typeof value === 'object' && value !== null) {
+        normalizedCategories.push(value as ProductCategory);
+      }
+    });
+    return normalizedCategories;
+  },
+
+  subscribeToCategories: (onData: (categories: ProductCategory[]) => void) => {
+    const categoriesRef = ref(db, 'categories');
+    return onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const normalizedCategories: ProductCategory[] = [];
+        Object.entries(data).forEach(([key, value]) => {
+          if (typeof value === 'string') {
+            normalizedCategories.push({ id: value.toLowerCase().replace(/[^a-z0-9]+/g, '-'), name: value });
+          } else if (typeof value === 'object' && value !== null) {
+            normalizedCategories.push(value as ProductCategory);
+          }
+        });
+        onData(normalizedCategories);
+      } else {
+        onData([]);
+      }
+    });
   },
 
   placeOrder: async (order: Order): Promise<void> => {

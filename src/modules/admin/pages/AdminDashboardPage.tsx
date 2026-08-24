@@ -8,7 +8,10 @@ import { useAdminData } from '../hooks/useAdminData';
 import { AdminLayout } from '../components/AdminLayout';
 import { AdminOverviewTab } from '../components/AdminOverviewTab';
 import { AdminUsersTab } from '../components/AdminUsersTab';
+import { AdminRetailersTab } from '../components/AdminRetailersTab';
 import { AdminInventoryTab } from '../components/AdminInventoryTab';
+import { AdminCategoriesTab } from '../components/AdminCategoriesTab';
+import { AdminSettingsTab } from '../components/AdminSettingsTab';
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
@@ -17,7 +20,9 @@ export default function AdminDashboard() {
   const {
     users, usersLoading, handleDeleteUser, platformStats, allProducts,
     retailers, customers, validProducts, orphanedProducts,
-    totalCatalogValue, totalCatalogCost, potentialProfit
+    totalCatalogValue, totalCatalogCost, potentialProfit,
+    categories, categoriesLoading, createCategoryMutation,
+    allOrders, ordersLoading
   } = useAdminData();
 
   // State
@@ -93,21 +98,31 @@ export default function AdminDashboard() {
       handleLogout={handleLogout}
       adminName="Super User"
     >
-      {(activeTab === 'overview' || activeTab === 'settings') && (
+      {activeTab === 'overview' && (
         <AdminOverviewTab 
           platformStats={platformStats} 
           retailers={retailers} 
           customers={customers} 
+          allOrders={allOrders}
         />
       )}
 
-      {(activeTab === 'users' || activeTab === 'retailers' || activeTab === 'overview') && (
-        <AdminUsersTab 
-          userSearch={userSearch} 
-          setUserSearch={setUserSearch} 
-          filteredUsers={filteredUsers} 
+      {activeTab === 'retailers' && (
+        <AdminRetailersTab
+          retailers={retailers}
+          userSearch={userSearch}
+          setUserSearch={setUserSearch}
+          platformStats={platformStats}
+          customersCount={customers.length}
+        />
+      )}
+
+      {activeTab === 'users' && (
+        <AdminUsersTab
+          userSearch={userSearch}
+          setUserSearch={setUserSearch}
+          filteredUsers={filteredUsers}
           handleDeleteUser={handleDeleteUser}
-          
           adminName={adminName}
           setAdminName={setAdminName}
           adminEmail={adminEmail}
@@ -115,12 +130,13 @@ export default function AdminDashboard() {
           adminPassword={adminPassword}
           setAdminPassword={setAdminPassword}
           showPassword={showPassword}
+          setShowPassword={setShowPassword}
           isCreatingAdmin={isCreatingAdmin}
           handleCreateAdmin={handleCreateAdmin}
         />
       )}
 
-      {(activeTab === 'inventory' || activeTab === 'overview') && (
+      {activeTab === 'catalog' && (
         <>
           <AdminInventoryTab 
             companyFilter={companyFilter} 
@@ -141,6 +157,18 @@ export default function AdminDashboard() {
             </div>
           )}
         </>
+      )}
+
+      {activeTab === 'categories' && (
+        <AdminCategoriesTab 
+          categories={categories}
+          categoriesLoading={categoriesLoading}
+          createCategoryMutation={createCategoryMutation}
+        />
+      )}
+
+      {activeTab === 'settings' && (
+        <AdminSettingsTab />
       )}
 
       <style>{`

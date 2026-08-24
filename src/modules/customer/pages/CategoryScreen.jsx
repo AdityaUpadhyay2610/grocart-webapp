@@ -1,7 +1,8 @@
 import React from "react";
-import { CATEGORIES } from '@global/models/Categories';
+import { useOutletContext } from "react-router";
 
 export const CategoryScreen = React.memo(({ onCategoryClick }) => {
+  const { categories = [] } = useOutletContext();
   return (
     <div className="flex flex-col pb-28 select-none w-full max-w-7xl mx-auto min-h-screen bg-transparent animate-fade-in">
       {/* Header Banner */}
@@ -13,9 +14,9 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
 
       {/* Responsive Grid */}
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-5 py-8">
-        {CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button
-            key={cat.name}
+            key={cat.id}
             onClick={() => onCategoryClick(cat)}
             className="flex flex-col bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800 rounded-3xl p-4 items-center justify-between text-left group transition-all duration-300 hover:shadow-md dark:hover:shadow-none hover:border-primary-100/50 active:scale-95 aspect-auto min-h-[135px] sm:min-h-[155px] cursor-pointer"
             style={{ backgroundColor: `${cat.bgColor}15` }}

@@ -1,12 +1,13 @@
 import React from 'react';
-import { Store, LogOut, Menu, X, Bell, PackageSearch, TrendingUp, PackageCheck, AlertCircle, Sun, Moon } from 'lucide-react';
+import { Store, LogOut, Menu, X, Bell, PackageSearch, TrendingUp, PackageCheck, AlertCircle, Sun, Moon, Settings } from 'lucide-react';
 import { useTheme } from '@global/context/ThemeContext';
 
 const navItems = [
   { id: 'dashboard', label: 'Overview', icon: TrendingUp },
   { id: 'inventory', label: 'Inventory Manager', icon: PackageSearch },
   { id: 'orders', label: 'Active Orders', icon: PackageCheck },
-  { id: 'analytics', label: 'Sales Reports', icon: AlertCircle }
+  { id: 'analytics', label: 'Sales Reports', icon: AlertCircle },
+  { id: 'settings', label: 'Store Settings', icon: Settings }
 ];
 
 interface RetailerLayoutProps {
@@ -33,11 +34,20 @@ export function RetailerLayout({ children, activeTab, setActiveTab, handleLogout
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors selection:bg-emerald-500/30">
-      
+    <div 
+      className="flex h-screen text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors selection:bg-emerald-500/30"
+      style={{
+        backgroundImage: isDark 
+          ? `linear-gradient(to bottom right, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000')`
+          : `linear-gradient(to bottom right, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       {/* Sidebar (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200/70 dark:border-slate-800/80 fixed h-full z-40 transition-colors">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800/80">
+      <aside className="hidden md:flex flex-col w-64 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-r border-white/50 dark:border-slate-700/50 fixed h-full z-40 transition-colors shadow-2xl">
+        <div className="p-6 flex items-center gap-3 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 shrink-0">
             <Store size={22} />
           </div>
@@ -62,7 +72,7 @@ export function RetailerLayout({ children, activeTab, setActiveTab, handleLogout
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800/80">
+        <div className="p-4 border-t border-slate-200/50 dark:border-slate-700/50">
           <button 
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors font-bold cursor-pointer"
@@ -76,7 +86,7 @@ export function RetailerLayout({ children, activeTab, setActiveTab, handleLogout
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col md:ml-64 relative min-h-screen">
         {/* Top Navbar */}
-        <header className="sticky top-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800/80 px-4 sm:px-8 py-3 z-30 flex justify-between items-center transition-colors">
+        <header className="sticky top-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border-b border-white/50 dark:border-slate-700/50 px-4 sm:px-8 py-3 z-30 flex justify-between items-center transition-colors">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}

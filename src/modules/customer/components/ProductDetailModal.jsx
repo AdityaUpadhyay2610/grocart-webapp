@@ -2,6 +2,15 @@ import React, { useMemo } from "react";
 import { X, Plus, Minus, ShieldCheck, Leaf, ShoppingCart } from "lucide-react";
 import { useCart } from '../state/CartContext';
 
+const getUniqueImageUrl = (url, id, title) => {
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
+  if (!url) return fallback;
+  if (typeof url === 'string' && (url.includes("loremflickr.com") || url.includes("pollinations.ai"))) {
+    return fallback;
+  }
+  return url;
+};
+
 // Function to generate category-specific mock descriptions, ingredients, and nutrition facts
 const getProductDetails = (item) => {
   const category = (item.itemCategory || "").toLowerCase();
@@ -63,12 +72,24 @@ const getProductDetails = (item) => {
     };
   }
   
+  if (category.includes("electronics") || category.includes("appliances") || category.includes("tech")) {
+    return {
+      description: `High-performance ${item.itemName} designed for durability and efficiency. Manufactured with precision engineering to meet your daily technological needs with seamless reliability.`,
+      sourcedFrom: "Authorized Brand Distributors",
+    };
+  }
+
+  if (category.includes("home") || category.includes("cleaning") || category.includes("care")) {
+    return {
+      description: `Premium ${item.itemName} formulated to deliver outstanding results. Essential for maintaining a clean, fresh, and hygienic home environment effortlessly.`,
+      sourcedFrom: "Top-Tier Home Care Brands",
+    };
+  }
+
   // Default values
   return {
-    description: `High-quality ${item.itemName} carefully selected and processed under clean conditions. A premium choice for your daily household needs, offering great taste and excellent value.`,
-    ingredients: "Premium Grade Ingredients",
+    description: `High-quality ${item.itemName} carefully selected and packaged. A premium choice for your daily household or personal needs, offering excellent value and reliability.`,
     sourcedFrom: "Sourced & Distributed by GroCart Logistics",
-    nutrition: { calories: "120 kcal", protein: "4 g", carbs: "22 g", fat: "2 g", sodium: "45 mg" }
   };
 };
 
@@ -117,7 +138,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
           </div>
 
           <img
-            src={product.imageUrl}
+            src={getUniqueImageUrl(product.imageUrl, product.id, product.itemName)}
             alt={product.itemName}
             className="w-32 h-32 sm:w-40 sm:h-40 md:w-64 md:h-64 object-cover rounded-3xl shadow-sm dark:brightness-95 animate-float mt-4"
             onError={(e) => { e.target.src = "https://placehold.co/200x200/f1f5f9/10b981?text=Fresh+Product"; }}
@@ -158,6 +179,9 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               <span className="text-sm text-slate-400 line-through">
                 ₹{originalPrice}
               </span>
+              <span className="text-sm font-bold text-slate-500">
+                / {product.unitSize ? `${product.unitSize} ${product.unit || 'pcs'}` : (product.unit || product.itemQuantity || '1 pcs')}
+              </span>
             </div>
 
             {/* Divider */}
@@ -178,17 +202,19 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               </div>
 
               {/* Nutritional Table */}
-              <div>
-                <h4 className="text-xs font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider mb-2">Nutritional Values (Approx. per 100g)</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(details?.nutrition || {}).map(([key, val]) => (
-                    <div key={key} className="bg-slate-50 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800/40 rounded-xl p-2 text-center">
-                      <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">{key}</span>
-                      <span className="text-xs font-black text-slate-700 dark:text-slate-300">{val}</span>
-                    </div>
-                  ))}
+              {details?.nutrition && (
+                <div>
+                  <h4 className="text-xs font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider mb-2">Nutritional Values (Approx. per 100g)</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(details.nutrition).map(([key, val]) => (
+                      <div key={key} className="bg-slate-50 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800/40 rounded-xl p-2 text-center">
+                        <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">{key}</span>
+                        <span className="text-xs font-black text-slate-700 dark:text-slate-300">{val}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 

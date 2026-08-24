@@ -7,6 +7,7 @@ import { store, persistor } from '@global/store/index';
 import App from './App';
 import './index.css';
 import { ThemeProvider } from '@global/context/ThemeContext';
+import { ToastProvider } from '@global/context/ToastContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <ThemeProvider>
-              <App />
+              <ToastProvider>
+                <App />
+              </ToastProvider>
             </ThemeProvider>
           </BrowserRouter>
         </QueryClientProvider>

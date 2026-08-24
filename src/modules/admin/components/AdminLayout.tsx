@@ -1,12 +1,13 @@
 import React from 'react';
-import { ShieldCheck, LogOut, Menu, X, Bell, User, Store, Users, Box, Settings, Sun, Moon } from 'lucide-react';
+import { ShieldCheck, LogOut, Menu, X, Bell, User, Store, Users, Box, Settings, Sun, Moon, Tags } from 'lucide-react';
 import { useTheme } from '@global/context/ThemeContext';
 
 const navItems = [
   { id: 'overview', label: 'Platform Overview', icon: ShieldCheck },
   { id: 'retailers', label: 'Retailer Management', icon: Store },
   { id: 'users', label: 'Customer Directory', icon: Users },
-  { id: 'inventory', label: 'Master Catalog', icon: Box },
+  { id: 'catalog', label: 'Master Catalog', icon: Box },
+  { id: 'categories', label: 'Categories', icon: Tags },
   { id: 'settings', label: 'Admin Settings', icon: Settings }
 ];
 
@@ -34,32 +35,42 @@ export function AdminLayout({ children, activeTab, setActiveTab, handleLogout, a
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-800 dark:text-slate-100 flex transition-colors selection:bg-indigo-500/30">
+    <div 
+      className="min-h-screen flex transition-colors selection:bg-emerald-500/30 relative text-slate-800 dark:text-slate-100"
+      style={{ 
+        backgroundImage: isDark 
+          ? `linear-gradient(to bottom right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000')`
+          : `linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       
       {/* Sidebar (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-[#111724] border-r border-slate-100 dark:border-slate-800/80 fixed h-full z-40 transition-colors">
+      <aside className="hidden md:flex flex-col w-64 bg-white/70 dark:bg-[#1E293B]/70 backdrop-blur-2xl border-r border-white/50 dark:border-slate-700/50 fixed h-full z-40 transition-colors">
         <div className="p-6 flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
             <ShieldCheck size={24} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-850 dark:text-white tracking-tight">Admin<span className="text-indigo-500">Panel</span></h2>
+            <h2 className="text-lg font-black text-slate-850 dark:text-white tracking-tight">GroMart<span className="text-emerald-500"> Admin</span></h2>
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Superuser Access</p>
           </div>
         </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => handleTabChange(item.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-full transition-all cursor-pointer ${
                 activeTab === item.id 
-                  ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-extrabold shadow-sm' 
-                  : 'text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold shadow-sm' 
+                  : 'text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              <item.icon size={18} className={activeTab === item.id ? 'text-indigo-500' : ''} />
-              <span>{item.label}</span>
+              <item.icon size={18} className={activeTab === item.id ? 'text-emerald-600 dark:text-emerald-400' : ''} />
+              <span className="text-sm">{item.label}</span>
             </button>
           ))}
         </nav>
@@ -77,7 +88,7 @@ export function AdminLayout({ children, activeTab, setActiveTab, handleLogout, a
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col md:ml-64 min-h-screen relative w-full">
         {/* Top Navbar */}
-        <header className="sticky top-0 bg-white/80 dark:bg-[#111724]/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800/80 px-4 sm:px-8 py-4 z-30 flex justify-between items-center transition-colors">
+        <header className="sticky top-0 bg-white/70 dark:bg-[#0F172A]/70 backdrop-blur-2xl border-b border-white/50 dark:border-slate-700/50 px-4 sm:px-8 py-4 z-30 flex justify-between items-center transition-colors">
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
@@ -130,7 +141,7 @@ export function AdminLayout({ children, activeTab, setActiveTab, handleLogout, a
                 <p className="text-sm font-black text-slate-800 dark:text-slate-200 leading-tight">{adminName || 'Admin'}</p>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">System Ops</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black border border-indigo-200/50 dark:border-indigo-800/30">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black border border-emerald-200/50 dark:border-emerald-800/30">
                 <User size={18} />
               </div>
             </div>
@@ -150,28 +161,28 @@ export function AdminLayout({ children, activeTab, setActiveTab, handleLogout, a
           <aside className="relative w-64 h-full bg-white dark:bg-[#111724] flex flex-col shadow-2xl animate-fade-in">
             <div className="p-6 flex justify-between items-center border-b border-slate-100 dark:border-slate-800/80">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white">
+                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white">
                   <ShieldCheck size={18} />
                 </div>
-                <h2 className="text-base font-black text-slate-850 dark:text-white">Admin<span className="text-indigo-500">Panel</span></h2>
+                <h2 className="text-base font-black text-slate-850 dark:text-white">GroMart<span className="text-emerald-500"> Admin</span></h2>
               </div>
               <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => handleTabChange(item.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all cursor-pointer ${
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-full transition-all cursor-pointer ${
                     activeTab === item.id 
-                      ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-extrabold shadow-sm' 
-                      : 'text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300'
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 font-bold shadow-sm' 
+                      : 'text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
                 >
-                  <item.icon size={18} className={activeTab === item.id ? 'text-indigo-500' : ''} />
-                  <span>{item.label}</span>
+                  <item.icon size={18} className={activeTab === item.id ? 'text-emerald-600 dark:text-emerald-400' : ''} />
+                  <span className="text-sm">{item.label}</span>
                 </button>
               ))}
             </nav>

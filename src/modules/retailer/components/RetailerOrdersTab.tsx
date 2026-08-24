@@ -77,7 +77,7 @@ export function RetailerOrdersTab({
   };
 
   return (
-    <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-150/60 p-5 mt-6 animate-fade-in print:border-none print:shadow-none print:p-0">
+    <section className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white/50 dark:border-slate-700/50 p-6 mt-6 animate-fade-in print:border-none print:shadow-none print:p-0 relative z-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 print:hidden">
         <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setIsOrdersExpanded(!isOrdersExpanded)}>
           <h2 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 hover:text-blue-600 transition-colors">
@@ -95,10 +95,10 @@ export function RetailerOrdersTab({
 
         {isOrdersExpanded && (
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button onClick={() => window.print()} className="bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 text-slate-700 font-bold text-xs py-2 px-3 rounded-lg transition-colors flex items-center gap-1.5" title="Print Orders">
+            <button onClick={() => window.print()} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md hover:bg-white border border-white/50 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs py-2 px-4 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm" title="Print Orders">
               <Printer size={14} /> <span className="hidden sm:inline">Print</span>
             </button>
-            <button onClick={handleExportCSV} className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-xs py-2 px-3 rounded-lg transition-colors flex items-center gap-1.5" title="Export to Excel">
+            <button onClick={handleExportCSV} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md hover:bg-white border border-white/50 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs py-2 px-4 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm" title="Export to Excel">
               <Download size={14} /> <span className="hidden sm:inline">Export Excel</span>
             </button>
           </div>
@@ -119,19 +119,19 @@ export function RetailerOrdersTab({
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto print:block">
+              <div className="hidden md:block overflow-x-auto print:block bg-white/40 dark:bg-slate-900/40 rounded-2xl border border-white/50 dark:border-slate-700/50 p-2 mt-4">
                 <table className="w-full text-left text-sm text-slate-600 border-collapse">
-                  <thead className="bg-slate-50/50 dark:bg-slate-800 border-b-2 border-slate-100 dark:border-slate-800/80 text-[11px] uppercase tracking-wider font-bold text-slate-500">
-                    <tr>
-                      <th className="p-3 pl-4">Order Details</th>
-                      <th className="p-3 w-1/3">Items (Qty)</th>
-                      <th className="p-3">Customer</th>
-                      <th className="p-3 text-right">Total Payout</th>
-                      <th className="p-3 text-center">Status</th>
-                      <th className="p-3 text-right pr-4">Action</th>
+                  <thead className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400">
+                    <tr className="border-b border-white dark:border-slate-700">
+                      <th className="p-4">Order Details</th>
+                      <th className="p-4 w-1/3">Items (Qty)</th>
+                      <th className="p-4 text-center">Customer</th>
+                      <th className="p-4 text-center">Total Payout</th>
+                      <th className="p-4 text-center">Status</th>
+                      <th className="p-4 text-right pr-6">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                  <tbody className="divide-y divide-white dark:divide-slate-700/50">
                     {displayedOrders.map(order => {
                       const itemsArr = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
                       const retailerItems = itemsArr.filter((item: any) => item.retailerId === user?.uid);
@@ -142,45 +142,45 @@ export function RetailerOrdersTab({
                       const orderIdShort = order.id?.substring(order.id.length - 8).toUpperCase() || 'N/A';
                       
                       return (
-                        <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
-                          <td className="p-3 pl-4">
+                        <tr key={order.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-colors group">
+                          <td className="p-4">
                             <div className="font-black text-slate-900 dark:text-white">#{orderIdShort}</div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide mt-0.5">{dateStr}</div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide mt-1">{dateStr}</div>
                           </td>
-                          <td className="p-3">
-                            <div className="flex flex-wrap gap-1.5">
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-2">
                               {retailerItems.map((item: any, idx) => (
-                                <span key={idx} className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                <span key={idx} className="inline-flex items-center gap-1 bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm border border-white dark:border-slate-600 px-2 py-1 rounded-md text-[10px] font-semibold text-slate-700 dark:text-slate-300">
                                   <span className="font-black text-slate-900 dark:text-white">{item.quantity}x</span> <span className="line-clamp-1 max-w-[100px]" title={item.title || item.itemName}>{item.title || item.itemName}</span>
                                 </span>
                               ))}
                             </div>
                           </td>
-                          <td className="p-3">
-                            <div className="font-bold text-slate-800 dark:text-slate-100 text-xs">{(customer?.name || order.customerEmail || 'Unknown').split(' ')[0]}</div>
-                            <details className="mt-1 cursor-pointer">
-                              <summary className="text-[10px] text-blue-600 hover:text-blue-800 font-bold outline-none flex items-center gap-0.5 select-none w-max">
+                          <td className="p-4 text-center">
+                            <div className="font-bold text-slate-800 dark:text-slate-100 text-xs mb-1">{(customer?.name || order.customerEmail || 'Unknown').split(' ')[0]}</div>
+                            <details className="cursor-pointer inline-block text-left">
+                              <summary className="text-[10px] text-blue-500 hover:text-blue-700 font-bold outline-none flex items-center gap-0.5 select-none w-max">
                                 Contact <ChevronDown size={10} />
                               </summary>
-                              <div className="mt-1 p-2 bg-blue-50 rounded border border-blue-100 text-[10px] space-y-1 w-max absolute z-10 shadow-sm">
+                              <div className="mt-1 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-xl border border-white dark:border-slate-700 text-[10px] space-y-1 w-max absolute z-10 shadow-lg">
                                 <div><span className="font-bold">Tel:</span> {customer?.phoneNumber || 'N/A'}</div>
                               </div>
                             </details>
                           </td>
-                          <td className="p-3 text-right">
-                            <div className="font-black text-slate-900 dark:text-white">₹{retailerTotal.toFixed(2)}</div>
+                          <td className="p-4 text-center">
+                            <div className="font-black text-slate-900 dark:text-white text-base">₹{retailerTotal.toFixed(2)}</div>
                           </td>
-                          <td className="p-3 text-center">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                              order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
-                              order.status === 'cancelled' || order.status === 'returned' ? 'bg-red-100 text-red-700 border border-red-200' : 
-                              'bg-amber-100 text-amber-700 border border-amber-200'
+                          <td className="p-4 text-center">
+                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm ${
+                              order.status === 'delivered' ? 'bg-emerald-100/80 text-emerald-700 border border-emerald-200/50' : 
+                              order.status === 'cancelled' || order.status === 'returned' ? 'bg-rose-100/80 text-rose-700 border border-rose-200/50' : 
+                              'bg-amber-100/80 text-amber-700 border border-amber-200/50'
                             }`}>
                               {order.status || 'placed'}
                             </span>
                           </td>
-                          <td className="p-3 text-right pr-4">
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold py-1.5 px-3 rounded shadow-sm shadow-blue-500/20 active:scale-95 transition-all whitespace-nowrap flex items-center gap-1 ml-auto" onClick={() => alert('Order status update UI hooks here!')}>
+                          <td className="p-4 text-right pr-6">
+                            <button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-[11px] font-bold py-2 px-4 rounded-xl shadow-lg shadow-blue-500/30 active:scale-95 transition-all whitespace-nowrap flex items-center gap-1.5 ml-auto border border-white/20" onClick={() => alert('Order status update UI hooks here!')}>
                               Pack & Dispatch <ArrowRight size={12}/>
                             </button>
                           </td>

@@ -23,6 +23,9 @@ export const authApi = {
       storeName: val.storeName,
       phoneNumber: val.phoneNumber,
       address: val.address,
+      avatarStyle: val.avatarStyle,
+      avatarSeed: val.avatarSeed,
+      avatarUrl: val.avatarUrl,
       createdAt: val.createdAt || Date.now(),
     };
   },
@@ -47,6 +50,16 @@ export const authApi = {
     await signOut(auth);
   },
 
+  updateProfile: async (uid: string, updates: Partial<UserProfile>): Promise<void> => {
+    const userRef = ref(db, `users/${uid}`);
+    const snapshot = await get(userRef);
+    if (!snapshot.exists()) {
+      throw new Error('User profile does not exist.');
+    }
+    const currentData = snapshot.val();
+    await set(userRef, { ...currentData, ...updates });
+  },
+
   fetchUserProfile: async (uid: string): Promise<UserProfile> => {
     const userRef = ref(db, `users/${uid}`);
     const snapshot = await get(userRef);
@@ -62,6 +75,9 @@ export const authApi = {
       storeName: val.storeName,
       phoneNumber: val.phoneNumber,
       address: val.address,
+      avatarStyle: val.avatarStyle,
+      avatarSeed: val.avatarSeed,
+      avatarUrl: val.avatarUrl,
       createdAt: val.createdAt || Date.now(),
     };
   }

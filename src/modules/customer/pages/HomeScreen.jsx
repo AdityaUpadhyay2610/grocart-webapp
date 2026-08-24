@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useOutletContext, useNavigate } from "react-router";
-import { CATEGORIES } from '@global/models/Categories';
 import { useCart } from '../state/CartContext';
 import { Minus, Plus, ChevronLeft, ChevronRight, Percent, ShieldCheck } from "lucide-react";
 
@@ -34,7 +33,7 @@ const PROMO_BANNERS = [
 
 export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
   const { cartItems, addToCart, decreaseCartItem, triggerAddToCartAnimation } = useCart();
-  const { setSelectedProduct } = useOutletContext();
+  const { setSelectedProduct, categories = [] } = useOutletContext();
   const [activeBanner, setActiveBanner] = useState(0);
   const navigate = useNavigate();
 
@@ -258,9 +257,9 @@ export const HomeScreen = React.memo(({ products, onCategoryClick }) => {
         <h2 className="text-2xl font-black text-slate-850 dark:text-slate-100 tracking-tight">Shop By Category</h2>
         
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-5 py-2">
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <button
-              key={cat.name}
+              key={cat.id}
               onClick={() => onCategoryClick(cat)}
               className="flex flex-col bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-3.5 items-center justify-between text-center group transition-all duration-300 hover:shadow-md dark:hover:shadow-none hover:scale-105 active:scale-95 cursor-pointer aspect-auto min-h-[110px] sm:min-h-[125px]"
               style={{ backgroundColor: `${cat.bgColor}15` }}
