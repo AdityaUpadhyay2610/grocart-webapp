@@ -36,7 +36,9 @@ GroCart offers a highly polished, responsive shopping experience backed by a rob
 ## ✨ Key Features
 
 - 🔐 **Role-Based Authentication**: Secure login and dedicated dashboards for **Admins**, **Retailers**, and **Customers** using a robust `RoleGuard`.
-- 🏗️ **Clean Architecture**: Domain-driven structure (Presentation, Domain, Infrastructure, Application) for enhanced scalability and maintainability.
+- 👑 **Admin Dashboard**: Comprehensive admin tools including an Overview, User & Retailer management, global Inventory & Category control, and application Settings.
+- 🏪 **Retailer Operations**: Dedicated retailer tools including Analytics, specialized Inventory management (with Edit Product modal), Order tracking, and profile Settings.
+- 🏗️ **Modular Architecture**: Feature-sliced structure (`global`, `admin`, `retailer`, `customer`) for enhanced scalability, maintainability, and code isolation.
 - 🎨 **Modern UI/UX**: Beautiful layout with ivory/cream and soft gold design accents, fully optimized for mobile and desktop screens. Dynamic dark/light mode with curated palettes.
 - ☁️ **Advanced Data Management**: Uses `@tanstack/react-query` and `axios` for optimal data fetching, with centralized global state via `@reduxjs/toolkit` and `redux-persist`.
 - 📊 **Data Visualization**: Insightful analytics and charts in Admin and Retailer dashboards powered by `recharts`.
@@ -62,13 +64,37 @@ GroCart offers a highly polished, responsive shopping experience backed by a rob
 
 ## 🏗️ Architecture
 
-GroCart is organized into a modular, clean architecture to strictly separate business logic from UI and infrastructure:
+GroCart is organized into a modular, feature-based architecture to separate concerns and encapsulate domain-specific logic (Admin, Customer, Retailer):
 
-- 📂 **`src/domain/`**: Core domain models, entities, and constants.
-- 📂 **`src/application/`**: Application use cases, Redux slices, and custom hooks orchestrating domain logic.
-- 📂 **`src/infrastructure/`**: External integrations, API clients, and Firebase configuration.
-- 📂 **`src/presentation/`**: Visual UI components, pages, and route guards.
-- 📂 **`Legacy Layers`**: Older `.jsx` screens and components, gradually being migrated to the presentation layer.
+- 📂 **`src/global/`**: Shared components (UI, layout), contexts, hooks, global services, models, and utility functions used across all modules.
+- 📂 **`src/modules/admin/`**: Dedicated dashboard for administrators. Contains tabs for Users, Retailers, Inventory, Categories, and Settings.
+- 📂 **`src/modules/retailer/`**: Dedicated dashboard for retailers. Contains tabs for Analytics, Inventory (with Edit Product functionality), Orders, Overview, and Settings.
+- 📂 **`src/modules/customer/`**: The main storefront experience, handling carts, products, categories, seasonal overlays, and orders.
+
+### 🗂️ Main File Tree
+
+```text
+src/
+├── global/
+│   ├── components/   # Shared UI (Buttons, Modals, AppShell, NavBars)
+│   ├── context/      # Auth, Theme, and Toast Providers
+│   ├── hooks/        # Shared custom hooks
+│   ├── models/       # TypeScript interfaces (User, Product, Order)
+│   ├── services/     # Firebase Auth, Global APIs
+│   └── store/        # Redux store configurations
+└── modules/
+    ├── admin/
+    │   ├── components/ # Admin Tabs (Overview, Users, Retailers, Inventory, Categories, etc.)
+    │   ├── hooks/      # useAdminData
+    │   └── pages/      # AdminDashboardPage
+    ├── customer/
+    │   ├── components/ # Storefront components (CartDrawer, ProductModal)
+    │   ├── pages/      # Home, Category, Products, Cart, Payment
+    │   └── services/   # Customer-specific repositories
+    └── retailer/
+        ├── components/ # Retailer Tabs (Analytics, Inventory, Orders, Settings)
+        └── pages/      # RetailerOperationsPage
+```
 
 ### 🔄 User Flow Diagram
 
