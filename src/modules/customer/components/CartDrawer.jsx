@@ -77,7 +77,9 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                     />
                     <div className="flex-1 px-5 text-left">
                       <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 line-clamp-1">{item.itemName}</h4>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-bold">₹{discountedPrice} each</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-bold">
+                        ₹{discountedPrice} <span className="text-primary-600 dark:text-primary-400">({item.itemQuantity || '500g'})</span>
+                      </p>
                     </div>
                     <div className="flex flex-col items-end space-y-2">
                       {/* Quantity Selector */}

@@ -1,53 +1,71 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from '@global/context/AuthContext';
 import { useOrders } from "../hooks/useOrders";
-import { User, Mail, MapPin, Loader2, Save, Award, ShoppingBag, CreditCard, Sparkles, Home, Briefcase, Trash2 } from "lucide-react";
+import { formatINR } from "@global/utils/calculations";
+import { 
+  User, Mail, Phone, MapPin, CreditCard, Bell, Shield, LogOut, 
+  Plus, Trash2, Check, Sparkles, Home, Briefcase, ChevronRight, Save, Loader2 
+} from "lucide-react";
 import { useOutletContext } from "react-router";
 
 const AVATARS = [
-  { emoji: "🍎", label: "Apple", bgColor: "bg-red-50 dark:bg-red-950/20" },
-  { emoji: "🥑", label: "Avocado", bgColor: "bg-primary-50 dark:bg-primary-950/20" },
-  { emoji: "🍪", label: "Cookie", bgColor: "bg-amber-50 dark:bg-amber-950/20" },
-  { emoji: "🥛", label: "Milk", bgColor: "bg-blue-50 dark:bg-blue-950/20" },
-  { emoji: "☕", label: "Coffee", bgColor: "bg-amber-100 dark:bg-amber-900/10" },
-  { emoji: "🍉", label: "Watermelon", bgColor: "bg-rose-50 dark:bg-rose-950/20" },
-  { emoji: "🧁", label: "Cupcake", bgColor: "bg-pink-50 dark:bg-pink-950/20" },
-  { emoji: "🍕", label: "Pizza", bgColor: "bg-orange-50 dark:bg-orange-950/20" }
+  { emoji: "🍎", label: "Apple" },
+  { emoji: "🥑", label: "Avocado" },
+  { emoji: "🍪", label: "Cookie" },
+  { emoji: "🥛", label: "Milk" },
+  { emoji: "☕", label: "Coffee" },
+  { emoji: "🍉", label: "Watermelon" },
+  { emoji: "🧁", label: "Cupcake" },
+  { emoji: "🍕", label: "Pizza" }
 ];
 
 export const ProfileScreen = React.memo(({ onNavigateBack }) => {
-  const { user, savedAddress, localAddress, updateProfile, isLoading } = useAuth();
-  const { orders } = useOrders();
+  const { user, savedAddress, localAddress, updateProfile, logout, isLoading } = useAuth();
+  const { orders = [] } = useOrders();
   const { requestLocation, locationText } = useOutletContext() || {};
+
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "addresses" | "payments" | "notifications" | "security"
   
+  // Profile form state
   const [name, setName] = useState(user?.username || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [address, setAddress] = useState(savedAddress || "");
-  const [localAddr, setLocalAddr] = useState(localAddress || "");
-  
-  // State for multiple saved locations
-  const [savedLocations, setSavedLocations] = useState(() => {
+  const [phone, setPhone] = useState("+91 98765 43210");
+  const [selectedAvatar, setSelectedAvatar] = useState(() => {
+    return localStorage.getItem("grocart_avatar") || "🍎";
+  });
+
+  // Saved Addresses State
+  const [savedAddresses, setSavedAddresses] = useState(() => {
     try {
       const stored = localStorage.getItem("grocart_saved_locations");
       return stored ? JSON.parse(stored) : [
-        { id: "1", label: "Home", address: savedAddress || "" }
-      ].filter(l => l.address);
+        { id: "1", label: "Home", isDefault: true, address: "742 Evergreen Terrace, DLF Phase 5", city: "Gurugram", state: "Haryana", pincode: "122002" },
+        { id: "2", label: "Work", isDefault: false, address: "Cyber City, Building 10, Tower B, 4th Floor", city: "Gurugram", state: "Haryana", pincode: "122002" }
+      ];
     } catch {
       return [];
     }
   });
 
-  // State for new address form
-  const [newLabelType, setNewLabelType] = useState("Home"); // "Home" | "Office" | "Other"
-  const [newCustomLabel, setNewCustomLabel] = useState("");
-  const [newAddressText, setNewAddressText] = useState("");
-  
-  // Avatar selection state (persisted locally)
-  const [selectedAvatar, setSelectedAvatar] = useState(() => {
-    return localStorage.getItem("grocart_avatar") || "🍎";
+  // New Address Form State
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [newTag, setNewTag] = useState("Home");
+  const [newStreet, setNewStreet] = useState("");
+  const [newCity, setNewCity] = useState("New Delhi");
+  const [newState, setNewState] = useState("Delhi");
+  const [newPincode, setNewPincode] = useState("110001");
+  const [pinError, setPinError] = useState("");
+
+  // Notification toggles
+  const [notifications, setNotifications] = useState({
+    orderUpdates: true,
+    flashDeals: true,
+    weeklyRecipes: false,
+    whatsappAlerts: true
   });
-  
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+  // Save changes toast
+  const [savedToast, setSavedToast] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -57,193 +75,223 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
   }, [user]);
 
   useEffect(() => {
-    setAddress(savedAddress || "");
-  }, [savedAddress]);
+    localStorage.setItem("grocart_saved_locations", JSON.stringify(savedAddresses));
+  }, [savedAddresses]);
 
-  useEffect(() => {
-    setLocalAddr(localAddress || localStorage.getItem("grocart_local_address") || "");
-  }, [localAddress]);
+  const handleAvatarSelect = (emoji) => {
+    setSelectedAvatar(emoji);
+    localStorage.setItem("grocart_avatar", emoji);
+    window.dispatchEvent(new Event("storage"));
+  };
 
-  // Sync geocoded location changes from app shell mapping
-  useEffect(() => {
-    if (locationText && 
-        !locationText.includes("Fetching") && 
-        !locationText.includes("Disabled") && 
-        !locationText.includes("Unable") && 
-        !locationText.includes("Permission") &&
-        !locationText.includes("Required") &&
-        !locationText.includes("GPS")) {
-      setLocalAddr(locationText);
-    }
-  }, [locationText]);
-
-  // Sync changes in savedLocations to localStorage
-  useEffect(() => {
-    localStorage.setItem("grocart_saved_locations", JSON.stringify(savedLocations));
-  }, [savedLocations]);
-
-  // Sync background storage updates
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setLocalAddr(localStorage.getItem("grocart_local_address") || "");
-      try {
-        const stored = localStorage.getItem("grocart_saved_locations");
-        if (stored) setSavedLocations(JSON.parse(stored));
-      } catch (e) {}
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  const handleSave = useCallback(async (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    if (name.trim() === "" || address.trim() === "") {
-      alert("Name and Address are required!");
+    if (!name.trim()) {
+      alert("Name is required!");
+      return;
+    }
+    const defaultAddr = savedAddresses.find(a => a.isDefault)?.address || savedAddress || "";
+    await updateProfile(name, defaultAddr, locationText || "");
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 3000);
+  };
+
+  const handleAddAddress = (e) => {
+    e.preventDefault();
+    if (!newStreet.trim() || !newPincode.trim()) {
+      alert("Street address and PIN code are required!");
       return;
     }
 
-    const { success, error } = await updateProfile(name, address, localAddr);
-    if (success) {
-      localStorage.setItem("grocart_avatar", selectedAvatar);
-      // Trigger local storage event to update other components
-      window.dispatchEvent(new Event("storage"));
-      alert("Profile saved successfully!");
-      if (onNavigateBack) onNavigateBack();
-    } else {
-      alert(`Save failed: ${error}`);
-    }
-  }, [name, address, localAddr, selectedAvatar, updateProfile, onNavigateBack]);
-
-  const handleAddLocation = (e) => {
-    e.preventDefault();
-    const label = newLabelType === "Other" ? (newCustomLabel.trim() || "Other") : newLabelType;
-    if (newAddressText.trim() === "") {
-      alert("Address text is required!");
+    // Indian 6-digit PIN validation
+    if (!/^\d{6}$/.test(newPincode.trim())) {
+      setPinError("Please enter a valid 6-digit Indian PIN code (e.g. 110001).");
       return;
     }
-    const newLoc = {
+    setPinError("");
+
+    const newEntry = {
       id: Date.now().toString(),
-      label,
-      address: newAddressText.trim()
+      label: newTag,
+      isDefault: savedAddresses.length === 0,
+      address: newStreet.trim(),
+      city: newCity.trim(),
+      state: newState.trim(),
+      pincode: newPincode.trim()
     };
-    setSavedLocations(prev => [...prev, newLoc]);
-    setNewAddressText("");
-    setNewCustomLabel("");
-    alert("Location added successfully!");
+
+    setSavedAddresses(prev => [...prev, newEntry]);
+    setNewStreet("");
+    setNewPincode("110001");
+    setShowAddressForm(false);
   };
 
-  const handleDeleteLocation = (id) => {
-    setSavedLocations(prev => prev.filter(l => l.id !== id));
+  const handleDeleteAddress = (id) => {
+    setSavedAddresses(prev => prev.filter(a => a.id !== id));
   };
 
-  const handleSetDefaultAddress = (addressText) => {
-    setAddress(addressText);
-    alert("Set as default delivery address!");
+  const handleSetDefaultAddress = (id) => {
+    setSavedAddresses(prev => prev.map(a => ({
+      ...a,
+      isDefault: a.id === id
+    })));
   };
 
-  // Shopping Stats computations
   const totalOrders = orders.length;
   const totalSpent = useMemo(() => {
-    return orders.reduce((sum, o) => sum + o.totalPaid, 0);
+    return orders.reduce((sum, o) => sum + (o.totalPaid || 0), 0);
   }, [orders]);
 
-  const memberTier = useMemo(() => {
-    if (totalOrders >= 10 && totalSpent >= 2500) {
-      return {
-        name: "VIP Elite Member",
-        color: "text-pink-400",
-        cardGradient: "from-rose-600 via-pink-700 to-purple-600",
-        benefits: "Free Instant Delivery • 10% Extra Cashback • VIP Support",
-        badge: "VIP ELITE"
-      };
-    }
-    if (totalOrders >= 4 || totalSpent >= 1000) {
-      return {
-        name: "Gold Member",
-        color: "text-amber-400",
-        cardGradient: "from-amber-600 via-yellow-500 to-amber-400",
-        benefits: "Free Express Delivery • 5% Extra Cashback • Priority Support",
-        badge: "GOLD"
-      };
-    }
-    if (totalOrders >= 1 || totalSpent >= 300) {
-      return {
-        name: "Premium Member",
-        color: "text-indigo-400",
-        cardGradient: "from-blue-600 via-indigo-600 to-teal-500",
-        benefits: "Free Delivery on Orders > ₹299 • Premium Perks",
-        badge: "PREMIUM"
-      };
-    }
-    return {
-      name: "Club Member",
-      color: "text-slate-400",
-      cardGradient: "from-slate-600 to-slate-800",
-      benefits: "Free Delivery on Orders > ₹499",
-      badge: "BASIC"
-    };
-  }, [totalOrders, totalSpent]);
-
-  const memberId = useMemo(() => {
-    if (!user?.id) return "GC-0000-0000";
-    const cleanId = user.id.replace(/\D/g, "").substring(0, 8);
-    const part1 = cleanId.substring(0, 4) || "4920";
-    const part2 = cleanId.substring(4, 8) || "8831";
-    return `GC-${part1}-${part2}`;
-  }, [user]);
-
   return (
-    <div className="flex flex-col pb-28 select-none w-full max-w-7xl mx-auto min-h-screen bg-transparent relative px-4 gap-6 text-left">
+    <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
       
-      {/* 2-Column Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-4">
-        
-        {/* Left Column: Avatar, Card & Stats */}
-        <div className="lg:col-span-4 space-y-6 flex flex-col">
-          
-          {/* Visual Avatar Card */}
-          <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 text-center shadow-sm dark:shadow-none relative flex flex-col items-center overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent-500/5 rounded-full blur-2xl pointer-events-none" />
-
-            {/* Circular Avatar Display with Edit overlay */}
-            <div className="relative group">
-              <div 
-                onClick={() => setShowAvatarPicker(prev => !prev)}
-                className="w-24 h-24 rounded-full bg-slate-50 dark:bg-slate-850 border-4 border-white dark:border-slate-800 shadow-md flex items-center justify-center text-5xl cursor-pointer hover:scale-105 active:scale-95 transition-all relative overflow-hidden"
-              >
-                <span>{selectedAvatar}</span>
-                <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[10px] text-white font-black uppercase tracking-wider">Change</span>
-                </div>
-              </div>
-            </div>
-
-            <h3 className="text-xl font-black text-slate-850 dark:text-slate-100 mt-4 leading-tight">
-              {name || "GroCart User"}
-            </h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-1 flex items-center justify-center space-x-1">
-              <Mail size={12} className="text-primary-500" />
-              <span>{email || "No Email"}</span>
+      {/* ── 1. PROFILE HEADER GREETING ── */}
+      <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-4xl shadow-inner border-2 border-primary/20">
+            <span>{selectedAvatar}</span>
+          </div>
+          <div>
+            <h1 className="font-display-lg text-on-surface text-2xl sm:text-3xl font-black">
+              {name || "Customer Profile"}
+            </h1>
+            <p className="font-body-md text-xs text-on-surface-variant mt-0.5 flex items-center gap-2">
+              <span>{email || "customer@grocart.com"}</span>
+              <span>•</span>
+              <span className="text-primary font-bold">Gold Eco-Shopper (12.4 kg CO₂e saved)</span>
             </p>
+          </div>
+        </div>
 
-            {/* Expandable Avatar Grid Selector */}
-            {showAvatarPicker && (
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 w-full animate-fade-in">
-                <p className="text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider mb-3 text-left">Choose your Sticker</p>
-                <div className="grid grid-cols-4 gap-2.5">
+        <div className="flex items-center gap-3">
+          <div className="px-4 py-2 bg-surface-container-low rounded-2xl border border-surface-variant/30 text-center">
+            <span className="text-[10px] text-slate-text font-bold uppercase block">Orders</span>
+            <span className="font-headline-md text-base font-black text-on-surface">{totalOrders}</span>
+          </div>
+          <div className="px-4 py-2 bg-surface-container-low rounded-2xl border border-surface-variant/30 text-center">
+            <span className="text-[10px] text-slate-text font-bold uppercase block">Total Spent</span>
+            <span className="font-headline-md text-base font-black text-primary">{formatINR(totalSpent, false)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. 12-COLUMN PROFILE DASHBOARD ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* ── Left: Sidebar Navigation Tabs (4 cols) ── */}
+        <div className="col-span-1 lg:col-span-4 bg-surface-container-lowest rounded-3xl p-4 border border-surface-variant/40 shadow-sm flex flex-col gap-1.5">
+          
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`w-full p-3.5 rounded-2xl font-label-md text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              activeTab === "overview" 
+                ? "bg-primary text-on-primary shadow-md" 
+                : "text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <User size={18} />
+              <span>Profile Overview</span>
+            </div>
+            <ChevronRight size={16} />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("addresses")}
+            className={`w-full p-3.5 rounded-2xl font-label-md text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              activeTab === "addresses" 
+                ? "bg-primary text-on-primary shadow-md" 
+                : "text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <MapPin size={18} />
+              <span>Saved Addresses</span>
+            </div>
+            <ChevronRight size={16} />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("payments")}
+            className={`w-full p-3.5 rounded-2xl font-label-md text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              activeTab === "payments" 
+                ? "bg-primary text-on-primary shadow-md" 
+                : "text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <CreditCard size={18} />
+              <span>Payment Methods</span>
+            </div>
+            <ChevronRight size={16} />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("notifications")}
+            className={`w-full p-3.5 rounded-2xl font-label-md text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              activeTab === "notifications" 
+                ? "bg-primary text-on-primary shadow-md" 
+                : "text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Bell size={18} />
+              <span>Notification Settings</span>
+            </div>
+            <ChevronRight size={16} />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("security")}
+            className={`w-full p-3.5 rounded-2xl font-label-md text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              activeTab === "security" 
+                ? "bg-primary text-on-primary shadow-md" 
+                : "text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Shield size={18} />
+              <span>Security & Privacy</span>
+            </div>
+            <ChevronRight size={16} />
+          </button>
+
+          <div className="border-t border-surface-variant/30 my-2 pt-2">
+            <button
+              onClick={() => {
+                if (window.confirm("Are you sure you want to logout?")) logout();
+              }}
+              className="w-full p-3.5 rounded-2xl font-label-md text-xs font-bold text-error hover:bg-error-container/20 transition-all flex items-center gap-3 cursor-pointer"
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Right: Active Tab Pane (8 cols) ── */}
+        <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
+          
+          {/* TAB 1: PROFILE OVERVIEW */}
+          {activeTab === "overview" && (
+            <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm flex flex-col gap-6">
+              <h3 className="font-headline-md text-lg font-black text-on-surface border-b border-surface-variant/30 pb-4">
+                Personal Information
+              </h3>
+
+              {/* Avatar Selector Grid */}
+              <div className="flex flex-col gap-3">
+                <label className="font-label-sm text-xs font-bold text-on-surface">Choose Your Sticker Avatar</label>
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
                   {AVATARS.map(av => (
                     <button
-                      key={av.label}
+                      key={av.emoji}
                       type="button"
-                      onClick={() => {
-                        setSelectedAvatar(av.emoji);
-                        localStorage.setItem("grocart_avatar", av.emoji);
-                        window.dispatchEvent(new Event("storage"));
-                        setShowAvatarPicker(false);
-                      }}
-                      className={`h-11 rounded-2xl flex items-center justify-center text-2xl transition-all hover:scale-110 cursor-pointer ${av.bgColor} ${
-                        selectedAvatar === av.emoji ? "ring-2 ring-primary-500 shadow-md" : "border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                      onClick={() => handleAvatarSelect(av.emoji)}
+                      className={`h-12 rounded-2xl flex items-center justify-center text-2xl transition-all hover:scale-110 cursor-pointer bg-surface-container-low ${
+                        selectedAvatar === av.emoji 
+                          ? "ring-2 ring-primary bg-primary/10 shadow-sm" 
+                          : "border border-surface-variant/30"
                       }`}
                     >
                       {av.emoji}
@@ -251,393 +299,339 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
                   ))}
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Premium Glassmorphic Membership Card */}
-          <div className={`w-full aspect-[1.62] bg-gradient-to-br ${memberTier.cardGradient} rounded-3xl p-6 text-white relative shadow-lg shadow-primary-500/10 border border-white/10 overflow-hidden flex flex-col justify-between select-none`}>
-            {/* Glossy overlay effect */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_60%)] pointer-events-none" />
-            <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-
-            {/* Top row: Brand & Chips */}
-            <div className="flex justify-between items-start z-10">
-              <div className="flex items-center space-x-1.5">
-                <Sparkles size={16} className="text-amber-300 animate-pulse" />
-                <span className="font-extrabold tracking-widest text-[11px] uppercase opacity-90">GroCart Club</span>
-              </div>
-              <span className="text-[9px] font-black tracking-widest bg-white/20 px-2 py-0.5 rounded uppercase backdrop-blur-sm border border-white/10">
-                {memberTier.name}
-              </span>
-            </div>
-
-            {/* Middle Section: Member ID */}
-            <div className="my-3 z-10">
-              <p className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Club Card Number</p>
-              <h4 className="text-lg md:text-xl font-mono tracking-widest font-bold mt-1 text-white/95 font-bold">
-                {memberId}
-              </h4>
-            </div>
-
-            {/* Bottom Row: Name & Barcode */}
-            <div className="flex justify-between items-end z-10">
-              <div className="text-left max-w-[65%]">
-                <p className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">{memberTier.benefits}</p>
-                <h5 className="text-sm font-black truncate mt-0.5 tracking-wide text-white">
-                  {(name || "User").toUpperCase()}
-                </h5>
-              </div>
-
-              {/* Mock Receipt/Card barcode lines */}
-              <div className="flex flex-col items-end opacity-85">
-                <div className="flex items-stretch h-6 bg-white/90 p-0.5 rounded border border-white/10">
-                  {/* barcode lines using variable widths */}
-                  <div className="w-[1px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[2px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[1px] bg-slate-900 mr-[2px]"></div>
-                  <div className="w-[3px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[1px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[2px] bg-slate-900 mr-[2px]"></div>
-                  <div className="w-[1px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[2px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[3px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[1px] bg-slate-900 mr-[1px]"></div>
-                  <div className="w-[2px] bg-slate-900 mr-[2px]"></div>
-                  <div className="w-[1px] bg-slate-900"></div>
-                </div>
-                <span className="text-[7px] font-mono tracking-widest mt-0.5 text-white/70">MEMBER {memberTier.badge}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Wholesome Club Stats Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-none flex items-center space-x-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/20 flex items-center justify-center text-primary-500">
-                <ShoppingBag size={20} />
-              </div>
-              <div>
-                <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Total Orders</span>
-                <span className="text-base font-black text-slate-800 dark:text-slate-200">{totalOrders} Orders</span>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-none flex items-center space-x-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-accent-50 dark:bg-accent-950/20 flex items-center justify-center text-accent-500">
-                <CreditCard size={20} />
-              </div>
-              <div>
-                <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Total Spent</span>
-                <span className="text-base font-black text-slate-800 dark:text-slate-200">₹{totalSpent}</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Middle Column: Edit Account & Address Form */}
-        <div className="lg:col-span-4">
-          <form 
-            onSubmit={handleSave}
-            className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-none space-y-6 text-left relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-500 to-primary-600" />
-            
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/20 flex items-center justify-center text-primary-500">
-                <User size={20} />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-slate-800 dark:text-slate-200">Account Preferences</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-0.5">Manage your personal and delivery information</p>
-              </div>
-            </div>
-
-            <hr className="border-slate-100 dark:border-slate-800/60" />
-
-            {/* Inputs Grid */}
-            <div className="space-y-4">
-              {/* Full Name */}
-              <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Full Name</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <User size={16} className="text-slate-400 dark:text-slate-600" />
+              {/* Form inputs */}
+              <form onSubmit={handleProfileSave} className="flex flex-col gap-4 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-label-sm text-xs font-bold text-on-surface">Full Name</label>
+                    <input 
+                      type="text" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="bg-surface-container-low border border-surface-variant/40 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="block w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all shadow-inner placeholder-slate-400 dark:placeholder-slate-600"
-                    required
-                  />
-                </div>
-              </div>
 
-              {/* Email Address */}
-              <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Email Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Mail size={16} className="text-slate-400 dark:text-slate-655" />
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-label-sm text-xs font-bold text-on-surface">Phone Number</label>
+                    <input 
+                      type="text" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="bg-surface-container-low border border-surface-variant/40 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                    />
                   </div>
-                  <input
-                    type="email"
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-label-sm text-xs font-bold text-on-surface">Email Address</label>
+                  <input 
+                    type="email" 
                     value={email}
-                    placeholder="yourname@example.com"
                     disabled
-                    className="block w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-[#131a29]/80 border border-slate-200/60 dark:border-slate-850 rounded-xl text-sm text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed select-none"
+                    className="bg-surface-container-low/50 border border-surface-variant/30 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-text cursor-not-allowed"
                   />
+                  <span className="text-[10px] text-slate-text">Email address is tied to your Google authentication account.</span>
                 </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-1.5">Note: Email is locked to your auth credentials.</p>
-              </div>
 
-              {/* Delivery Address */}
-              <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-550 uppercase tracking-wider">Delivery Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 pt-3.5 flex items-start pointer-events-none">
-                    <MapPin size={16} className="text-slate-400 dark:text-slate-600" />
-                  </div>
-                  <textarea
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter flat number, wing, street address, and locality..."
-                    rows={4}
-                    className="block w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all shadow-inner placeholder-slate-400 dark:placeholder-slate-600 resize-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Local Address (Auto-saved via GPS Mapping) */}
-              <div className="space-y-1.5 text-left">
-                <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Local Address (Auto-saved)</label>
-                  {requestLocation && (
-                    <button
-                      type="button"
-                      onClick={requestLocation}
-                      className="text-[9px] font-black text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 bg-primary-50 dark:bg-primary-950/20 hover:bg-primary-100 dark:hover:bg-primary-900/35 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center space-x-1"
-                    >
-                      <MapPin size={10} />
-                      <span>Detect Location</span>
-                    </button>
-                  )}
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 pt-3.5 flex items-start pointer-events-none">
-                    <MapPin size={16} className="text-slate-400 dark:text-slate-600" />
-                  </div>
-                  <textarea
-                    value={localAddr}
-                    onChange={(e) => setLocalAddr(e.target.value)}
-                    placeholder="Fetch coordinates/local address or enter here..."
-                    rows={2}
-                    className="block w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all shadow-inner placeholder-slate-400 dark:placeholder-slate-600 resize-none"
-                  />
-                </div>
-              </div>
-
-            </div>
-
-            {/* Action Row */}
-            <div className="pt-4 flex items-center justify-between gap-4">
-              {onNavigateBack && (
                 <button
-                  type="button"
-                  onClick={onNavigateBack}
-                  className="px-5 py-3 border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-355 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-xs font-black rounded-xl transition-all cursor-pointer"
+                  type="submit"
+                  disabled={isLoading}
+                  className="mt-4 px-6 py-3 bg-primary text-on-primary font-label-md text-xs font-bold rounded-xl hover:bg-primary-container shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer w-max"
                 >
-                  Cancel
+                  <Save size={16} />
+                  <span>Save Changes</span>
                 </button>
-              )}
-              
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Save size={14} />
-                    <span>Save Changes</span>
-                  </>
-                )}
-              </button>
+              </form>
             </div>
+          )}
 
-          </form>
-        </div>
-
-        {/* Right Column: Multiple Saved Locations Card */}
-        <div className="lg:col-span-4">
-          <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-none space-y-6 text-left relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 to-indigo-600" />
-            
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/20 flex items-center justify-center text-primary-500 animate-pulse">
-                <MapPin size={20} />
+          {/* TAB 2: SAVED ADDRESSES */}
+          {activeTab === "addresses" && (
+            <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm flex flex-col gap-6">
+              <div className="flex justify-between items-center border-b border-surface-variant/30 pb-4">
+                <div>
+                  <h3 className="font-headline-md text-lg font-black text-on-surface">Saved Delivery Addresses</h3>
+                  <p className="font-body-md text-xs text-on-surface-variant">Manage addresses for quick-commerce delivery</p>
+                </div>
+                <button
+                  onClick={() => setShowAddressForm(prev => !prev)}
+                  className="px-4 py-2 bg-primary text-on-primary rounded-xl font-label-md text-xs font-bold flex items-center gap-1.5 hover:bg-primary-container transition-all cursor-pointer shadow-xs"
+                >
+                  <Plus size={16} />
+                  <span>Add New</span>
+                </button>
               </div>
-              <div>
-                <h3 className="text-base font-black text-slate-800 dark:text-slate-200">My Saved Locations</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-0.5">Manage multiple addresses like Home, Office, etc.</p>
-              </div>
-            </div>
 
-            <hr className="border-slate-100 dark:border-slate-800/60" />
+              {/* Add Address Form Modal/Pane */}
+              {showAddressForm && (
+                <form onSubmit={handleAddAddress} className="p-5 rounded-2xl bg-surface-container-low border border-surface-variant/40 flex flex-col gap-4 animate-fade-in">
+                  <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface">Add New Address</h4>
+                  
+                  {/* Tag Selector */}
+                  <div className="flex gap-2">
+                    {["Home", "Work", "Other"].map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setNewTag(t)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          newTag === t ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest text-on-surface border border-surface-variant/40'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
 
-            {/* List of Saved Locations */}
-            <div className="space-y-3">
-              {savedLocations.length > 0 ? (
-                savedLocations.map((loc) => {
-                  const isDefault = address.trim() === loc.address.trim();
-                  return (
-                    <div 
-                      key={loc.id} 
-                      className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
-                        isDefault 
-                          ? "bg-primary-50/30 dark:bg-primary-950/5 border-primary-200 dark:border-primary-900/40" 
-                          : "bg-slate-50/50 dark:bg-slate-900/30 border-slate-150 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-900/60"
-                      }`}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-label-sm text-xs font-bold text-on-surface">Street Address & Landmark</label>
+                    <input 
+                      type="text"
+                      value={newStreet}
+                      onChange={(e) => setNewStreet(e.target.value)}
+                      placeholder="Flat 302, Wing B, Galaxy Heights, Sector 45"
+                      className="bg-surface-container-lowest border border-surface-variant/40 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-xs font-bold text-on-surface">City</label>
+                      <input 
+                        type="text"
+                        value={newCity}
+                        onChange={(e) => setNewCity(e.target.value)}
+                        className="bg-surface-container-lowest border border-surface-variant/40 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface"
+                        required
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-xs font-bold text-on-surface">State</label>
+                      <input 
+                        type="text"
+                        value={newState}
+                        onChange={(e) => setNewState(e.target.value)}
+                        className="bg-surface-container-lowest border border-surface-variant/40 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface"
+                        required
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-sm text-xs font-bold text-on-surface">6-Digit Indian PIN</label>
+                      <input 
+                        type="text"
+                        value={newPincode}
+                        onChange={(e) => setNewPincode(e.target.value)}
+                        placeholder="110001"
+                        maxLength={6}
+                        className="bg-surface-container-lowest border border-surface-variant/40 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {pinError && <span className="text-xs text-error font-bold">{pinError}</span>}
+
+                  <div className="flex justify-end gap-3 mt-2">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowAddressForm(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-surface-container cursor-pointer"
                     >
-                      <div className="flex items-start space-x-3 text-left flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-100 dark:border-slate-700/50 mt-0.5 shrink-0">
-                          {loc.label.toLowerCase() === "home" ? (
-                            <Home size={16} className="text-primary-500" />
-                          ) : loc.label.toLowerCase() === "office" ? (
-                            <Briefcase size={16} className="text-accent-500" />
-                          ) : (
-                            <MapPin size={16} className="text-slate-500" />
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      className="px-5 py-2 bg-primary text-on-primary rounded-xl text-xs font-bold hover:bg-primary-container cursor-pointer"
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Saved Addresses List */}
+              <div className="flex flex-col gap-3">
+                {savedAddresses.map(addr => (
+                  <div 
+                    key={addr.id}
+                    className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
+                      addr.isDefault 
+                        ? 'bg-primary-50/20 border-primary/40' 
+                        : 'bg-surface-container-low/40 border-surface-variant/30 hover:border-primary/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-surface-container-lowest border border-surface-variant/30 flex items-center justify-center text-primary mt-0.5">
+                        {addr.label === "Home" ? <Home size={18} /> : addr.label === "Work" ? <Briefcase size={18} /> : <MapPin size={18} />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-headline-md text-sm font-bold text-on-surface">{addr.label}</span>
+                          {addr.isDefault && (
+                            <span className="px-2 py-0.5 bg-primary text-on-primary rounded-md text-[9px] font-black uppercase">
+                              Default
+                            </span>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">{loc.label}</span>
-                            {isDefault && (
-                              <span className="text-[8px] font-black tracking-widest text-primary-600 bg-primary-100 dark:bg-primary-950/40 px-1.5 py-0.5 rounded-full uppercase">Default</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold break-words leading-relaxed">{loc.address}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 shrink-0">
-                        {!isDefault && (
-                          <button
-                            type="button"
-                            onClick={() => handleSetDefaultAddress(loc.address)}
-                            className="text-[10px] font-black text-primary-500 hover:text-white hover:bg-primary-500 border border-primary-200 dark:border-primary-900/40 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
-                          >
-                            Set Default
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteLocation(loc.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer"
-                          title="Delete Location"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <p className="font-body-md text-xs text-on-surface-variant mt-1 leading-relaxed">
+                          {addr.address}, {addr.city}, {addr.state} - {addr.pincode}
+                        </p>
                       </div>
                     </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-6 bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                  <p className="text-xs text-slate-400 dark:text-slate-500 font-bold">No additional addresses saved yet.</p>
-                </div>
-              )}
+
+                    <div className="flex items-center gap-2">
+                      {!addr.isDefault && (
+                        <button
+                          onClick={() => handleSetDefaultAddress(addr.id)}
+                          className="px-3 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Set Default
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteAddress(addr.id)}
+                        className="p-1.5 rounded-lg text-slate-text hover:text-error hover:bg-error-container/20 transition-colors cursor-pointer"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* Form to Add New Location */}
-            <form onSubmit={handleAddLocation} className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/60">
-              <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Add New Location</h4>
-              
-              <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Location Tag / Label</label>
-                <div className="flex flex-wrap gap-2">
-                  {["Home", "Office", "Other"].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setNewLabelType(type)}
-                      className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-                        newLabelType === type
-                          ? "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm"
-                          : "bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-900"
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
+          {/* TAB 3: PAYMENT METHODS */}
+          {activeTab === "payments" && (
+            <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm flex flex-col gap-6">
+              <h3 className="font-headline-md text-lg font-black text-on-surface border-b border-surface-variant/30 pb-4">
+                Saved Payment Methods
+              </h3>
+
+              <div className="flex flex-col gap-3">
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-variant/40 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-sm">
+                      UPI
+                    </div>
+                    <div>
+                      <p className="font-headline-md text-xs font-bold text-on-surface">Google Pay (UPI)</p>
+                      <p className="text-[11px] text-slate-text">aditya@okhdfcbank</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-0.5 bg-primary text-on-primary rounded-md text-[9px] font-black uppercase">Active</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-variant/40 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-surface-container-lowest border border-surface-variant/30 flex items-center justify-center text-on-surface font-black text-xs">
+                      VISA
+                    </div>
+                    <div>
+                      <p className="font-headline-md text-xs font-bold text-on-surface">HDFC Bank Debit Card</p>
+                      <p className="text-[11px] text-slate-text">Ending in •••• 4242 (Exp 08/28)</p>
+                    </div>
+                  </div>
+                  <button className="text-xs text-slate-text hover:text-error cursor-pointer">Remove</button>
                 </div>
               </div>
+            </div>
+          )}
 
-              {newLabelType === "Other" && (
-                <div className="space-y-1.5 text-left animate-fade-in">
-                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Custom Label</label>
-                  <input
-                    type="text"
-                    value={newCustomLabel}
-                    onChange={(e) => setNewCustomLabel(e.target.value)}
-                    placeholder="e.g. Gym, Parent's House"
-                    className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all placeholder-slate-400 dark:placeholder-slate-600"
-                    required={newLabelType === "Other"}
+          {/* TAB 4: NOTIFICATIONS */}
+          {activeTab === "notifications" && (
+            <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm flex flex-col gap-6">
+              <h3 className="font-headline-md text-lg font-black text-on-surface border-b border-surface-variant/30 pb-4">
+                Notification Preferences
+              </h3>
+
+              <div className="flex flex-col gap-4">
+                <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-surface-container-low/40">
+                  <div>
+                    <p className="font-headline-md text-xs font-bold text-on-surface">Live Order Status Tracking (SMS & WhatsApp)</p>
+                    <p className="text-[11px] text-slate-text">Receive real-time rider updates when out for delivery</p>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={notifications.orderUpdates}
+                    onChange={() => setNotifications(prev => ({ ...prev, orderUpdates: !prev.orderUpdates }))}
+                    className="w-5 h-5 accent-primary cursor-pointer"
                   />
-                </div>
-              )}
+                </label>
 
-              <div className="space-y-1.5 text-left">
-                <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider">Address details</label>
-                  {localAddr && (
-                    <button
-                      type="button"
-                      onClick={() => setNewAddressText(localAddr)}
-                      className="text-[9px] font-black text-primary-500 hover:underline transition-all cursor-pointer flex items-center space-x-0.5"
-                    >
-                      <span>Use Local Address</span>
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={newAddressText}
-                  onChange={(e) => setNewAddressText(e.target.value)}
-                  placeholder="Enter detailed address..."
-                  rows={2}
-                  className="block w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0c101a] border border-slate-200/60 dark:border-slate-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-slate-800 dark:text-slate-100 font-bold transition-all placeholder-slate-400 dark:placeholder-slate-600 resize-none"
-                  required
-                />
+                <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-surface-container-low/40">
+                  <div>
+                    <p className="font-headline-md text-xs font-bold text-on-surface">Flash Deal & Seasonal Harvest Alerts</p>
+                    <p className="text-[11px] text-slate-text">Get notified when organic produce arrives at promotional rates</p>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={notifications.flashDeals}
+                    onChange={() => setNotifications(prev => ({ ...prev, flashDeals: !prev.flashDeals }))}
+                    className="w-5 h-5 accent-primary cursor-pointer"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-surface-container-low/40">
+                  <div>
+                    <p className="font-headline-md text-xs font-bold text-on-surface">Weekly Organic Recipe & Nutrition Digest</p>
+                    <p className="text-[11px] text-slate-text">Curated farm recipes with 1-click add ingredients</p>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={notifications.weeklyRecipes}
+                    onChange={() => setNotifications(prev => ({ ...prev, weeklyRecipes: !prev.weeklyRecipes }))}
+                    className="w-5 h-5 accent-primary cursor-pointer"
+                  />
+                </label>
               </div>
+            </div>
+          )}
 
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-100 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-black text-xs rounded-xl shadow-sm transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-1.5"
-              >
-                <span>Add Address</span>
-              </button>
-            </form>
-          </div>
+          {/* TAB 5: SECURITY & SETTINGS */}
+          {activeTab === "security" && (
+            <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm flex flex-col gap-6">
+              <h3 className="font-headline-md text-lg font-black text-on-surface border-b border-surface-variant/30 pb-4">
+                Security & Privacy
+              </h3>
+
+              <div className="flex flex-col gap-4 text-xs text-on-surface">
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-variant/30 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-on-surface">Two-Factor Authentication (2FA)</p>
+                    <p className="text-[11px] text-slate-text">Secured via your linked Google / Firebase account</p>
+                  </div>
+                  <span className="px-2.5 py-0.5 bg-primary/20 text-primary font-black rounded text-[10px]">ENABLED</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-variant/30 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-on-surface">Data Retention & Privacy</p>
+                    <p className="text-[11px] text-slate-text">Your location and address are strictly used for quick-delivery routing</p>
+                  </div>
+                  <span className="text-primary font-bold">Encrypted</span>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
-
       </div>
 
-      {/* Embedded slide animation */}
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-      `}</style>
+      {/* Toast */}
+      {savedToast && (
+        <div className="fixed bottom-6 right-6 z-[100] bg-primary text-on-primary px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-xs animate-slide-up">
+          <Check size={18} />
+          <span>Profile changes saved!</span>
+        </div>
+      )}
     </div>
   );
 });
 
 ProfileScreen.displayName = "ProfileScreen";
+

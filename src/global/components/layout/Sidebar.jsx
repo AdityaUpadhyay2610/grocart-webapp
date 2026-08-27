@@ -66,9 +66,11 @@ export const Sidebar = React.memo(({ onRequestLogin, onLogoutClick, isDarkTheme,
         <div className="flex flex-col animate-fade-in">
           {/* Brand Header */}
           <div className="flex items-center space-x-3 px-6 py-6 border-b border-slate-100 dark:border-slate-800/60">
-            <div className="w-10 h-10 bg-primary-500 dark:bg-primary-600 rounded-2xl flex items-center justify-center text-white shadow-md shadow-primary-500/20">
-              <ShoppingCart size={20} className="animate-float" />
-            </div>
+            <img 
+              src="/log.jpg" 
+              alt="GroCart Logo" 
+              className="w-10 h-10 rounded-2xl object-cover shadow-md shadow-primary-500/20" 
+            />
             <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">GroCart</span>
           </div>
  

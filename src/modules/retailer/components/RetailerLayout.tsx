@@ -48,9 +48,11 @@ export function RetailerLayout({ children, activeTab, setActiveTab, handleLogout
       {/* Sidebar (Desktop) */}
       <aside className="hidden md:flex flex-col w-64 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-r border-white/50 dark:border-slate-700/50 fixed h-full z-40 transition-colors shadow-2xl">
         <div className="p-6 flex items-center gap-3 border-b border-slate-200/50 dark:border-slate-700/50">
-          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 shrink-0">
-            <Store size={22} />
-          </div>
+          <img 
+            src="/log.jpg" 
+            alt="GroCart PartnerHub" 
+            className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-emerald-500/20 shrink-0" 
+          />
           <div>
             <h1 className="text-lg font-black text-slate-800 dark:text-white tracking-tight leading-tight">Partner<span className="text-emerald-500">Hub</span></h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{storeName}</p>

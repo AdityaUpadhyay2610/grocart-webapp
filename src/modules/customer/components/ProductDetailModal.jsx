@@ -1,6 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { X, Plus, Minus, ShieldCheck, Leaf, ShoppingCart } from "lucide-react";
 import { useCart } from '../state/CartContext';
+import { formatINR, calculateUnitPrice, getAvailableUnits } from '@global/utils/calculations';
 
 const getUniqueImageUrl = (url, id, title) => {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
@@ -96,6 +97,9 @@ const getProductDetails = (item) => {
 export const ProductDetailModal = React.memo(({ product, onClose }) => {
   const { cartItems, addToCart, decreaseCartItem } = useCart();
 
+  const availableUnits = useMemo(() => getAvailableUnits(product), [product]);
+  const [selectedUnit, setSelectedUnit] = useState(() => product?.itemQuantity || availableUnits[0] || "500g");
+
   const details = useMemo(() => {
     if (!product) return null;
     return getProductDetails(product);
@@ -103,13 +107,27 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
 
   if (!product) return null;
 
-  const originalPrice = product.itemCost || product.itemPrice;
-  const discountedPrice = product.itemPrice;
+  const basePrice = product.itemPrice || 0;
+  const baseCost = product.itemCost || Math.round(basePrice * 1.25);
+  const baseQuantity = product.itemQuantity || "500g";
+
+  const discountedPrice = calculateUnitPrice(basePrice, selectedUnit, baseQuantity);
+  const originalPrice = calculateUnitPrice(baseCost, selectedUnit, baseQuantity);
   const discountPercent = originalPrice > discountedPrice 
     ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
     : 0;
-  const cartItem = cartItems.find(i => i.id === product.id);
+
+  const cartItemId = `${product.id}_${selectedUnit.replace(/\s+/g, '')}`;
+  const cartItem = cartItems.find(i => i.id === cartItemId || (i.productId === product.id && i.itemQuantity === selectedUnit) || (i.id === product.id && (!i.itemQuantity || i.itemQuantity === selectedUnit)));
   const quantity = cartItem ? cartItem.quantity : 0;
+
+  const itemPayload = {
+    ...product,
+    cartItemId,
+    itemQuantity: selectedUnit,
+    itemPrice: discountedPrice,
+    itemCost: originalPrice
+  };
 
   return (
     <div className="fixed inset-0 w-full h-full bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-6 animate-fade-in select-none">
@@ -166,12 +184,29 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
                   Sold by: {product.retailerStoreName}
                 </p>
               )}
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-1.5 bg-slate-50 dark:bg-slate-850/50 inline-block px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-800/40">
-                Pack Size: {product.itemQuantity}
-              </p>
+              
+              {/* Unit Selection Pills */}
+              <div className="mt-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1.5">Select Amount / Unit</span>
+                <div className="flex flex-wrap gap-2">
+                  {availableUnits.map(unit => (
+                    <button
+                      key={unit}
+                      onClick={() => setSelectedUnit(unit)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                        selectedUnit === unit
+                          ? 'bg-primary-500 text-white border-primary-500 shadow-sm scale-105'
+                          : 'bg-slate-50 dark:bg-slate-850/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-primary-400'
+                      }`}
+                    >
+                      {unit}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* Price section */}
+            {/* Price section (Changes on Unit Selection) */}
             <div className="flex items-baseline space-x-2.5 my-4 text-left">
               <span className="text-2xl font-black text-primary-600 dark:text-primary-400">
                 ₹{discountedPrice}
@@ -180,7 +215,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
                 ₹{originalPrice}
               </span>
               <span className="text-sm font-bold text-slate-500">
-                / {product.unitSize ? `${product.unitSize} ${product.unit || 'pcs'}` : (product.unit || product.itemQuantity || '1 pcs')}
+                / {selectedUnit}
               </span>
             </div>
 
@@ -247,11 +282,11 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
                 </span>
                 <button
                   onClick={() => {
-                    if (quantity < product.itemStock) addToCart(product);
+                    if (quantity < (product.itemStock || 99)) addToCart(itemPayload);
                   }}
-                  disabled={quantity >= product.itemStock}
+                  disabled={quantity >= (product.itemStock || 99)}
                   className={`w-7 h-7 rounded-xl flex items-center justify-center shadow-sm border transition-colors ${
-                    quantity >= product.itemStock
+                    quantity >= (product.itemStock || 99)
                       ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 border-slate-100 cursor-not-allowed'
                       : 'bg-white dark:bg-[#111724] text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
                   }`}
@@ -261,7 +296,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               </div>
             ) : (
               <button
-                onClick={() => addToCart(product)}
+                onClick={() => addToCart(itemPayload)}
                 className="flex-1 py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2 transition-all active:scale-98 cursor-pointer max-w-[200px]"
               >
                 <ShoppingCart size={16} />

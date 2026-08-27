@@ -60,19 +60,24 @@ export const addToCartThunk = createAsyncThunk(
     const userId = auth.user?.id;
     if (!userId) return rejectWithValue("User not logged in");
 
-    const existing = cart.cartItems.find(item => item.id === product.id);
+    const unit = product.itemQuantity || product.unit || "500g";
+    const cartItemId = product.cartItemId || (unit ? `${product.id}_${unit.replace(/\s+/g, '')}` : product.id);
+
+    const existing = cart.cartItems.find(item => item.id === cartItemId || item.id === product.id);
     const newQuantity = (existing?.quantity || 0) + 1;
-    const stockLimit = product.itemStock || 0;
+    const stockLimit = product.itemStock || 99;
 
     if (newQuantity > stockLimit) {
       return rejectWithValue("Out of stock");
     }
 
     const cartItem = {
-      id: product.id,
+      id: existing ? existing.id : cartItemId,
+      productId: product.productId || product.id,
       itemName: product.itemName,
-      itemPrice: product.itemPrice || 0,
-      itemCost: product.itemCost || product.costPrice || 0,
+      itemPrice: Number(product.itemPrice) || 0,
+      itemCost: Number(product.itemCost || product.costPrice) || 0,
+      itemQuantity: unit,
       imageUrl: product.imageUrl || product.image || '',
       retailerId: product.retailerId || "",
       itemStock: stockLimit,

@@ -20,6 +20,7 @@ export const fetchOrders = async (userId) => {
         itemName: item.itemName || "",
         itemPrice: Number(item.itemPrice) || 0,
         itemCost: Number(item.itemCost) || 0,
+        itemQuantity: item.itemQuantity || "500g",
         imageUrl: item.imageUrl || "",
         quantity: Number(item.quantity) || 1,
         retailerId: item.retailerId || ""
@@ -51,6 +52,7 @@ export const placeOrder = async (userId, order) => {
       itemName: item.itemName,
       itemPrice: item.itemPrice,
       itemCost: item.itemCost || 0,
+      itemQuantity: item.itemQuantity || "500g",
       imageUrl: item.imageUrl,
       quantity: item.quantity,
       retailerId: item.retailerId || ""

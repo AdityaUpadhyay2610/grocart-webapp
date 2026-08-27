@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useCart } from "../state/CartContext";
-import { Plus, Minus, Tag, X, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
-import { COUPON_OFFERS } from "@global/utils/calculations";
+import { useGPSLocation } from "@global/hooks/useLocation";
+import { formatINR, calculateGST, calculateEcoSavings, COUPON_OFFERS } from "@global/utils/calculations";
+import { Plus, Minus, Trash2, Tag, X, Check, ArrowRight, Sparkles, Leaf } from "lucide-react";
 
 export const CartScreen = React.memo(({ onBrowseProducts }) => {
   const {
     cartItems,
     addToCart,
     decreaseCartItem,
+    removeFromCart,
     proceedToPay,
     appliedCoupon,
     applyCouponCode,
@@ -19,21 +21,28 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
     grandTotal
   } = useCart();
 
-  const [showCoupons, setShowCoupons] = useState(false);
+  const { locationText } = useGPSLocation();
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState(null);
+  const [couponSuccess, setCouponSuccess] = useState(false);
 
-  const toggleCoupons = useCallback(() => {
-    setShowCoupons(prev => !prev);
-  }, []);
+  const gstAmount = useMemo(() => calculateGST(itemTotal), [itemTotal]);
+  const ecoSavings = useMemo(() => calculateEcoSavings(cartItems), [cartItems]);
+
+  const totalItemsCount = useMemo(() => {
+    return cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
+  }, [cartItems]);
 
   const handleApplyCoupon = useCallback((code) => {
     const error = applyCouponCode(code);
     if (error) {
       setCouponError(error);
+      setCouponSuccess(false);
     } else {
       setCouponError(null);
-      setShowCoupons(false);
+      setCouponSuccess(true);
+      setCouponInput("");
+      setTimeout(() => setCouponSuccess(false), 3000);
     }
   }, [applyCouponCode]);
 
@@ -41,245 +50,297 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
     removeAppliedCoupon();
     setCouponInput("");
     setCouponError(null);
+    setCouponSuccess(false);
   }, [removeAppliedCoupon]);
 
   const handleApplyInput = useCallback((e) => {
     e.preventDefault();
     if (couponInput.trim()) {
-      handleApplyCoupon(couponInput);
+      handleApplyCoupon(couponInput.trim().toUpperCase());
     }
   }, [couponInput, handleApplyCoupon]);
 
   return (
-    <div className="flex flex-col pb-36 select-none w-full max-w-7xl mx-auto min-h-screen bg-transparent relative px-4 animate-fade-in">
+    <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
       {cartItems.length > 0 ? (
-        <div className="flex flex-col space-y-6 pt-4 text-left">
-          <h2 className="text-3xl font-black text-slate-850 dark:text-white tracking-tight">Review Items</h2>
+        <div className="flex flex-col gap-6">
+          
+          {/* Header Title */}
+          <div>
+            <h1 className="font-display-lg text-on-surface text-3xl sm:text-4xl font-black">Review Your Organic Cart</h1>
+            <p className="font-body-md text-on-surface-variant mt-1 text-sm">
+              ({totalItemsCount} items selected for fast 10-minute quick delivery)
+            </p>
+          </div>
 
-          {/* 2-Column Responsive Layout */}
+          {/* ── 2-Column Responsive Layout (8 cols Table + 4 cols Summary) ── */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left Column: Cart items list */}
-            <div className="lg:col-span-7 space-y-4">
-              {cartItems.map(item => {
-                const discountedPrice = Math.round(item.itemPrice);
-                const itemRowTotal = Math.round(discountedPrice * item.quantity);
-                
-                return (
-                  <div 
-                    key={item.id}
-                    className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-5 flex justify-between items-center shadow-sm dark:shadow-none"
-                  >
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.itemName} 
-                      className="w-20 h-20 object-cover rounded-2xl bg-slate-50 dark:bg-slate-800/40 flex-shrink-0 border border-slate-100/30"
-                      onError={(e) => { e.target.src = "https://placehold.co/80x80/f1f5f9/10b981?text=Groceries"; }}
-                    />
-                    <div className="flex-1 px-5 text-left">
-                      <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 line-clamp-1">{item.itemName}</h4>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-bold">₹{discountedPrice} each</p>
+            
+            {/* ── Left: Cart Table & Eco Impact (8 cols) ── */}
+            <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
+              
+              {/* Cart Items Table Card */}
+              <div className="bg-surface-container-lowest rounded-3xl border border-surface-variant/40 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-surface-variant/30 text-slate-text uppercase text-[11px] font-bold tracking-wider bg-surface-container-low/40">
+                        <th className="py-4 px-6">Product</th>
+                        <th className="py-4 px-4 hidden sm:table-cell">Unit Price</th>
+                        <th className="py-4 px-4 text-center">Quantity</th>
+                        <th className="py-4 px-4 text-right">Total</th>
+                        <th className="py-4 px-6 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-variant/20">
+                      {cartItems.map((item) => {
+                        const price = item.itemPrice;
+                        const rowTotal = price * item.quantity;
+
+                        return (
+                          <tr key={item.id} className="hover:bg-surface-container-low/30 transition-colors">
+                            {/* Product info */}
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3.5">
+                                <img 
+                                  src={item.imageUrl} 
+                                  alt={item.itemName} 
+                                  className="w-14 h-14 rounded-2xl object-cover bg-surface-container-low flex-shrink-0 border border-surface-variant/30"
+                                  onError={(e) => { e.target.src = "https://placehold.co/80x80/f1f5f9/10b981?text=Produce"; }}
+                                />
+                                <div>
+                                  <h4 className="font-headline-md text-sm font-bold text-on-surface line-clamp-1 leading-tight">{item.itemName}</h4>
+                                  <span className="font-label-sm text-xs text-on-surface-variant">{item.itemQuantity || '500g'}</span>
+                                  <span className="sm:hidden font-headline-md text-xs font-black text-primary block mt-0.5">{formatINR(price)}</span>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Unit Price */}
+                            <td className="py-4 px-4 hidden sm:table-cell font-headline-md text-sm font-bold text-on-surface">
+                              {formatINR(price)}
+                            </td>
+
+                            {/* Quantity Stepper */}
+                            <td className="py-4 px-4">
+                              <div className="flex items-center justify-center space-x-2 bg-surface-container-low border border-surface-variant/40 rounded-xl px-2 py-1 w-max mx-auto">
+                                <button
+                                  onClick={() => decreaseCartItem(item)}
+                                  className="w-6 h-6 rounded-lg bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-surface-container shadow-xs transition-colors cursor-pointer"
+                                >
+                                  <Minus size={12} />
+                                </button>
+                                <span className="font-label-md text-xs font-black text-on-surface min-w-[16px] text-center">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() => addToCart(item)}
+                                  className="w-6 h-6 rounded-lg bg-surface-container-lowest flex items-center justify-center text-primary hover:bg-surface-container shadow-xs transition-colors cursor-pointer"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Total */}
+                            <td className="py-4 px-4 text-right font-headline-md text-sm font-black text-on-surface">
+                              {formatINR(rowTotal)}
+                            </td>
+
+                            {/* Actions */}
+                            <td className="py-4 px-6 text-center">
+                              <button
+                                onClick={() => removeFromCart ? removeFromCart(item.id) : decreaseCartItem(item)}
+                                className="w-8 h-8 rounded-full text-slate-text hover:text-error hover:bg-error-container/20 flex items-center justify-center mx-auto transition-colors cursor-pointer"
+                                title="Remove item"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* ── Eco-Impact Tracker Widget ── */}
+              <div className="bg-gradient-to-r from-primary-50 via-surface-container-lowest to-primary-100/30 dark:from-[#0f1f18] dark:to-[#11241c] rounded-3xl p-6 border border-primary/20 flex flex-col sm:flex-row items-center gap-5 shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/20">
+                  <Leaf size={28} />
+                </div>
+                <div className="flex-1 text-left w-full">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-headline-md text-base font-black text-on-surface">
+                      Eco-Impact: {ecoSavings.co2eSavedKg} kg CO₂e Saved!
+                    </h3>
+                    <span className="px-2 py-0.5 bg-primary/20 text-primary text-[10px] font-black rounded-md uppercase">100% Organic</span>
+                  </div>
+                  <p className="font-body-md text-xs text-on-surface-variant mt-1">
+                    By choosing local organic growers, you reduced standard supply chain transport emissions.
+                  </p>
+                  
+                  {/* Target Progress Bar */}
+                  <div className="mt-3 flex flex-col gap-1">
+                    <div className="flex justify-between text-[11px] font-bold text-on-surface">
+                      <span>Plastic-Free Packaging Progress</span>
+                      <span className="text-primary">{ecoSavings.packagingProgressPercent}%</span>
                     </div>
-                    <div className="flex flex-col items-end space-y-2">
-                      {/* Quantity Selector */}
-                      <div className="flex items-center space-x-3 bg-primary-50 dark:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-full px-2 py-1">
-                        <button
-                          onClick={() => decreaseCartItem(item)}
-                          className="w-7 h-7 rounded-full bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <span className="text-sm font-black text-slate-700 dark:text-slate-200 min-w-[16px] text-center">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => {
-                            if (item.quantity < (item.itemStock || 0)) addToCart(item);
-                          }}
-                          disabled={item.quantity >= (item.itemStock || 0)}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm border transition-colors ${
-                            item.quantity >= (item.itemStock || 0)
-                              ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 border-slate-100 cursor-not-allowed'
-                              : 'bg-white dark:bg-[#111724] text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
-                          }`}
-                        >
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                      <span className="text-sm font-black text-slate-800 dark:text-white">₹{itemRowTotal}</span>
+                    <div className="w-full h-2 bg-surface-variant/40 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-700" 
+                        style={{ width: `${ecoSavings.packagingProgressPercent}%` }} 
+                      />
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              </div>
             </div>
 
-            {/* Right Column: Sticky Summary, Coupons, and Pay Button */}
-            <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-              {/* Coupon Code Section */}
-              <div className={`bg-white dark:bg-[#111724] border rounded-3xl p-5 shadow-sm dark:shadow-none transition-all duration-300 ${
-                appliedCoupon ? "border-emerald-350 dark:border-primary-800/80 bg-primary-50/10 dark:bg-primary-950/10" : "border-slate-100 dark:border-slate-800/80"
-              }`}>
-                <div 
-                  onClick={!appliedCoupon ? toggleCoupons : undefined}
-                  className="flex justify-between items-center cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      appliedCoupon ? "bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400" : "bg-primary-50 dark:bg-primary-950/30 text-primary-500"
-                    }`}>
-                      <Tag size={20} />
-                    </div>
-                    <div className="text-left">
-                      <h3 className={`text-sm font-extrabold ${appliedCoupon ? "text-primary-600 dark:text-primary-400" : "text-slate-800 dark:text-slate-200"}`}>
-                        {appliedCoupon ? "Coupon Applied!" : "Apply Coupon"}
-                      </h3>
-                      <p className={`text-xs ${appliedCoupon ? "text-primary-600 dark:text-primary-555 font-bold" : "text-slate-400 dark:text-slate-500 font-semibold"}`}>
-                        {appliedCoupon ? `${appliedCoupon.code} — ${appliedCoupon.discountPercent}% off` : "Save more on your order"}
-                      </p>
+            {/* ── Right: Emerald Glass Summary Card (4 cols) ── */}
+            <div className="col-span-1 lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
+              
+              <div className="bg-gradient-to-b from-primary via-on-primary-fixed-variant to-[#003824] rounded-3xl p-6 sm:p-7 text-white shadow-xl flex flex-col gap-6 border border-white/10 relative overflow-hidden">
+                {/* Glow Overlay */}
+                <div className="absolute top-0 right-0 w-48 h-48 bg-primary-container/20 rounded-full blur-2xl pointer-events-none" />
+
+                <h3 className="font-headline-md text-xl font-black text-pure-white border-b border-white/15 pb-4">
+                  Order Summary
+                </h3>
+
+                {/* Estimated Delivery Widget */}
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-label-sm text-[10px] uppercase font-black text-primary-fixed-dim tracking-wider">
+                      Quick-Commerce Delivery
+                    </span>
+                    <div className="flex items-center gap-1.5 text-xs text-pure-white font-bold">
+                      <span className="w-2 h-2 rounded-full bg-primary-fixed animate-ping" />
+                      <span>10 - 20 mins</span>
                     </div>
                   </div>
-                  {appliedCoupon ? (
+                  <div className="flex items-start gap-2 mt-1">
+                    <span className="material-symbols-outlined text-primary-fixed text-[18px] shrink-0">location_on</span>
+                    <p className="text-xs text-white/90 font-medium truncate">
+                      {locationText || "Connaught Place, New Delhi"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Coupon Code Section */}
+                <div className="flex flex-col gap-2">
+                  <span className="font-label-sm text-xs font-bold text-white/90">Apply Promo Code</span>
+                  <form onSubmit={handleApplyInput} className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="e.g. GROCART10" 
+                      className="flex-1 bg-white/15 border border-white/20 rounded-xl px-3 py-2 text-xs font-bold text-white placeholder:text-white/50 focus:outline-none focus:bg-white/20 uppercase"
+                    />
                     <button 
-                      onClick={handleRemoveCoupon} 
-                      className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-955/20 text-red-500 dark:text-red-400 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      type="submit"
+                      disabled={!couponInput.trim()}
+                      className="px-4 py-2 bg-primary-fixed text-on-primary-fixed font-label-md text-xs font-black rounded-xl hover:bg-pure-white transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      <X size={16} />
+                      Apply
                     </button>
-                  ) : (
-                    <div>
-                      {showCoupons ? <ChevronUp size={20} className="text-primary-500" /> : <ChevronDown size={20} className="text-primary-500" />}
+                  </form>
+
+                  {/* Applied Coupon Pill */}
+                  {appliedCoupon && (
+                    <div className="flex items-center justify-between bg-primary-container/40 border border-primary-fixed/40 px-3 py-1.5 rounded-xl text-xs font-bold text-white mt-1">
+                      <span className="flex items-center gap-1.5">
+                        <Tag size={12} className="text-primary-fixed" />
+                        <span>{appliedCoupon.code} applied (-{formatINR(couponDiscount, false)})</span>
+                      </span>
+                      <button onClick={handleRemoveCoupon} className="text-white hover:text-error cursor-pointer">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+
+                  {couponError && <span className="text-xs text-red-300 font-bold">{couponError}</span>}
+                  {couponSuccess && <span className="text-xs text-primary-fixed font-bold">Coupon applied successfully!</span>}
+
+                  {/* Quick Coupon Chips */}
+                  {!appliedCoupon && (
+                    <div className="flex gap-2 mt-1">
+                      {COUPON_OFFERS.slice(0, 2).map(c => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => handleApplyCoupon(c.code)}
+                          className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold text-white/90 border border-white/10 cursor-pointer"
+                        >
+                          {c.code} ({c.discountPercent}% OFF)
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
 
-                {/* Expandable Coupon Panel */}
-                {showCoupons && !appliedCoupon && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-805/80 space-y-4">
-                    <form onSubmit={handleApplyInput} className="flex space-x-2">
-                      <input
-                        type="text"
-                        value={couponInput}
-                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm bg-slate-50/50 dark:bg-slate-800/40 dark:text-white uppercase font-bold"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!couponInput.trim()}
-                        className="px-4 py-2.5 bg-primary-500 text-white font-extrabold text-sm rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-colors cursor-pointer"
-                      >
-                        Apply
-                      </button>
-                    </form>
-                    {couponError && (
-                      <p className="text-xs text-red-500 font-medium text-left">{couponError}</p>
-                    )}
-
-                    <div className="text-left space-y-3 mt-4">
-                      <h4 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Available Coupons</h4>
-                      <div className="space-y-2">
-                        {COUPON_OFFERS.map(coupon => (
-                          <div 
-                            key={coupon.code}
-                            className="p-3 bg-primary-50/20 dark:bg-primary-950/10 hover:bg-primary-50/50 dark:hover:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-2xl flex justify-between items-center cursor-pointer transition-colors"
-                            onClick={() => handleApplyCoupon(coupon.code)}
-                          >
-                            <div className="text-left">
-                              <span className="text-xs font-black text-primary-600 dark:text-primary-400 tracking-wide bg-primary-100/40 dark:bg-primary-900/30 px-2 py-0.5 rounded-md">
-                                {coupon.code}
-                              </span>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">{coupon.description}</p>
-                            </div>
-                            <span className="text-xs font-black text-primary-500 dark:text-primary-400 px-3 py-1.5 bg-white dark:bg-[#111724] rounded-xl shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800">
-                              TAP
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                {/* INR Bill Breakdown */}
+                <div className="flex flex-col gap-3 pt-4 border-t border-white/15 text-xs text-white/85">
+                  <div className="flex justify-between font-medium">
+                    <span>Items Subtotal</span>
+                    <span className="font-bold text-pure-white">{formatINR(itemTotal)}</span>
                   </div>
-                )}
-              </div>
-
-              {/* Bill Details */}
-              <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 shadow-sm dark:shadow-none text-left">
-                <h3 className="text-base font-black text-slate-800 dark:text-white mb-4 flex items-center space-x-2">
-                  <ShoppingBag size={18} className="text-primary-500" />
-                  <span>Bill Details</span>
-                </h3>
-                
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400 font-semibold">
-                    <span>Item Total</span>
-                    <span className="font-extrabold text-slate-700 dark:text-slate-205">₹{itemTotal}</span>
+                  <div className="flex justify-between font-medium">
+                    <span>GST (5%)</span>
+                    <span className="font-bold text-pure-white">{formatINR(gstAmount)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400 font-semibold">
-                    <span>Handling Charge (1%)</span>
-                    <span className="font-extrabold text-slate-700 dark:text-slate-205">₹{handlingCharge}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400 font-semibold">
+                  <div className="flex justify-between font-medium">
                     <span>Delivery Fee</span>
-                    <span className="font-extrabold text-slate-700 dark:text-slate-205 font-mono">₹{deliveryFee}</span>
+                    <span className="font-bold text-pure-white">
+                      {deliveryFee === 0 ? <span className="text-primary-fixed font-black">FREE</span> : formatINR(deliveryFee)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-medium">
+                    <span>Handling Fee</span>
+                    <span className="font-bold text-pure-white">{formatINR(handlingCharge)}</span>
                   </div>
                   {appliedCoupon && couponDiscount > 0 && (
-                    <div className="flex justify-between text-primary-650 dark:text-primary-400 font-extrabold">
-                      <span className="flex items-center space-x-1">
-                        <Tag size={12} />
-                        <span>Coupon ({appliedCoupon.code})</span>
-                      </span>
-                      <span>- ₹{couponDiscount}</span>
+                    <div className="flex justify-between font-bold text-primary-fixed">
+                      <span>Discount ({appliedCoupon.code})</span>
+                      <span>-{formatINR(couponDiscount)}</span>
                     </div>
                   )}
 
-                  <hr className="border-dashed border-slate-100 dark:border-slate-800/60 my-3" />
-
-                  <div className="flex justify-between text-lg font-black text-slate-900 dark:text-white">
-                    <span>To Pay</span>
-                    <span className="text-primary-600 dark:text-primary-400">₹{grandTotal}</span>
+                  <div className="flex justify-between items-baseline pt-4 border-t border-white/20 text-base font-black text-pure-white">
+                    <span>Grand Total</span>
+                    <span className="text-xl text-primary-fixed">{formatINR(grandTotal)}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Desktop Checkout Button (Hidden on Mobile) */}
-              <div className="hidden lg:block w-full animate-pulse-subtle">
+                {/* Checkout CTA */}
                 <button
                   onClick={proceedToPay}
-                  className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-base rounded-2xl shadow-lg shadow-primary-500/10 transition-all active:scale-98 cursor-pointer text-center"
+                  className="w-full py-4 bg-primary-fixed text-on-primary-fixed font-headline-md text-sm font-black rounded-2xl shadow-lg hover:bg-pure-white hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Proceed to Pay  •  ₹{grandTotal}
+                  <span>Proceed to Pay</span>
+                  <ArrowRight size={18} />
                 </button>
               </div>
             </div>
           </div>
-
-          {/* Mobile Pinned Bottom Button (Hidden on Desktop) */}
-          <div className="lg:hidden fixed bottom-[65px] left-0 right-0 bg-white dark:bg-[#090D16] border-t border-slate-100 dark:border-slate-800/80 p-4 z-25 shadow-[0_-8px_20px_-6px_rgba(0,0,0,0.05)] pointer-events-auto transition-colors duration-300">
-            <div className="max-w-md mx-auto">
-              <button
-                onClick={proceedToPay}
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-base rounded-2xl shadow-lg shadow-primary-500/10 transition-all active:scale-98 cursor-pointer"
-              >
-                Proceed to Pay  •  ₹{grandTotal}
-              </button>
-            </div>
-          </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-center min-h-[calc(100vh-140px)]">
-          <img 
-            src="/emptycart.webp" 
-            alt="Empty Cart" 
-            className="w-56 h-56 object-contain mb-6 animate-float"
-            onError={(e) => { e.target.src = "https://placehold.co/200x200/e8fbf3/10b981?text=Empty+Cart"; }}
-          />
-          <h3 className="text-xl font-black text-slate-805 dark:text-slate-200">Your Cart is Empty</h3>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-2 max-w-xs mx-auto font-semibold">
-            Your shopping journey hasn't started yet. Let's find something fresh for you!
+        /* Empty Cart State */
+        <div className="flex flex-col items-center justify-center py-20 text-center min-h-[calc(100vh-280px)]">
+          <div className="w-48 h-48 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+            <span className="material-symbols-outlined text-6xl text-primary">shopping_cart</span>
+          </div>
+          <h2 className="font-display-lg text-2xl sm:text-3xl font-black text-on-surface">Your Cart is Empty</h2>
+          <p className="font-body-md text-on-surface-variant mt-2 max-w-sm text-sm">
+            Your shopping basket is waiting for fresh organic produce. Let's find something delicious!
           </p>
           <button
             onClick={onBrowseProducts}
-            className="mt-6 px-6 py-3 bg-primary-500 text-white font-extrabold text-sm rounded-2xl hover:bg-primary-600 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+            className="mt-6 px-8 py-3.5 bg-primary text-on-primary font-label-md text-sm font-black rounded-xl hover:bg-primary-container shadow-md transition-all cursor-pointer"
           >
-            Browse Products
+            Explore Groceries
           </button>
         </div>
       )}
@@ -288,4 +349,5 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
 });
 
 CartScreen.displayName = "CartScreen";
+
 

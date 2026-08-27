@@ -1,0 +1,177 @@
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { theme: { extend: { "colors": { "surface-variant": "#e1e3e4", "primary-container": "#10b981", "on-primary": "#ffffff", "slate-text": "#64748B", "on-primary-fixed": "#002113", "surface-bright": "#f8f9fa", "surface-tint": "#006c49", "on-secondary-fixed-variant": "#3f465c", "surface-container": "#edeeef", "tertiary": "#a43a3a", "on-tertiary-container": "#711419", "on-error-container": "#93000a", "error-container": "#ffdad6", "surface-container-highest": "#e1e3e4", "on-tertiary-fixed-variant": "#842225", "on-tertiary-fixed": "#410005", "on-secondary-fixed": "#131b2e", "primary-fixed": "#6ffbbe", "surface-container-lowest": "#ffffff", "on-secondary-container": "#5c647a", "error": "#ba1a1a", "glass-fill": "rgba(255, 255, 255, 0.7)", "surface-container-low": "#f3f4f5", "background": "#f8f9fa", "on-surface": "#191c1d", "primary-fixed-dim": "#4edea3", "surface-container-high": "#e7e8e9", "surface": "#f8f9fa", "secondary-container": "#dae2fd", "tertiary-container": "#fc7c78", "on-surface-variant": "#3c4a42", "inverse-primary": "#4edea3", "tertiary-fixed": "#ffdad7", "on-primary-fixed-variant": "#005236", "pure-white": "#FFFFFF", "inverse-on-surface": "#f0f1f2", "secondary-fixed": "#dae2fd", "on-error": "#ffffff", "outline": "#6c7a71", "on-background": "#191c1d", "on-tertiary": "#ffffff", "surface-dim": "#d9dadb", "outline-variant": "#bbcabf", "secondary-fixed-dim": "#bec6e0", "primary": "#006c49", "tertiary-fixed-dim": "#ffb3af", "on-secondary": "#ffffff", "inverse-surface": "#2e3132", "secondary": "#565e74", "on-primary-container": "#00422b" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "container-max": "1280px", "gutter-mobile": "16px", "margin-safe": "20px", "unit": "4px", "gutter-desktop": "24px" }, "fontFamily": { "label-sm": ["Outfit"], "body-md": ["Outfit"], "body-lg": ["Outfit"], "display-lg": ["Outfit"], "headline-md": ["Outfit"], "headline-lg": ["Outfit"], "label-md": ["Outfit"], "headline-lg-mobile": ["Outfit"] }, "fontSize": { "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}], "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}], "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}], "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}], "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}], "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}] } } } };</script><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head><body class="bg-background font-body-md text-on-surface"><header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-white/20"><div class="h-20 max-w-container-max mx-auto px-gutter-desktop flex items-center justify-between gap-gutter-desktop"><div class="flex items-center gap-8"><div class="flex items-center gap-2"><div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-on-primary">shopping_basket</span></div><span class="font-headline-md text-primary tracking-tight">GroCart</span></div><button class="hidden lg:flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors px-3 py-2 rounded-lg bg-surface-container-low"><span class="material-symbols-outlined text-[20px]">location_on</span><span class="font-label-md">New York, NY 10011</span><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div><div class="flex-1 max-w-xl hidden md:block"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span><input class="w-full bg-surface-container-lowest border-none h-12 pl-12 pr-4 rounded-xl shadow-inner focus:ring-2 focus:ring-primary/20 transition-all font-body-md" placeholder="Search fresh groceries..." type="text"/></div></div><nav class="flex items-center gap-6" data-active-classes="text-primary font-bold"><a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" data-path="home" href="#">Home</a><a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" data-path="categories" href="#">Categories</a><a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" data-path="orders" href="#">Orders</a><div class="flex items-center gap-4 ml-2"><div class="relative cursor-pointer hover:scale-105 transition-transform"><span class="material-symbols-outlined text-on-surface-variant text-[28px]">shopping_cart</span><span class="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">3</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></nav></div></header><main class="w-full pt-20 min-h-[calc(100vh-200px)]"><div class="flex flex-col w-full max-w-container-max mx-auto px-gutter-mobile md:px-gutter-desktop py-8 gap-8">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-4">
+<div>
+<h1 class="font-headline-lg text-primary tracking-tight">Customer Profile Dashboard</h1>
+<p class="font-body-md text-on-surface-variant mt-1">Manage your account settings and preferences.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Sidebar -->
+<aside class="lg:col-span-3">
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm h-full flex flex-col gap-2 relative overflow-hidden">
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-primary-container/20 rounded-full blur-2xl"></div>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-on-primary font-label-md transition-transform hover:scale-[1.02] active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+          Overview
+        </button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors font-label-md group">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant group-hover:text-primary transition-colors">location_on</span>
+          Saved Addresses
+        </button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors font-label-md group">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant group-hover:text-primary transition-colors">credit_card</span>
+          Payment Methods
+        </button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors font-label-md group">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant group-hover:text-primary transition-colors">notifications</span>
+          Notification Settings
+        </button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors font-label-md group">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant group-hover:text-primary transition-colors">help</span>
+          Help &amp; Support
+        </button>
+<div class="mt-auto pt-4 border-t border-surface-variant/50">
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl text-error hover:bg-error-container/50 transition-colors font-label-md w-full">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+            Log Out
+          </button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<div class="lg:col-span-9 flex flex-col gap-8">
+<!-- Top Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Profile Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm flex flex-col items-center text-center relative overflow-hidden md:col-span-1">
+<div class="absolute inset-0 bg-gradient-to-b from-primary-container/10 to-transparent pointer-events-none"></div>
+<div class="relative w-24 h-24 mb-4">
+<div class="absolute inset-0 bg-primary rounded-full blur-md opacity-30 animate-pulse"></div>
+<img class="w-full h-full object-cover rounded-full border-4 border-surface-container-lowest relative z-10 shadow-md" data-alt="A smiling young professional with curly hair wearing a casual green shirt, well-lit studio portrait with a soft emerald background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPOdtbcAJMKve5H2CMELsKOFeEJLa1m6zcbiGBYLFSkJ2beaMC5nlVzQV8lxUDIdRpue2_VM5wXnWLXIt3djc4bAR14u72FmIpRViOVQTux1omj0Dh7Rk2-bq0fJZllVCanNhC5RactvGZhRtDf_lt37bTuZzgF2dj1Q3p4om6oQAgajJjaCaOgbCXFdjr8PpeNQIDgk_gF3NtaAJsAkPrv-W-QHsoO2DV3or7lpI0AGHZqB57zPQTrg"/>
+</div>
+<h2 class="font-headline-md text-on-surface">Alex Johnson</h2>
+<p class="font-body-md text-on-surface-variant mt-1 mb-6">alex.johnson@example.com</p>
+<button class="bg-primary text-on-primary font-label-md px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto">
+            Edit Profile
+          </button>
+</div>
+<!-- Addresses Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm md:col-span-2 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-on-surface">Saved Addresses</h3>
+<button class="bg-primary text-on-primary font-label-sm px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+              Add New Address
+            </button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Address Item -->
+<div class="bg-surface rounded-xl p-4 border border-surface-variant/30 hover:border-primary/30 transition-colors relative group">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">home</span> Home
+                </span>
+<div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</div>
+<p class="font-body-md text-on-surface-variant text-sm">
+                123 Maple St,<br/>Springfield, IL 62704
+              </p>
+</div>
+<!-- Address Item -->
+<div class="bg-surface rounded-xl p-4 border border-surface-variant/30 hover:border-primary/30 transition-colors relative group">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">work</span> Office
+                </span>
+<div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</div>
+<p class="font-body-md text-on-surface-variant text-sm">
+                456 Oak Ave, Suite 100,<br/>Springfield, IL 62704
+              </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Payment Methods -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-on-surface">Payment Methods</h3>
+<button class="bg-primary text-on-primary font-label-sm px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+              Add New Card
+            </button>
+</div>
+<div class="bg-surface rounded-xl p-4 border border-surface-variant/30 hover:border-primary/30 transition-colors relative group w-full max-w-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="font-headline-md text-primary tracking-widest italic font-bold">VISA</div>
+<div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</div>
+<p class="font-body-md text-on-surface mb-2 font-mono tracking-wider">
+                •••• •••• •••• 1234
+              </p>
+<div class="flex justify-between items-center text-sm font-label-md text-on-surface-variant">
+<span>Visa</span>
+<span>12/25</span>
+</div>
+</div>
+</div>
+<!-- Notifications & Support Stack -->
+<div class="flex flex-col gap-8">
+<!-- Notification Settings -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+<h3 class="font-headline-md text-on-surface mb-6">Notification Settings</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface text-sm">Order Updates (Email)</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+</label>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface text-sm">Promotional Offers (Email)</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+</label>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface text-sm">Order Updates (SMS)</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+</label>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface text-sm">Push Notifications</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Help & Support -->
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+<h3 class="font-headline-md text-on-surface mb-4">Help &amp; Support</h3>
+<div class="flex flex-wrap gap-6">
+<a class="font-label-md text-on-surface hover:text-primary underline underline-offset-4 decoration-surface-variant hover:decoration-primary transition-all" href="#">FAQs</a>
+<a class="font-label-md text-on-surface hover:text-primary underline underline-offset-4 decoration-surface-variant hover:decoration-primary transition-all" href="#">Contact Support</a>
+<a class="font-label-md text-on-surface hover:text-primary underline underline-offset-4 decoration-surface-variant hover:decoration-primary transition-all" href="#">Live Chat</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main><footer class="w-full bg-surface-container-lowest border-t border-surface-variant/30 py-16 mt-12"><div class="max-w-container-max mx-auto px-gutter-desktop grid grid-cols-1 md:grid-cols-4 gap-12"><div class="flex flex-col gap-4"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">shopping_basket</span><span class="font-headline-md text-primary">GroCart</span></div><p class="text-on-surface-variant text-label-md leading-relaxed">Bringing the organic freshness of the market to your digital doorstep.</p></div><div class="flex flex-col gap-4"><h4 class="font-label-md text-on-surface uppercase tracking-wider">Company</h4><a class="text-on-surface-variant hover:text-primary transition-colors text-label-md" href="#">About Us</a><a class="text-on-surface-variant hover:text-primary transition-colors text-label-md" href="#">Careers</a><a class="text-on-surface-variant hover:text-primary transition-colors text-label-md" href="#">Press</a></div><div class="flex flex-col gap-4"><h4 class="font-label-md text-on-surface uppercase tracking-wider">Support</h4><a class="text-on-surface-variant hover:text-primary transition-colors text-label-md" href="#">Contact</a><a class="text-on-surface-variant hover:text-primary transition-colors text-label-md" href="#">Terms of Service</a><a class="text-on-surface-variant hover:text-primary transition-colors text-label-md" href="#">Privacy Policy</a></div><div class="flex flex-col gap-4"><h4 class="font-label-md text-on-surface uppercase tracking-wider">Connect</h4><div class="flex gap-4"><a class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary-container hover:text-on-primary transition-all" href="#"><span class="material-symbols-outlined">public</span></a><a class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary-container hover:text-on-primary transition-all" href="#"><span class="material-symbols-outlined">chat</span></a><a class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary-container hover:text-on-primary transition-all" href="#"><span class="material-symbols-outlined">mail</span></a></div></div></div><div class="max-w-container-max mx-auto px-gutter-desktop mt-12 pt-8 border-t border-surface-variant/20 flex flex-col md:flex-row justify-between items-center gap-4 text-on-surface-variant text-label-sm"><p>© 2024 GroCart Technologies Inc. All rights reserved.</p><div class="flex gap-6"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">eco</span> Sustainably Packed</span><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">bolt</span> Quick-Commerce Ready</span></div></div></footer></body></html>
