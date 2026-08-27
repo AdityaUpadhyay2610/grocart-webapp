@@ -130,26 +130,26 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-6 animate-fade-in select-none">
+    <div className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-6 animate-fade-in select-none">
       {/* Modal Container */}
-      <div className="bg-white dark:bg-[#111724] border border-slate-150 dark:border-slate-800 rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative animate-scale-in max-h-[90vh] md:max-h-[85vh]">
+      <div className="bg-surface-container-low dark:bg-[#171717] border border-surface-variant/40 dark:border-[#262626] rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative animate-scale-in max-h-[90vh] md:max-h-[85vh]">
         
         {/* Floating Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 w-10 h-10 rounded-full bg-white/85 dark:bg-slate-850/85 backdrop-blur-sm border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-850 shadow-md cursor-pointer z-50 transition-colors"
+          className="absolute right-4 top-4 w-10 h-10 rounded-full bg-surface-container dark:bg-[#201f1f] backdrop-blur-sm border border-surface-variant/40 dark:border-[#262626] flex items-center justify-center text-on-surface dark:text-white hover:bg-surface-container-high shadow-md cursor-pointer z-50 transition-colors"
         >
           <X size={20} />
         </button>
 
         {/* Left Side: Product Image & Badges */}
-        <div className="w-full md:w-1/2 bg-slate-50 dark:bg-[#0c101a] p-4 md:p-6 flex flex-col justify-center items-center relative min-h-[160px] md:min-h-full border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800/80">
+        <div className="w-full md:w-1/2 bg-surface-container-lowest dark:bg-[#0e0e0e] p-4 md:p-6 flex flex-col justify-center items-center relative min-h-[160px] md:min-h-full border-b md:border-b-0 md:border-r border-surface-variant/40 dark:border-[#262626]">
           <div className="absolute top-4 left-4 flex flex-col space-y-1.5 items-start">
-            <span className="bg-primary-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
+            <span className="bg-primary text-white dark:text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
               {product.itemCategory}
             </span>
             {discountPercent > 0 && (
-              <span className="bg-accent-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
+              <span className="bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
                 {discountPercent}% OFF
               </span>
             )}
@@ -162,8 +162,8 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             onError={(e) => { e.target.src = "https://placehold.co/200x200/f1f5f9/10b981?text=Fresh+Product"; }}
           />
 
-          <div className="mt-4 flex items-center space-x-2 text-xs font-bold text-slate-400 dark:text-slate-505">
-            <ShieldCheck size={14} className="text-primary-500" />
+          <div className="mt-4 flex items-center space-x-2 text-xs font-bold text-on-surface-variant">
+            <ShieldCheck size={14} className="text-primary" />
             <span>100% Quality Guaranteed</span>
           </div>
         </div>
@@ -173,11 +173,11 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
           <div>
             {/* Title & Size */}
             <div className="text-left">
-              <h3 className="text-xl md:text-2xl font-black text-slate-850 dark:text-white tracking-tight leading-tight">
+              <h3 className="text-xl md:text-2xl font-black text-on-surface dark:text-white tracking-tight leading-tight">
                 {product.itemName}
               </h3>
               {product.retailerStoreName && (
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-500 mt-1 flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-primary mt-1 flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -187,7 +187,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               
               {/* Unit Selection Pills */}
               <div className="mt-3">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1.5">Select Amount / Unit</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant block mb-1.5">Select Amount / Unit</span>
                 <div className="flex flex-wrap gap-2">
                   {availableUnits.map(unit => (
                     <button
@@ -195,8 +195,8 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
                       onClick={() => setSelectedUnit(unit)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                         selectedUnit === unit
-                          ? 'bg-primary-500 text-white border-primary-500 shadow-sm scale-105'
-                          : 'bg-slate-50 dark:bg-slate-850/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-primary-400'
+                          ? 'bg-primary text-white dark:text-black border-primary shadow-sm scale-105'
+                          : 'bg-surface-container dark:bg-[#201f1f] text-on-surface dark:text-white border-surface-variant/40 dark:border-[#262626] hover:border-primary'
                       }`}
                     >
                       {unit}
@@ -208,30 +208,30 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
 
             {/* Price section (Changes on Unit Selection) */}
             <div className="flex items-baseline space-x-2.5 my-4 text-left">
-              <span className="text-2xl font-black text-primary-600 dark:text-primary-400">
+              <span className="text-2xl font-black text-primary">
                 ₹{discountedPrice}
               </span>
-              <span className="text-sm text-slate-400 line-through">
+              <span className="text-sm text-on-surface-variant line-through">
                 ₹{originalPrice}
               </span>
-              <span className="text-sm font-bold text-slate-500">
+              <span className="text-sm font-bold text-on-surface-variant">
                 / {selectedUnit}
               </span>
             </div>
 
             {/* Divider */}
-            <hr className="border-slate-100 dark:border-slate-800/80 my-3" />
+            <hr className="border-surface-variant/30 dark:border-[#262626] my-3" />
 
             {/* Description & Source */}
             <div className="text-left space-y-3.5">
               <div>
-                <h4 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Product Description</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-semibold mt-1">
+                <h4 className="text-xs font-black text-on-surface-variant uppercase tracking-wider">Product Description</h4>
+                <p className="text-xs text-on-surface dark:text-gray-300 leading-relaxed font-semibold mt-1">
                   {details?.description}
                 </p>
               </div>
 
-              <div className="flex items-center space-x-2 text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50/40 dark:bg-primary-950/20 p-2.5 rounded-xl border border-primary-100/10">
+              <div className="flex items-center space-x-2 text-xs font-bold text-primary bg-primary/10 p-2.5 rounded-xl border border-primary/20">
                 <Leaf size={14} className="flex-shrink-0" />
                 <span>{details?.sourcedFrom}</span>
               </div>
@@ -239,12 +239,12 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
               {/* Nutritional Table */}
               {details?.nutrition && (
                 <div>
-                  <h4 className="text-xs font-black text-slate-400 dark:text-slate-505 uppercase tracking-wider mb-2">Nutritional Values (Approx. per 100g)</h4>
+                  <h4 className="text-xs font-black text-on-surface-variant uppercase tracking-wider mb-2">Nutritional Values (Approx. per 100g)</h4>
                   <div className="grid grid-cols-3 gap-2">
                     {Object.entries(details.nutrition).map(([key, val]) => (
-                      <div key={key} className="bg-slate-50 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800/40 rounded-xl p-2 text-center">
-                        <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">{key}</span>
-                        <span className="text-xs font-black text-slate-700 dark:text-slate-300">{val}</span>
+                      <div key={key} className="bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] rounded-xl p-2 text-center">
+                        <span className="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">{key}</span>
+                        <span className="text-xs font-black text-on-surface dark:text-white">{val}</span>
                       </div>
                     ))}
                   </div>
@@ -254,10 +254,10 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
           </div>
 
           {/* Action Row */}
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-4">
+          <div className="mt-6 pt-4 border-t border-surface-variant/30 dark:border-[#262626] flex items-center justify-between gap-4">
             <div className="text-left">
-              <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Item Subtotal</span>
-              <span className="text-lg font-black text-slate-850 dark:text-white">
+              <span className="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">Item Subtotal</span>
+              <span className="text-lg font-black text-on-surface dark:text-white">
                 ₹{discountedPrice * (quantity || 1)}
               </span>
             </div>
@@ -265,19 +265,19 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             {product.itemStock <= 0 ? (
               <button
                 disabled
-                className="flex-1 py-3.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2 cursor-not-allowed max-w-[200px]"
+                className="flex-1 py-3.5 bg-surface-container dark:bg-[#201f1f] text-on-surface-variant font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2 cursor-not-allowed max-w-[200px]"
               >
                 <span>Out of Stock</span>
               </button>
             ) : quantity > 0 ? (
-              <div className="flex items-center space-x-3.5 bg-primary-50 dark:bg-primary-950/20 border border-primary-100/10 dark:border-primary-900/30 rounded-2xl px-3.5 py-1.5">
+              <div className="flex items-center space-x-3.5 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-2xl px-3.5 py-1.5">
                 <button
                   onClick={() => decreaseCartItem(cartItem)}
-                  className="w-7 h-7 rounded-xl bg-white dark:bg-[#111724] flex items-center justify-center text-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-xl bg-surface-container-high dark:bg-[#2a2a2a] flex items-center justify-center text-primary hover:bg-surface-container-highest shadow-sm border border-surface-variant/40 dark:border-[#262626] transition-colors cursor-pointer"
                 >
                   <Minus size={14} />
                 </button>
-                <span className="text-sm font-black text-slate-700 dark:text-slate-200 min-w-[14px] text-center">
+                <span className="text-sm font-black text-on-surface dark:text-white min-w-[14px] text-center">
                   {quantity}
                 </span>
                 <button
@@ -287,8 +287,8 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
                   disabled={quantity >= (product.itemStock || 99)}
                   className={`w-7 h-7 rounded-xl flex items-center justify-center shadow-sm border transition-colors ${
                     quantity >= (product.itemStock || 99)
-                      ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 border-slate-100 cursor-not-allowed'
-                      : 'bg-white dark:bg-[#111724] text-primary-500 hover:bg-slate-50 border-slate-100 cursor-pointer'
+                      ? 'bg-surface-container dark:bg-[#201f1f] text-on-surface-variant border-surface-variant/40 dark:border-[#262626] cursor-not-allowed'
+                      : 'bg-surface-container-high dark:bg-[#2a2a2a] text-primary hover:bg-surface-container-highest border-surface-variant/40 dark:border-[#262626] cursor-pointer'
                   }`}
                 >
                   <Plus size={14} />
@@ -297,7 +297,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             ) : (
               <button
                 onClick={() => addToCart(itemPayload)}
-                className="flex-1 py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2 transition-all active:scale-98 cursor-pointer max-w-[200px]"
+                className="flex-1 py-3.5 bg-primary text-on-primary dark:text-black font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2 hover:bg-primary-container transition-all active:scale-98 cursor-pointer max-w-[200px]"
               >
                 <ShoppingCart size={16} />
                 <span>Add to Cart</span>

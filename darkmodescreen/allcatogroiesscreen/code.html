@@ -1,0 +1,320 @@
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "inverse-on-surface": "#313030",
+                "outline-variant": "#3c4a42",
+                "on-tertiary-fixed-variant": "#842225",
+                "on-error-container": "#ffdad6",
+                "glass-stroke": "rgba(255, 255, 255, 0.1)",
+                "tertiary": "#ffb3af",
+                "accent-glow": "rgba(16, 185, 129, 0.2)",
+                "secondary-container": "#474746",
+                "tertiary-fixed-dim": "#ffb3af",
+                "on-primary-fixed": "#002113",
+                "primary-fixed": "#6ffbbe",
+                "inverse-primary": "#006c49",
+                "surface-container-lowest": "#0e0e0e",
+                "surface": "#131313",
+                "on-secondary-container": "#b7b4b4",
+                "on-secondary-fixed-variant": "#474746",
+                "surface-container-high": "#2a2a2a",
+                "primary-fixed-dim": "#4edea3",
+                "error": "#ffb4ab",
+                "inverse-surface": "#e5e2e1",
+                "tertiary-fixed": "#ffdad7",
+                "on-background": "#e5e2e1",
+                "background": "#0a0a0a",
+                "on-secondary-fixed": "#1c1b1b",
+                "on-primary-container": "#00422b",
+                "secondary-fixed": "#e5e2e1",
+                "on-tertiary": "#650911",
+                "secondary-fixed-dim": "#c8c6c5",
+                "text-primary": "#ffffff",
+                "primary-container": "#10b981",
+                "tertiary-container": "#fc7c78",
+                "on-secondary": "#313030",
+                "on-surface-variant": "#bbcabf",
+                "on-error": "#690005",
+                "surface-tint": "#4edea3",
+                "surface-border": "#262626",
+                "surface-dim": "#131313",
+                "on-primary": "#003824",
+                "surface-container": "#171717",
+                "on-primary-fixed-variant": "#005236",
+                "primary": "#4edea3",
+                "on-tertiary-container": "#711419",
+                "surface-container-highest": "#353534",
+                "text-secondary": "#a3a3a3",
+                "surface-bright": "#3a3939",
+                "error-container": "#93000a",
+                "secondary": "#c8c6c5",
+                "surface-variant": "#353534",
+                "on-tertiary-fixed": "#410005",
+                "surface-container-low": "#1c1b1b",
+                "on-surface": "#e5e2e1",
+                "outline": "#86948a"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "gutter-mobile": "16px",
+                "margin-safe": "20px",
+                "gutter-desktop": "24px",
+                "container-max": "1280px",
+                "base-unit": "4px"
+        },
+        "fontFamily": {
+                "body-lg": [
+                        "Outfit"
+                ],
+                "label-md": [
+                        "Outfit"
+                ],
+                "headline-lg": [
+                        "Outfit"
+                ],
+                "headline-md": [
+                        "Outfit"
+                ],
+                "headline-lg-mobile": [
+                        "Outfit"
+                ],
+                "body-md": [
+                        "Outfit"
+                ],
+                "display-lg": [
+                        "Outfit"
+                ],
+                "label-sm": [
+                        "Outfit"
+                ]
+        },
+        "fontSize": {
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "28px",
+                        {
+                                "lineHeight": "36px",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "56px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "label-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "fontWeight": "500"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head><body class="bg-background font-body-md text-text-primary"><header class="fixed top-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)] border-b border-surface-border"><div class="h-20 max-w-container-max mx-auto px-gutter-desktop flex items-center justify-between gap-gutter-desktop"><div class="flex items-center gap-8"><div class="flex items-center gap-2"><div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-text-primary">shopping_basket</span></div><span class="font-headline-md text-primary tracking-tight">GroCart</span></div><button class="hidden lg:flex items-center gap-1 text-text-secondary hover:text-primary transition-colors px-3 py-2 rounded-lg bg-surface-container"><span class="material-symbols-outlined text-[20px]">location_on</span><span class="font-label-md">New York, NY 10011</span><span class="material-symbols-outlined text-[18px]">expand_more</span></button></div><div class="flex-1 max-w-xl hidden md:block"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-4 text-text-secondary">search</span><input class="w-full bg-surface-container border-none h-12 pl-12 pr-4 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all font-body-md text-text-primary placeholder:text-text-secondary" placeholder="Search fresh groceries..." type="text"/></div></div><nav class="flex items-center gap-6" data-active-classes="text-primary font-bold"><a class="font-label-md text-text-secondary hover:text-primary transition-colors" data-path="home" href="#">Home</a><a aria-current="page" class="transition-colors text-primary font-bold" data-path="categories" href="#">Categories</a><a class="font-label-md text-text-secondary hover:text-primary transition-colors" data-path="orders" href="#">Orders</a><div class="flex items-center gap-4 ml-2"><div class="relative cursor-pointer hover:scale-105 transition-transform"><span class="material-symbols-outlined text-text-secondary text-[28px]">shopping_cart</span><span class="absolute -top-1 -right-1 w-5 h-5 bg-primary text-[#003824] text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-background">3</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-[#003824] text-[18px]">person</span></div></div></nav></div></header><main class="w-full pt-20 min-h-[calc(100vh-200px)]"><div class="flex flex-col w-full relative">
+<!-- Ambient Grid Background -->
+<div class="absolute inset-0 pointer-events-none z-0" style="background-image: radial-gradient(var(--tw-colors-surface-border) 1px, transparent 1px); background-size: 32px 32px; opacity: 0.5;"></div>
+<!-- Header Section -->
+<div class="max-w-container-max mx-auto w-full px-gutter-mobile md:px-gutter-desktop pt-12 pb-8 relative z-10">
+<h1 class="font-display-lg text-text-primary">All Categories Directory</h1>
+<p class="font-body-lg text-text-secondary mt-2 max-w-2xl">Browse our extensive selection of fresh, organic, and locally sourced groceries delivered right to your door.</p>
+</div>
+<!-- Main Content Categories -->
+<div class="max-w-container-max mx-auto w-full px-gutter-mobile md:px-gutter-desktop pb-24 relative z-10 flex flex-col gap-12">
+<!-- Fresh Produce Section -->
+<section class="flex flex-col gap-6">
+<h2 class="font-headline-md text-text-primary border-b border-surface-border pb-2">Fresh Produce</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">nutrition</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Fresh Fruits</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">150+ items</span>
+</div>
+<!-- Card Image overlay -->
+<div class="absolute -bottom-8 -right-8 w-40 h-40 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A vibrant cluster of fresh organic berries, apples, and citrus fruits cascading against a clean white background. High resolution, bright studio lighting, emphasizing the dewy freshness of the produce. 3d style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcy4Od7kYz3-X67f3vijggV4Ftnn4LQNJGet47FmCe0B1oXKz-7fy9m2vCxNqUVtsHSVxxM9e3e46y39U90s8OBLspQCL76tT7reDkEaQ9Zu1-UEe14Tw0-GUTkRgH8ZPjY4t9SZwzrZilTP4e5JqOkvK1NX_wjQwe5qi3dLyTTy8vdsCSW3ylCyfvuvS65Zkv5ASrMKOrb0AXUKCnMY9yxLt_FxKkh7JJ1KH_fV89dA2E0OlGX-EsYQ"/>
+</div>
+</a>
+<!-- Card 2 -->
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">grass</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Vegetables</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">120+ items</span>
+</div>
+<div class="absolute -bottom-6 -right-6 w-36 h-36 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A bundle of crisp green broccoli, spinach, and vibrant carrots resting on a clean white surface. High resolution, organic and fresh look. 3d stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-Z2TnRDHCF3KG8wy5KyTHA6qE0oZ4a9ILsVIqHak2DqGioMG1udMhD81w0a2YFu-Zt19AyelKJkTutF8i2gLNb-Ut55yIii9MlsAY0fbMp-iWm3Tx4eoLPeSvugs5XjNQ0_WVm3iBzPgH4bwwycXNl7YqqvTVm-n0QMeMHuW7d8xf8bAbnmP5mfp2OwepX-ksBfy9doauydtGclqlnOlGuldfYHIYuaunbUdnuVaS7O8p8T7EGUMyHg"/>
+</div>
+</a>
+<!-- Card 3 -->
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">local_florist</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Herbs &amp; Spices</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">80+ items</span>
+</div>
+<div class="absolute -bottom-6 -right-4 w-32 h-32 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A small arrangement of fresh basil, rosemary, and thyme sprigs. Brightly lit studio shot on white background, highly detailed. 3d stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB03Bu-d8i04zR5ftNh9os4YqGhQJ8h6gsGF-_qQnMS-V4_JoNEeKV43-77TMcyARFPYBgA76cnTmTOfnodM-F-ERPyVqAyVNr5L9U_RNozBDhYmC4WZ_SsxtYZzrmhRCdSmKLabOtrJoAbjHb7UK53cqJF4UasWsyYaqt4Bj_Pr8NOHmi-8Vx92Rlpoy1quSASXO5rWrnZ0jqRY7wczh07MppFJbRGyq6DeJK0vlNcLSiBQDjBTCfdoA"/>
+</div>
+</a>
+<!-- Card 4 -->
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">eco</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Organic Produce</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">200+ items</span>
+</div>
+<div class="absolute -bottom-4 -right-4 w-32 h-32 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A rustic brown paper bag overflowing with assorted organic vegetables and root crops. Warm inviting lighting, clean white background. 3d stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpQu4C00CNlTehHIYhi_DTDaQNDdH-xf2JwExlKj-oUXsP3l-JcTYG57dg8ldsuhsoBurfw3noVNirlgVY0PoDJtIxm_KQiP1HMv-6fdsQt0N3XL140SO-ghI17iG2_XZkflCGDabCqeaNQcHtdoKAU9K1GSviMmYUXqTHA5Nl8WzNvgYtV79IkB40tILovl4v9b5QMDMiH2mqsL0N2qMv2B6bAIMSbqiEcvelgMIaMJTw5GZLIEyHtw"/>
+</div>
+</a>
+</div>
+</section>
+<!-- Dairy, Eggs & Cheese Section -->
+<section class="flex flex-col gap-6">
+<h2 class="font-headline-md text-text-primary border-b border-surface-border pb-2">Dairy, Eggs &amp; Cheese</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">water_drop</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Milk &amp; Cream</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">60+ items</span>
+</div>
+<div class="absolute -bottom-4 -right-4 w-28 h-32 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A classic glass bottle of milk next to a blue and white milk carton on a clean background. Bright studio lighting, fresh appearance. 3d style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbS5K07f-sjqVqgayNa1UQhwzkMWtmwMAYtolRMbWIIWdaH5ZarD52L4vt8GTL_6OIlYOvjLCFECzRfinkc-NN7nlwrxRW8i1Q-HjKVn2G0lfEIRaUOiufKeaRJEWlA8fWzIxsjvHv4nEuYXVBQ9T8naNq8eWAk7GeIfOeIh-VDEN_shcgDSaCqdrUw5FgoqkrAypwls1sN8H0SBlOT16ZOlbui4JCMg6QucQ7fZc7bp15EsMYaDN4Lw"/>
+</div>
+</a>
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">cake</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Cheese</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">100+ items</span>
+</div>
+<div class="absolute -bottom-4 -right-4 w-32 h-28 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A tantalizing wedge of swiss cheese and assorted cheese blocks resting on a white surface. Rich golden yellow colors. 3d stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfQx4cnpwCebMrUQ3DwbLOb78b6ebiPLxRSyIgMqm7eM4a8zzS3-MtR7gL4IS3-OpEzX6Jq4_W371HH8FhAm24dywrRj72vxTR9AYxI313cwlxOlr9S3Zj_s2J6gMv9uBsKn6ALGSAZtq3Q1ExcggBDS9i9TaukJ-tRJ9eGFrjKIaS0IzGej2lUPpQFMpFlo4lugJT9QLXAPrcHoRggL3PHFm3axkmIzCAAWxZ6OOzd358fzPTMaYgOw"/>
+</div>
+</a>
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">egg</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Eggs</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">30+ items</span>
+</div>
+<div class="absolute -bottom-4 -right-4 w-32 h-24 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="A rustic cardboard carton filled with fresh brown farm eggs. Soft warm lighting, white background. 3d stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDVeVqqozku5JhcXDRYHr3Tf6VcBOD2WbxPinnUIZ-lsqBaNA2A_vvOeAmOICAmX4G8UhFFAOCvYfurXQgstdBTCaztYF3YHDyNkL38Zgj6dkBJdS1Q-N5MjfCXQ_zR1evjBScb59uGi7H7Phbj4ZFW4T-tu0TrOnk9P2tjWH48FsAmaEE1BDnVUdy-qpwQRhTw8sPxEOdSNwHqa-MfOf9UpYX6nQqoJ2_YHmyPN5Po-nyWgvPLMrVxQ"/>
+</div>
+</a>
+<a class="group relative overflow-hidden rounded-xl bg-surface-container shadow-sm hover:shadow-md transition-all duration-300 border border-surface-border hover:border-primary/50 flex flex-col justify-between h-32 p-4" href="#">
+<div class="flex justify-between items-start z-10 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">bakery_dining</span>
+</div>
+<span class="font-headline-md text-text-primary text-[18px] leading-none">Butter &amp; Margarine</span>
+</div>
+</div>
+<div class="z-10 relative flex justify-between items-end">
+<span class="px-3 py-1 bg-primary text-[#003824] rounded-full font-label-sm shadow-sm inline-block w-max font-bold">40+ items</span>
+</div>
+<div class="absolute -bottom-4 -right-4 w-28 h-24 opacity-90 group-hover:scale-105 transition-transform duration-500 ease-out z-0">
+<img class="w-full h-full object-contain object-bottom right-0 absolute" data-alt="Sticks of golden butter partially unwrapped, stacked neatly on a clean white surface. Smooth, rich textures. 3d stylized." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKoYY9RmlypXUndDJysz0KMIydosAWyJ54v4vLtsRm9mCht5I3aeCJLAvIQl9jdhx-OFk18rBqnXje14ziaHaip0llZy9KN72p4R93K0cwv1J3l0-PW6ljTPIswDyW73lSqJNmt1gwTIIQ7mx4ac0nsPUOnYnYDxvKHhOidztNjfXS-o_tQ7llNF_QJiVbTIP6p6kRVq0PKQ2qL6LpUxOl_BGP5_dwRbNdyMdvb7jIyklkmFN5rs5cyA"/>
+</div>
+</a>
+</div>
+</section>
+</div>
+</div></main><footer class="w-full bg-[#0a0a0a] border-t border-surface-border py-16 mt-12"><div class="max-w-container-max mx-auto px-gutter-desktop grid grid-cols-1 md:grid-cols-4 gap-12"><div class="flex flex-col gap-4"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">shopping_basket</span><span class="font-headline-md text-primary">GroCart</span></div><p class="text-text-secondary text-label-md leading-relaxed">Bringing the organic freshness of the market to your digital doorstep.</p></div><div class="flex flex-col gap-4"><h4 class="font-label-md text-text-primary uppercase tracking-wider">Company</h4><a class="text-text-secondary hover:text-primary transition-colors text-label-md" href="#">About Us</a><a class="text-text-secondary hover:text-primary transition-colors text-label-md" href="#">Careers</a><a class="text-text-secondary hover:text-primary transition-colors text-label-md" href="#">Press</a></div><div class="flex flex-col gap-4"><h4 class="font-label-md text-text-primary uppercase tracking-wider">Support</h4><a class="text-text-secondary hover:text-primary transition-colors text-label-md" href="#">Contact</a><a class="text-text-secondary hover:text-primary transition-colors text-label-md" href="#">Terms of Service</a><a class="text-text-secondary hover:text-primary transition-colors text-label-md" href="#">Privacy Policy</a></div><div class="flex flex-col gap-4"><h4 class="font-label-md text-text-primary uppercase tracking-wider">Connect</h4><div class="flex gap-4"><a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary hover:text-[#003824] text-text-primary transition-all" href="#"><span class="material-symbols-outlined">public</span></a><a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary hover:text-[#003824] text-text-primary transition-all" href="#"><span class="material-symbols-outlined">chat</span></a><a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary hover:text-[#003824] text-text-primary transition-all" href="#"><span class="material-symbols-outlined">mail</span></a></div></div></div><div class="max-w-container-max mx-auto px-gutter-desktop mt-12 pt-8 border-t border-surface-border flex flex-col md:flex-row justify-between items-center gap-4 text-text-secondary text-label-sm"><p>© 2024 GroCart Technologies Inc. All rights reserved.</p><div class="flex gap-6"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">eco</span> Sustainably Packed</span><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">bolt</span> Quick-Commerce Ready</span></div></div></footer></body></html>

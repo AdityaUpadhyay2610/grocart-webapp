@@ -268,10 +268,10 @@ export const OrdersScreen = React.memo(() => {
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
       
       {/* ── 1. HEADER WITH 15-MINUTE TIMER & INVOICE BUTTON ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-surface-variant/40 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-surface-variant/40 dark:border-[#262626] pb-6">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="font-display-lg text-on-surface text-2xl sm:text-3xl font-black">
+            <h1 className="font-display-lg text-on-surface dark:text-white text-2xl sm:text-3xl font-black">
               Order #{currentOrderId}
             </h1>
             <span className={`px-3 py-1 font-label-sm text-xs font-black rounded-full uppercase tracking-wider ${currentStage.color}`}>
@@ -289,13 +289,13 @@ export const OrdersScreen = React.memo(() => {
             <Clock size={16} className="text-primary animate-spin" style={{ animationDuration: '6s' }} />
             <div className="flex flex-col text-left">
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-primary">15-Min Delivery ETA</span>
-              <span className="text-sm font-black font-mono text-on-surface">{formattedTimer} remaining</span>
+              <span className="text-sm font-black font-mono text-on-surface dark:text-white">{formattedTimer} remaining</span>
             </div>
           </div>
 
           <button
             onClick={() => handlePrintInvoice(activeOrder)}
-            className="px-4 py-2.5 bg-surface-container-lowest border border-surface-variant/50 hover:border-primary text-on-surface hover:text-primary rounded-xl font-label-md text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+            className="px-4 py-2.5 bg-surface-container-low dark:bg-[#171717] border border-surface-variant/50 dark:border-[#262626] hover:border-primary text-on-surface dark:text-white hover:text-primary rounded-xl font-label-md text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
           >
             <Download size={16} />
             <span className="hidden sm:inline">Invoice</span>
@@ -310,15 +310,15 @@ export const OrdersScreen = React.memo(() => {
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
           
           {/* 4-Step Tracking Stepper Card */}
-          <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 border border-surface-variant/40 shadow-sm">
+          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 sm:p-8 border border-surface-variant/40 dark:border-[#262626] shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-headline-md text-base font-bold text-on-surface">Delivery Progress</h3>
+              <h3 className="font-headline-md text-base font-bold text-on-surface dark:text-white">Delivery Progress</h3>
               <span className="text-xs font-bold text-primary font-mono">{formattedTimer} left</span>
             </div>
             
             <div className="relative flex items-center justify-between">
               {/* Connecting Bar */}
-              <div className="absolute top-4 left-6 right-6 h-1 bg-surface-variant/40 -translate-y-1/2 z-0" />
+              <div className="absolute top-4 left-6 right-6 h-1 bg-surface-container dark:bg-[#201f1f] -translate-y-1/2 z-0" />
               <div 
                 className="absolute top-4 left-6 h-1 bg-primary -translate-y-1/2 z-0 transition-all duration-700" 
                 style={{ width: `${currentStage.progressPct}%` }}
@@ -327,27 +327,27 @@ export const OrdersScreen = React.memo(() => {
               {/* Step 1: Order Placed */}
               <div className="flex flex-col items-center gap-2 z-10">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${
-                  currentStage.step >= 1 ? 'bg-primary text-on-primary' : 'bg-surface-container-low border border-surface-variant text-slate-text'
+                  currentStage.step >= 1 ? 'bg-primary text-white dark:text-black' : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
                 }`}>
                   <Check size={16} className="stroke-[3]" />
                 </div>
-                <span className={`font-label-md text-xs font-bold ${currentStage.step >= 1 ? 'text-on-surface' : 'text-slate-text'}`}>
+                <span className={`font-label-md text-xs font-bold ${currentStage.step >= 1 ? 'text-on-surface dark:text-white' : 'text-on-surface-variant'}`}>
                   Order Placed
                 </span>
-                <span className="text-[10px] text-slate-text font-medium">Initial Status</span>
+                <span className="text-[10px] text-on-surface-variant font-medium">Initial Status</span>
               </div>
 
               {/* Step 2: Order Packed */}
               <div className="flex flex-col items-center gap-2 z-10">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${
-                  currentStage.step >= 2 ? 'bg-primary text-on-primary' : 'bg-surface-container-low border border-surface-variant text-slate-text'
+                  currentStage.step >= 2 ? 'bg-primary text-white dark:text-black' : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
                 }`}>
                   {currentStage.step >= 2 ? <Check size={16} className="stroke-[3]" /> : <Package size={14} />}
                 </div>
-                <span className={`font-label-md text-xs font-bold ${currentStage.step >= 2 ? 'text-on-surface' : 'text-slate-text'}`}>
+                <span className={`font-label-md text-xs font-bold ${currentStage.step >= 2 ? 'text-on-surface dark:text-white' : 'text-on-surface-variant'}`}>
                   Order Packed
                 </span>
-                <span className="text-[10px] text-slate-text font-medium">3-7 mins</span>
+                <span className="text-[10px] text-on-surface-variant font-medium">3-7 mins</span>
               </div>
 
               {/* Step 3: Out for Delivery */}
@@ -356,8 +356,8 @@ export const OrdersScreen = React.memo(() => {
                   currentStage.step === 3 
                     ? 'bg-primary-container text-white shadow-emerald-500/30 animate-bounce' 
                     : currentStage.step > 3 
-                      ? 'bg-primary text-on-primary' 
-                      : 'bg-surface-container-low border border-surface-variant text-slate-text'
+                      ? 'bg-primary text-white dark:text-black' 
+                      : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
                 }`}>
                   {currentStage.step > 3 ? (
                     <Check size={16} className="stroke-[3]" />
@@ -365,18 +365,18 @@ export const OrdersScreen = React.memo(() => {
                     <span className="material-symbols-outlined text-[20px]">local_shipping</span>
                   )}
                 </div>
-                <span className={`font-label-md text-xs font-bold ${currentStage.step >= 3 ? 'text-primary font-black' : 'text-slate-text'}`}>
+                <span className={`font-label-md text-xs font-bold ${currentStage.step >= 3 ? 'text-primary font-black' : 'text-on-surface-variant'}`}>
                   Out for Delivery
                 </span>
-                <span className="text-[10px] text-slate-text font-medium">7-14 mins</span>
+                <span className="text-[10px] text-on-surface-variant font-medium">7-14 mins</span>
               </div>
 
               {/* Step 4: Delivered */}
               <div className="flex flex-col items-center gap-2 z-10">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                   currentStage.step >= 4 
-                    ? 'bg-primary text-on-primary shadow-md' 
-                    : 'bg-surface-container-low border-2 border-surface-variant/60 text-slate-text'
+                    ? 'bg-primary text-white dark:text-black shadow-md' 
+                    : 'bg-surface-container dark:bg-[#201f1f] border-2 border-surface-variant/60 dark:border-[#262626] text-on-surface-variant'
                 }`}>
                   {currentStage.step >= 4 ? (
                     <Check size={16} className="stroke-[3]" />
@@ -384,16 +384,16 @@ export const OrdersScreen = React.memo(() => {
                     <span className="material-symbols-outlined text-[16px]">home</span>
                   )}
                 </div>
-                <span className={`font-label-md text-xs ${currentStage.step >= 4 ? 'text-green-600 font-black' : 'text-slate-text font-medium'}`}>
+                <span className={`font-label-md text-xs ${currentStage.step >= 4 ? 'text-primary font-black' : 'text-on-surface-variant font-medium'}`}>
                   Delivered
                 </span>
-                <span className="text-[10px] text-slate-text font-medium">15 mins</span>
+                <span className="text-[10px] text-on-surface-variant font-medium">15 mins</span>
               </div>
             </div>
           </div>
 
           {/* Live Tracking Map Preview Card */}
-          <div className="bg-surface-container-lowest rounded-3xl overflow-hidden border border-surface-variant/40 shadow-sm relative flex flex-col min-h-[300px]">
+          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl overflow-hidden border border-surface-variant/40 dark:border-[#262626] shadow-sm relative flex flex-col min-h-[300px]">
             {/* Stylized Map View */}
             <div className="h-72 w-full bg-[#e5f5ed] dark:bg-[#0c1f17] relative overflow-hidden flex items-center justify-center">
               {/* Map grid lines overlay */}
@@ -414,11 +414,11 @@ export const OrdersScreen = React.memo(() => {
               {/* Destination Pin */}
               <div className="absolute top-16 right-24 flex flex-col items-center z-10">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg ${
-                  currentStage.step === 4 ? 'bg-green-600 text-white' : 'bg-primary text-on-primary'
+                  currentStage.step === 4 ? 'bg-green-600 text-white' : 'bg-primary text-white dark:text-black'
                 }`}>
                   <MapPin size={18} />
                 </div>
-                <span className="px-2 py-0.5 bg-white dark:bg-[#111724] rounded text-[10px] font-bold text-on-surface shadow-xs mt-1">
+                <span className="px-2 py-0.5 bg-white dark:bg-[#171717] rounded text-[10px] font-bold text-on-surface dark:text-white shadow-xs mt-1 border border-surface-variant/40 dark:border-[#262626]">
                   Delivery Address
                 </span>
               </div>
@@ -430,7 +430,7 @@ export const OrdersScreen = React.memo(() => {
                 currentStage.step === 3 ? 'top-32 left-1/2 animate-pulse' :
                 'top-20 right-28'
               }`}>
-                <div className="w-11 h-11 bg-primary-container text-white rounded-2xl flex items-center justify-center shadow-xl border-2 border-white">
+                <div className="w-11 h-11 bg-primary-container text-white rounded-2xl flex items-center justify-center shadow-xl border-2 border-white dark:border-[#171717]">
                   {currentStage.step === 4 ? (
                     <Check size={22} className="stroke-[3]" />
                   ) : currentStage.step <= 2 ? (
@@ -442,13 +442,13 @@ export const OrdersScreen = React.memo(() => {
               </div>
 
               {/* Floating Driver Callout Banner */}
-              <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-[#111724]/90 backdrop-blur-md rounded-2xl p-4 border border-surface-variant/40 shadow-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <div className="absolute bottom-4 left-4 right-4 bg-surface-container-lowest/90 dark:bg-[#0e0e0e]/90 backdrop-blur-md rounded-2xl p-4 border border-surface-variant/40 dark:border-[#262626] shadow-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black">
+                  <div className="w-11 h-11 rounded-full bg-primary/15 dark:bg-primary/20 flex items-center justify-center text-primary font-black">
                     MK
                   </div>
                   <div>
-                    <h4 className="font-headline-md text-sm font-bold text-on-surface">{currentStage.driverText}</h4>
+                    <h4 className="font-headline-md text-sm font-bold text-on-surface dark:text-white">{currentStage.driverText}</h4>
                     <p className="font-body-md text-xs text-on-surface-variant">{currentStage.driverSubtext}</p>
                   </div>
                 </div>
@@ -456,14 +456,14 @@ export const OrdersScreen = React.memo(() => {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => setSupportModal(true)}
-                    className="px-4 py-2 bg-surface-container-low hover:bg-surface-container text-on-surface rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-surface-container dark:bg-[#201f1f] hover:bg-surface-container-high text-on-surface dark:text-white border border-surface-variant/40 dark:border-[#262626] rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Phone size={14} />
                     <span>Call Driver</span>
                   </button>
                   <button 
                     onClick={() => setShowRouteModal(true)}
-                    className="px-4 py-2 bg-primary text-on-primary rounded-xl text-xs font-bold hover:bg-primary-container transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-primary text-on-primary dark:bg-primary-container dark:text-white rounded-xl text-xs font-bold hover:bg-primary-container transition-colors cursor-pointer shadow-xs"
                   >
                     View Full Route
                   </button>
@@ -473,24 +473,24 @@ export const OrdersScreen = React.memo(() => {
           </div>
 
           {/* Itemized Order Products List */}
-          <div className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-variant/40 shadow-sm flex flex-col gap-4">
-            <h3 className="font-headline-md text-base font-bold text-on-surface">Items in This Order</h3>
-            <div className="divide-y divide-surface-variant/20">
+          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-4">
+            <h3 className="font-headline-md text-base font-bold text-on-surface dark:text-white">Items in This Order</h3>
+            <div className="divide-y divide-surface-variant/20 dark:divide-[#262626]">
               {activeOrder.items.map((item, idx) => (
                 <div key={idx} className="py-3 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <img 
                       src={item.imageUrl} 
                       alt={item.itemName} 
-                      className="w-12 h-12 rounded-xl object-cover bg-surface-container-low border border-surface-variant/30"
+                      className="w-12 h-12 rounded-xl object-cover bg-surface-container-lowest dark:bg-[#0e0e0e] border border-surface-variant/30 dark:border-[#262626]"
                       onError={(e) => { e.target.src = "https://placehold.co/80x80/f1f5f9/10b981?text=Produce"; }}
                     />
                     <div>
-                      <h4 className="font-headline-md text-sm font-bold text-on-surface">{item.itemName}</h4>
+                      <h4 className="font-headline-md text-sm font-bold text-on-surface dark:text-white">{item.itemName}</h4>
                       <p className="text-xs text-on-surface-variant">{item.itemQuantity || '500g'} • Qty: {item.quantity || 1}</p>
                     </div>
                   </div>
-                  <span className="font-headline-md text-sm font-black text-on-surface">
+                  <span className="font-headline-md text-sm font-black text-on-surface dark:text-white">
                     {formatINR(item.itemPrice * (item.quantity || 1))}
                   </span>
                 </div>
@@ -503,19 +503,19 @@ export const OrdersScreen = React.memo(() => {
         <div className="col-span-1 lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
           
           {/* Bill Breakdown Card */}
-          <div className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-variant/40 shadow-sm flex flex-col gap-4">
-            <h3 className="font-headline-md text-base font-bold text-on-surface border-b border-surface-variant/30 pb-3">
+          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-4">
+            <h3 className="font-headline-md text-base font-bold text-on-surface dark:text-white border-b border-surface-variant/30 dark:border-[#262626] pb-3">
               Payment Summary
             </h3>
 
             <div className="flex flex-col gap-3 text-xs text-on-surface-variant">
               <div className="flex justify-between">
                 <span>Items Subtotal</span>
-                <span className="font-bold text-on-surface">{formatINR(orderSubtotal)}</span>
+                <span className="font-bold text-on-surface dark:text-white">{formatINR(orderSubtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>GST (5%)</span>
-                <span className="font-bold text-on-surface">{formatINR(orderGst)}</span>
+                <span className="font-bold text-on-surface dark:text-white">{formatINR(orderGst)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery Fee</span>
@@ -525,7 +525,7 @@ export const OrdersScreen = React.memo(() => {
               </div>
               <div className="flex justify-between">
                 <span>Handling Fee</span>
-                <span className="font-bold text-on-surface">{formatINR(activeOrder.handlingCharge || 15)}</span>
+                <span className="font-bold text-on-surface dark:text-white">{formatINR(activeOrder.handlingCharge || 15)}</span>
               </div>
               {activeOrder.couponDiscount > 0 && (
                 <div className="flex justify-between font-bold text-primary">
@@ -534,31 +534,31 @@ export const OrdersScreen = React.memo(() => {
                 </div>
               )}
 
-              <div className="flex justify-between items-baseline pt-3 border-t border-surface-variant/30 text-base font-black text-on-surface">
+              <div className="flex justify-between items-baseline pt-3 border-t border-surface-variant/30 dark:border-[#262626] text-base font-black text-on-surface dark:text-white">
                 <span>Total Paid</span>
-                <span className="text-lg text-primary">{formatINR(orderTotal)}</span>
+                <span className="text-lg text-primary font-black">{formatINR(orderTotal)}</span>
               </div>
             </div>
 
             {/* Payment Method Badge */}
-            <div className="mt-2 bg-surface-container-low rounded-xl p-3 flex items-center justify-between border border-surface-variant/30">
+            <div className="mt-2 bg-surface-container dark:bg-[#201f1f] rounded-xl p-3 flex items-center justify-between border border-surface-variant/30 dark:border-[#262626]">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[18px]">account_balance_wallet</span>
-                <span className="text-xs font-bold text-on-surface">{activeOrder.paymentMethod || "Cash on Delivery (COD)"}</span>
+                <span className="text-xs font-bold text-on-surface dark:text-white">{activeOrder.paymentMethod || "Cash on Delivery (COD)"}</span>
               </div>
               <span className="text-[10px] font-black text-primary uppercase">PAID</span>
             </div>
           </div>
 
           {/* Need Help Card */}
-          <div className="bg-gradient-to-br from-surface-tint to-primary rounded-3xl p-6 text-white shadow-md flex flex-col gap-3">
-            <h4 className="font-headline-md text-base font-extrabold">Need Help with your Order?</h4>
-            <p className="text-xs text-white/80 leading-relaxed">
+          <div className="bg-gradient-to-br from-surface-tint to-primary dark:from-[#171717] dark:to-[#171717] border border-transparent dark:border-[#262626] rounded-3xl p-6 text-white shadow-md flex flex-col gap-3">
+            <h4 className="font-headline-md text-base font-extrabold text-white">Need Help with your Order?</h4>
+            <p className="text-xs text-white/90 dark:text-on-surface-variant leading-relaxed">
               Our 24/7 customer care team is available to assist with replacements, refunds, or delivery instructions.
             </p>
             <button
               onClick={() => setSupportModal(true)}
-              className="mt-1 w-full py-2.5 bg-white text-primary font-label-md text-xs font-bold rounded-xl hover:bg-surface-container-lowest transition-all cursor-pointer shadow-sm"
+              className="mt-1 w-full py-2.5 bg-white text-primary dark:bg-[#201f1f] dark:text-white dark:border dark:border-[#353534] font-label-md text-xs font-bold rounded-xl hover:bg-white/90 transition-all cursor-pointer shadow-sm"
             >
               Contact Support
             </button>
@@ -566,14 +566,14 @@ export const OrdersScreen = React.memo(() => {
 
           {/* Past Orders Mini-List (if multiple orders exist) */}
           {sortedOrders.length > 1 && (
-            <div className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-variant/40 shadow-sm flex flex-col gap-3">
-              <h4 className="font-headline-md text-sm font-bold text-on-surface">Other Recent Orders</h4>
-              <div className="divide-y divide-surface-variant/20">
+            <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-3">
+              <h4 className="font-headline-md text-sm font-bold text-on-surface dark:text-white">Other Recent Orders</h4>
+              <div className="divide-y divide-surface-variant/20 dark:divide-[#262626]">
                 {sortedOrders.slice(1, 4).map((ord, idx) => (
                   <div key={idx} className="py-2.5 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-on-surface">#{ord.id ? ord.id.substring(ord.id.length - 6).toUpperCase() : `GC-${idx}`}</p>
-                      <p className="text-[10px] text-slate-text">{formatTimestamp(ord.timestamp)}</p>
+                      <p className="text-xs font-bold text-on-surface dark:text-white">#{ord.id ? ord.id.substring(ord.id.length - 6).toUpperCase() : `GC-${idx}`}</p>
+                      <p className="text-[10px] text-on-surface-variant">{formatTimestamp(ord.timestamp)}</p>
                     </div>
                     <button
                       onClick={() => handleReorder(ord)}
@@ -592,13 +592,13 @@ export const OrdersScreen = React.memo(() => {
       {/* ── FULL ROUTE MODAL ── */}
       {showRouteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#111724] rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-surface-variant/40 text-left">
-            <div className="flex justify-between items-center pb-4 border-b border-surface-variant/30">
+          <div className="bg-white dark:bg-[#171717] rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-surface-variant/40 dark:border-[#262626] text-left">
+            <div className="flex justify-between items-center pb-4 border-b border-surface-variant/30 dark:border-[#262626]">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">navigation</span>
-                <h3 className="font-headline-md text-lg font-bold text-on-surface">Live Delivery Route</h3>
+                <h3 className="font-headline-md text-lg font-bold text-on-surface dark:text-white">Live Delivery Route</h3>
               </div>
-              <button onClick={() => setShowRouteModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowRouteModal(false)} className="text-slate-400 hover:text-slate-200">
                 <X size={20} />
               </button>
             </div>
@@ -607,21 +607,21 @@ export const OrdersScreen = React.memo(() => {
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">1</div>
                 <div>
-                  <p className="font-bold text-on-surface">Dispatched from GroCart Dark Store 04</p>
+                  <p className="font-bold text-on-surface dark:text-white">Dispatched from GroCart Dark Store 04</p>
                   <p className="text-on-surface-variant">DLF Phase 2 Hub, Gurugram</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">2</div>
                 <div>
-                  <p className="font-bold text-on-surface">In Transit via Golf Course Road</p>
+                  <p className="font-bold text-on-surface dark:text-white">In Transit via Golf Course Road</p>
                   <p className="text-primary font-semibold">Driver currently en route (Speed: 28 km/h)</p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">3</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-black flex items-center justify-center font-bold">3</div>
                 <div>
-                  <p className="font-bold text-on-surface">Destination</p>
+                  <p className="font-bold text-on-surface dark:text-white">Destination</p>
                   <p className="text-on-surface-variant">{activeOrder.deliveryAddress || "Customer Residence"}</p>
                 </div>
               </div>
@@ -629,7 +629,7 @@ export const OrdersScreen = React.memo(() => {
 
             <button
               onClick={() => setShowRouteModal(false)}
-              className="mt-2 w-full py-2.5 bg-primary text-on-primary font-label-md rounded-xl font-bold cursor-pointer"
+              className="mt-2 w-full py-2.5 bg-primary text-black font-label-md rounded-xl font-bold cursor-pointer"
             >
               Close Route
             </button>
@@ -640,23 +640,23 @@ export const OrdersScreen = React.memo(() => {
       {/* ── SUPPORT MODAL ── */}
       {supportModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#111724] rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-surface-variant/40 text-center">
+          <div className="bg-white dark:bg-[#171717] rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-surface-variant/40 dark:border-[#262626] text-center">
             <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
               <Phone size={24} />
             </div>
-            <h3 className="font-headline-md text-lg font-bold text-on-surface">Contact Delivery Driver</h3>
+            <h3 className="font-headline-md text-lg font-bold text-on-surface dark:text-white">Contact Delivery Driver</h3>
             <p className="text-xs text-on-surface-variant mt-1">Michael is assigned to your delivery. You can reach him at:</p>
             <p className="font-headline-md text-base font-black text-primary mt-3">+91 98765 43210</p>
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setSupportModal(false)}
-                className="flex-1 py-2.5 bg-surface-container-low text-on-surface font-label-md text-xs font-bold rounded-xl cursor-pointer"
+                className="flex-1 py-2.5 bg-surface-container-low dark:bg-[#201f1f] text-on-surface dark:text-white font-label-md text-xs font-bold rounded-xl cursor-pointer"
               >
                 Close
               </button>
               <a
                 href="tel:+919876543210"
-                className="flex-1 py-2.5 bg-primary text-on-primary font-label-md text-xs font-bold rounded-xl flex items-center justify-center cursor-pointer"
+                className="flex-1 py-2.5 bg-primary text-black font-label-md text-xs font-bold rounded-xl flex items-center justify-center cursor-pointer"
               >
                 Call Now
               </a>

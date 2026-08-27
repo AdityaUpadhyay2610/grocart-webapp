@@ -113,31 +113,31 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
   }, [selectedPaymentMethod]);
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-white dark:bg-[#090D16] text-slate-850 dark:text-slate-100 z-50 overflow-y-auto pb-8 select-none flex flex-col transition-colors duration-300">
+    <div className="fixed inset-0 w-full h-full bg-surface-container-lowest dark:bg-[#0a0a0a] text-on-surface dark:text-white z-50 overflow-y-auto pb-8 select-none flex flex-col transition-colors duration-300">
       {/* Processing / Success Overlay */}
       {orderStage && (
-        <div className="fixed inset-0 w-full h-full bg-white dark:bg-[#090D16] z-[60] flex flex-col items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 w-full h-full bg-surface-container-lowest dark:bg-[#0a0a0a] z-[60] flex flex-col items-center justify-center p-8 animate-fade-in">
           {orderStage === "processing" ? (
             <div className="flex flex-col items-center text-center space-y-4">
-              <Loader2 className="w-16 h-16 text-primary-500 animate-spin" />
-              <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">Placing your order...</h3>
-              <p className="text-sm text-slate-400 dark:text-slate-500">Please wait a moment</p>
+              <Loader2 className="w-16 h-16 text-primary animate-spin" />
+              <h3 className="text-2xl font-black text-on-surface dark:text-white">Placing your order...</h3>
+              <p className="text-sm text-on-surface-variant">Please wait a moment</p>
             </div>
           ) : (
             <div className="flex flex-col items-center text-center space-y-6">
-              <div className="w-24 h-24 bg-gradient-to-tr from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/10 dark:shadow-none scale-in-out">
-                <CheckCircle className="w-14 h-14 text-white" />
+              <div className="w-24 h-24 bg-gradient-to-tr from-primary to-primary-container rounded-full flex items-center justify-center shadow-lg shadow-primary/20 scale-in-out">
+                <CheckCircle className="w-14 h-14 text-on-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-3xl font-black text-slate-800 dark:text-slate-100">Order Placed! 🎉</h3>
-                <p className="text-sm text-slate-400 dark:text-slate-500 font-semibold mt-1">
+                <h3 className="text-3xl font-black text-on-surface dark:text-white">Order Placed! 🎉</h3>
+                <p className="text-sm text-on-surface-variant font-semibold mt-1">
                   Payment: {activeMethodDetails?.label || "Cash on Delivery"}
                 </p>
-                <p className="text-lg font-black text-primary-600 dark:text-primary-400 mt-2">
+                <p className="text-lg font-black text-primary mt-2">
                   Total: ₹{finalTotal}
                 </p>
                 {orderId && (
-                  <p className="text-[10px] text-slate-400 dark:text-slate-505 font-mono mt-1">
+                  <p className="text-[10px] text-on-surface-variant font-mono mt-1">
                     ID: #{orderId.substring(orderId.length - 8)}
                   </p>
                 )}
@@ -148,60 +148,60 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
       )}
 
       {/* Top App Bar */}
-      <div className="sticky top-0 bg-white dark:bg-[#090D16] border-b border-slate-100 dark:border-slate-800/80 flex items-center px-4 py-4 z-40 transition-colors duration-300">
+      <div className="sticky top-0 bg-surface-container-low dark:bg-[#171717] border-b border-surface-variant/40 dark:border-[#262626] flex items-center px-4 py-4 z-40 transition-colors duration-300">
         <button 
           onClick={completePayment}
-          className="w-10 h-10 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center mr-3 transition-colors cursor-pointer"
+          className="w-10 h-10 rounded-full hover:bg-surface-container dark:hover:bg-[#201f1f] flex items-center justify-center mr-3 transition-colors cursor-pointer"
         >
-          <ArrowLeft size={20} className="text-slate-850 dark:text-slate-200" />
+          <ArrowLeft size={20} className="text-on-surface dark:text-white" />
         </button>
-        <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Payment Method</h2>
+        <h2 className="text-xl font-black text-on-surface dark:text-white tracking-tight">Payment Method</h2>
       </div>
 
       <div className="w-full max-w-md mx-auto px-4 mt-4 space-y-6 flex-1 text-left">
         {/* Order Summary Card */}
-        <div className="bg-white dark:bg-[#111724] border border-slate-105 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-none text-left">
+        <div className="bg-surface-container-low dark:bg-[#171717] border border-surface-variant/40 dark:border-[#262626] rounded-3xl p-5 shadow-sm text-left">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-950/20 flex items-center justify-center text-primary-600 dark:text-primary-400">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <Receipt size={20} />
             </div>
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">Order Summary</h3>
+            <h3 className="text-sm font-extrabold text-on-surface dark:text-white">Order Summary</h3>
           </div>
           
-          <hr className="border-slate-100 dark:border-slate-800/60 mb-3" />
+          <hr className="border-surface-variant/30 dark:border-[#262626] mb-3" />
           
-          <div className="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="space-y-2.5 text-xs text-on-surface-variant">
             <div className="flex justify-between">
               <span>Item Total</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">₹{itemTotal}</span>
+              <span className="font-semibold text-on-surface dark:text-white">₹{itemTotal}</span>
             </div>
             <div className="flex justify-between">
               <span>Handling Charge</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">₹{handlingCharge}</span>
+              <span className="font-semibold text-on-surface dark:text-white">₹{handlingCharge}</span>
             </div>
             <div className="flex justify-between">
               <span>Delivery Fee</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">₹{deliveryFee}</span>
+              <span className="font-semibold text-on-surface dark:text-white">₹{deliveryFee}</span>
             </div>
             {appliedCoupon && couponDiscount > 0 && (
-              <div className="flex justify-between text-primary-600 dark:text-primary-400 font-semibold">
+              <div className="flex justify-between text-primary font-semibold">
                 <span>Coupon ({appliedCoupon.code})</span>
                 <span>- ₹{couponDiscount}</span>
               </div>
             )}
             
-            <hr className="border-slate-100 dark:border-slate-800/60 my-2" />
+            <hr className="border-surface-variant/30 dark:border-[#262626] my-2" />
             
-            <div className="flex justify-between text-base font-black text-slate-850 dark:text-white">
+            <div className="flex justify-between text-base font-black text-on-surface dark:text-white">
               <span>Total</span>
-              <span className="text-primary-605 dark:text-primary-400 font-mono">₹{grandTotal}</span>
+              <span className="text-primary font-mono font-black text-lg">₹{grandTotal}</span>
             </div>
           </div>
         </div>
 
         {/* Payment Methods */}
         <div className="text-left space-y-3">
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100">Choose Payment Method</h3>
+          <h3 className="text-base font-extrabold text-on-surface dark:text-white">Choose Payment Method</h3>
           <div className="space-y-3">
             {PAYMENT_METHODS.map(method => {
               const Icon = method.icon;
@@ -213,28 +213,28 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
                   onClick={() => handleMethodSelect(method.id)}
                   className={`border rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all duration-200 ${
                     isSelected 
-                      ? "border-primary-500 bg-primary-50/10 dark:bg-primary-950/10 shadow-sm dark:shadow-none" 
-                      : "border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-805/40"
+                      ? "border-primary bg-primary/10 dark:bg-primary/10 shadow-sm" 
+                      : "border-surface-variant/40 dark:border-[#262626] bg-surface-container dark:bg-[#201f1f] hover:border-primary/50"
                   }`}
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      isSelected ? "bg-primary-500 text-white" : "bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400"
+                      isSelected ? "bg-primary text-white dark:text-black font-black" : "bg-surface-container-high dark:bg-[#2a2a2a] text-primary"
                     }`}>
                       <Icon size={22} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-extrabold text-slate-805 dark:text-slate-200">{method.label}</h4>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{method.subtitle}</p>
+                      <h4 className="text-sm font-extrabold text-on-surface dark:text-white">{method.label}</h4>
+                      <p className="text-xs text-on-surface-variant mt-0.5">{method.subtitle}</p>
                     </div>
                   </div>
                   
                   {isSelected ? (
-                    <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white dark:text-black">
                       <Check size={14} className="stroke-[3]" />
                     </div>
                   ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 dark:border-slate-800" />
+                    <div className="w-5 h-5 rounded-full border-2 border-surface-variant/40 dark:border-[#262626]" />
                   )}
                 </div>
               );
@@ -244,15 +244,15 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
       </div>
 
       {/* Pinned Bottom Buy Button */}
-      <div className="sticky bottom-0 bg-white dark:bg-[#090D16] border-t border-slate-100 dark:border-slate-800/80 p-4 z-40 transition-colors duration-300">
+      <div className="sticky bottom-0 bg-surface-container-low dark:bg-[#171717] border-t border-surface-variant/40 dark:border-[#262626] p-4 z-40 transition-colors duration-300">
         <div className="max-w-md mx-auto">
           {!selectedPaymentMethod && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 text-center mb-3">Please select a payment method</p>
+            <p className="text-xs text-on-surface-variant text-center mb-3">Please select a payment method</p>
           )}
           <button
             onClick={handleBuyClick}
             disabled={!selectedPaymentMethod}
-            className="w-full py-4 bg-primary-500 hover:bg-primary-650 text-white font-extrabold text-base rounded-2xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
+            className="w-full py-4 bg-primary text-on-primary dark:text-black font-extrabold text-base rounded-2xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-container transition-all active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
           >
             <span>Buy It  •  ₹{grandTotal}</span>
           </button>
@@ -261,31 +261,31 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
 
       {/* Card Details Screen Overlay */}
       {showCardScreen && (
-        <div className="fixed inset-0 w-full h-full bg-slate-50 dark:bg-[#090D16] z-50 overflow-y-auto pb-8 select-none flex flex-col transition-colors duration-300 animate-slide-in">
+        <div className="fixed inset-0 w-full h-full bg-surface-container-lowest dark:bg-[#0a0a0a] z-50 overflow-y-auto pb-8 select-none flex flex-col transition-colors duration-300 animate-slide-in">
           {/* Top App Bar */}
-          <div className="sticky top-0 bg-white dark:bg-[#090D16] border-b border-slate-100 dark:border-slate-800/80 flex items-center px-4 py-4 z-45 transition-colors duration-300">
+          <div className="sticky top-0 bg-surface-container-low dark:bg-[#171717] border-b border-surface-variant/40 dark:border-[#262626] flex items-center px-4 py-4 z-45 transition-colors duration-300">
             <button 
               onClick={() => setShowCardScreen(false)}
-              className="w-10 h-10 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center mr-3 transition-colors cursor-pointer"
+              className="w-10 h-10 rounded-full hover:bg-surface-container dark:hover:bg-[#201f1f] flex items-center justify-center mr-3 transition-colors cursor-pointer"
             >
-              <ArrowLeft size={20} className="text-slate-850 dark:text-slate-200" />
+              <ArrowLeft size={20} className="text-on-surface dark:text-white" />
             </button>
-            <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Card Details</h2>
+            <h2 className="text-xl font-black text-on-surface dark:text-white tracking-tight">Card Details</h2>
           </div>
 
           <div className="w-full max-w-md mx-auto px-4 mt-6 space-y-6 flex-1 flex flex-col items-center">
             {/* Premium Glassmorphic Credit Card Preview */}
-            <div className="w-full aspect-[1.586] bg-gradient-to-br from-primary-600 to-teal-800 rounded-2xl p-6 text-white relative shadow-xl shadow-primary-500/10 overflow-hidden flex flex-col justify-between select-none border border-white/10">
+            <div className="w-full aspect-[1.586] bg-gradient-to-br from-primary-container to-[#003824] rounded-2xl p-6 text-white relative shadow-xl overflow-hidden flex flex-col justify-between select-none border border-white/10">
               {/* Background glow effects */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary-400/20 rounded-full blur-2xl" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent-500/20 rounded-full blur-2xl" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary-container/20 rounded-full blur-2xl" />
 
               {/* Top section: Chip & Brand */}
               <div className="flex justify-between items-start z-10">
                 {/* Virtual Card Chip */}
-                <div className="w-10 h-8 bg-amber-450/80 rounded-md relative overflow-hidden border border-amber-300/40">
-                  <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-slate-850/20" />
-                  <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-850/20" />
+                <div className="w-10 h-8 bg-amber-400/80 rounded-md relative overflow-hidden border border-amber-300/40">
+                  <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-black/20" />
+                  <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-black/20" />
                 </div>
                 <span className="font-extrabold tracking-widest text-sm opacity-90">CREDIT CARD</span>
               </div>
@@ -298,13 +298,13 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
               {/* Bottom section: Name & Expiry */}
               <div className="flex justify-between items-end z-10">
                 <div className="flex flex-col items-start max-w-[70%] text-left">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-350 font-bold">Card Holder</span>
+                  <span className="text-[9px] uppercase tracking-wider text-white/70 font-bold">Card Holder</span>
                   <span className="text-sm font-bold truncate tracking-wide max-w-full min-h-[20px]">
                     {cardDetails.name.toUpperCase() || "YOUR NAME"}
                   </span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-350 font-bold">Expires</span>
+                  <span className="text-[9px] uppercase tracking-wider text-white/70 font-bold">Expires</span>
                   <span className="text-sm font-mono font-bold min-h-[20px]">
                     {cardDetails.expiry || "MM/YY"}
                   </span>
@@ -315,50 +315,50 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
             {/* Form Details */}
             <form onSubmit={handleCardSubmit} className="w-full space-y-4 text-left">
               <div className="space-y-1">
-                <label className="text-xs font-black text-slate-450 dark:text-slate-500 uppercase pl-1">Card Number</label>
+                <label className="text-xs font-black text-on-surface-variant uppercase pl-1">Card Number</label>
                 <input 
                   type="text" 
                   placeholder="0000 0000 0000 0000"
                   value={cardDetails.number}
                   onChange={(e) => handleCardInputChange("number", e.target.value)}
-                  className="w-full px-4 py-3 bg-white dark:bg-[#111724] border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors dark:text-white placeholder-slate-400"
+                  className="w-full px-4 py-3 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary transition-colors dark:text-white placeholder-on-surface-variant/50"
                   required
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-black text-slate-450 dark:text-slate-500 uppercase pl-1">Cardholder Name</label>
+                <label className="text-xs font-black text-on-surface-variant uppercase pl-1">Cardholder Name</label>
                 <input 
                   type="text" 
                   placeholder="John Doe"
                   value={cardDetails.name}
                   onChange={(e) => handleCardInputChange("name", e.target.value)}
-                  className="w-full px-4 py-3 bg-white dark:bg-[#111724] border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors dark:text-white placeholder-slate-400"
+                  className="w-full px-4 py-3 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary transition-colors dark:text-white placeholder-on-surface-variant/50"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-455 dark:text-slate-500 uppercase pl-1">Expiry Date</label>
+                  <label className="text-xs font-black text-on-surface-variant uppercase pl-1">Expiry Date</label>
                   <input 
                     type="text" 
                     placeholder="MM/YY"
                     value={cardDetails.expiry}
                     onChange={(e) => handleCardInputChange("expiry", e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#111724] border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors dark:text-white placeholder-slate-400"
+                    className="w-full px-4 py-3 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-1 focus:ring-primary transition-colors dark:text-white placeholder-on-surface-variant/50"
                     required
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-455 dark:text-slate-500 uppercase pl-1">CVV</label>
+                  <label className="text-xs font-black text-on-surface-variant uppercase pl-1">CVV</label>
                   <input 
                     type="password" 
                     placeholder="•••"
                     value={cardDetails.cvv}
                     onChange={(e) => handleCardInputChange("cvv", e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#111724] border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors dark:text-white placeholder-slate-400"
+                    className="w-full px-4 py-3 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-1 focus:ring-primary transition-colors dark:text-white placeholder-on-surface-variant/50"
                     required
                   />
                 </div>
@@ -366,7 +366,7 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
 
               <button
                 type="submit"
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-base rounded-2xl shadow-lg mt-6 transition-all active:scale-98 cursor-pointer flex items-center justify-center"
+                className="w-full py-4 bg-primary-container text-white font-extrabold text-base rounded-2xl shadow-lg mt-6 hover:bg-primary hover:text-black transition-all active:scale-98 cursor-pointer flex items-center justify-center"
               >
                 Pay Now  •  ₹{grandTotal}
               </button>
@@ -377,29 +377,29 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
 
       {/* Custom Alert Modal Popup */}
       {showPopup && (
-        <div className="fixed inset-0 w-full h-full bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 select-none animate-fade-in">
-          <div className="bg-white dark:bg-[#111724] border border-slate-100 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative animate-scale-in flex flex-col items-center">
+        <div className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 select-none animate-fade-in">
+          <div className="bg-surface-container-low dark:bg-[#171717] border border-surface-variant/40 dark:border-[#262626] rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative animate-scale-in flex flex-col items-center">
             {/* Alert Icon */}
-            <div className="w-16 h-16 bg-amber-50 dark:bg-amber-955/20 rounded-full flex items-center justify-center text-amber-500 mb-4 animate-bounce-subtle border border-amber-100/10">
+            <div className="w-16 h-16 bg-amber-500/15 rounded-full flex items-center justify-center text-amber-500 mb-4 animate-bounce-subtle border border-amber-500/20">
               <CreditCard size={32} />
             </div>
 
-            <h3 className="text-lg font-black text-slate-805 dark:text-slate-100 tracking-tight">Payment Unavailable</h3>
+            <h3 className="text-lg font-black text-on-surface dark:text-white tracking-tight">Payment Unavailable</h3>
             
-            <p className="text-xs text-slate-405 dark:text-slate-400 font-bold mt-2.5 leading-relaxed capitalize">
+            <p className="text-xs text-on-surface-variant font-bold mt-2.5 leading-relaxed capitalize">
               {popupMessage}
             </p>
 
             <div className="w-full mt-6 space-y-2">
               <button
                 onClick={handleSelectCOD}
-                className="w-full py-3 bg-primary-500 hover:bg-primary-650 text-white font-black text-xs rounded-xl shadow-md transition-colors cursor-pointer"
+                className="w-full py-3 bg-primary text-black font-black text-xs rounded-xl shadow-md hover:opacity-90 transition-colors cursor-pointer"
               >
                 Try Cash on Delivery (COD)
               </button>
               <button
                 onClick={() => setShowPopup(false)}
-                className="w-full py-3 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-355 font-black text-xs rounded-xl transition-colors cursor-pointer border border-slate-100 dark:border-transparent"
+                className="w-full py-3 bg-surface-container dark:bg-[#201f1f] hover:bg-surface-container-high text-on-surface dark:text-white font-black text-xs rounded-xl transition-colors cursor-pointer border border-surface-variant/40 dark:border-[#262626]"
               >
                 Cancel
               </button>

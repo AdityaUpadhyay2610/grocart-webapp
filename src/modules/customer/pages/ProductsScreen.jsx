@@ -144,26 +144,25 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-28 select-none min-h-screen text-left animate-fade-in gap-8">
       
       {/* ── 1. TEXTURED HEADER BANNER ── */}
-      <section className="relative w-full rounded-3xl overflow-hidden bg-on-primary-fixed-variant shadow-lg p-6 sm:p-10 flex flex-col justify-between min-h-[160px] md:min-h-[190px]">
+      <section className="relative w-full rounded-3xl overflow-hidden bg-surface-container-low dark:bg-[#171717] border border-surface-variant/40 dark:border-[#262626] shadow-lg p-6 sm:p-10 flex flex-col justify-between min-h-[160px] md:min-h-[190px]">
         {/* Background texture */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20 mix-blend-overlay pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-on-primary-fixed-variant via-on-primary-fixed-variant/95 to-primary/40" />
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low dark:from-[#171717] via-surface-container-low/95 dark:via-[#171717]/95 to-primary/10" />
         </div>
 
         {/* Breadcrumb & Title */}
         <div className="relative z-10 flex flex-col gap-1">
-          <div className="flex items-center gap-2 text-xs font-semibold text-surface-container-low/75">
-            <span onClick={() => navigate("/home")} className="hover:text-white cursor-pointer">Home</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-on-surface-variant">
+            <span onClick={() => navigate("/home")} className="hover:text-primary cursor-pointer">Home</span>
             <span>/</span>
-            <span onClick={() => navigate("/categories")} className="hover:text-white cursor-pointer">Categories</span>
+            <span onClick={() => navigate("/categories")} className="hover:text-primary cursor-pointer">Categories</span>
             <span>/</span>
-            <span className="text-white font-bold">{categoryName}</span>
+            <span className="text-on-surface dark:text-white font-bold">{categoryName}</span>
           </div>
 
           <div className="flex items-baseline gap-3 mt-1">
-            <h1 className="font-display-lg text-pure-white text-3xl sm:text-4xl font-black">{categoryName}</h1>
-            <span className="px-3 py-0.5 bg-white/20 text-white rounded-full text-xs font-bold backdrop-blur-sm">
+            <h1 className="font-display-lg text-on-surface dark:text-white text-3xl sm:text-4xl font-black">{categoryName}</h1>
+            <span className="px-3 py-0.5 bg-surface-container dark:bg-[#201f1f] text-on-surface dark:text-white border border-surface-variant/40 dark:border-[#262626] rounded-full text-xs font-bold backdrop-blur-sm">
               {processedProducts.length} items
             </span>
           </div>
@@ -177,8 +176,8 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               onClick={() => setActiveSubcategory(tab)}
               className={`px-4 py-1.5 rounded-xl font-label-md text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeSubcategory === tab 
-                  ? 'bg-primary-container text-on-primary shadow-md' 
-                  : 'bg-white/10 text-white hover:bg-white/20'
+                  ? 'bg-primary-container text-white shadow-md' 
+                  : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant hover:text-on-surface'
               }`}
             >
               {tab}
@@ -194,11 +193,11 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
         <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
           
           {/* Filters Card */}
-          <div className="bg-surface-container-lowest rounded-3xl p-6 border border-surface-variant/40 shadow-sm flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-surface-variant/30 pb-4">
+          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-surface-variant/30 dark:border-[#262626] pb-4">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal size={18} className="text-primary" />
-                <h3 className="font-headline-md text-base font-bold text-on-surface">Filters</h3>
+                <h3 className="font-headline-md text-base font-bold text-on-surface dark:text-white">Filters</h3>
               </div>
               <button 
                 onClick={clearFilters}
@@ -210,7 +209,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
 
             {/* Price Range Slider */}
             <div className="flex flex-col gap-3">
-              <div className="flex justify-between items-center text-xs font-bold text-on-surface">
+              <div className="flex justify-between items-center text-xs font-bold text-on-surface dark:text-white">
                 <span>Price Range</span>
                 <span className="text-primary">{formatINR(minPrice, false)} - {formatINR(maxPrice, false)}</span>
               </div>
@@ -231,10 +230,10 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
             </div>
 
             {/* Dietary Preferences */}
-            <div className="flex flex-col gap-2.5 pt-4 border-t border-surface-variant/30">
-              <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface">Dietary & Quality</h4>
+            <div className="flex flex-col gap-2.5 pt-4 border-t border-surface-variant/30 dark:border-[#262626]">
+              <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface dark:text-white">Dietary & Quality</h4>
               {["100% Organic", "Locally Sourced", "Non-GMO", "Pesticide Free"].map(diet => (
-                <label key={diet} className="flex items-center gap-2.5 text-xs text-on-surface cursor-pointer hover:text-primary transition-colors">
+                <label key={diet} className="flex items-center gap-2.5 text-xs text-on-surface dark:text-white cursor-pointer hover:text-primary transition-colors">
                   <input 
                     type="checkbox"
                     checked={selectedDietary.has(diet)}
@@ -247,10 +246,10 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
             </div>
 
             {/* Brands / Sourced Regions */}
-            <div className="flex flex-col gap-2.5 pt-4 border-t border-surface-variant/30">
-              <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface">Brand & Farms</h4>
+            <div className="flex flex-col gap-2.5 pt-4 border-t border-surface-variant/30 dark:border-[#262626]">
+              <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface dark:text-white">Brand & Farms</h4>
               {["Himalayan Orchards", "Nilgiri Fresh", "Valley Farms", "Organic India"].map(brand => (
-                <label key={brand} className="flex items-center gap-2.5 text-xs text-on-surface cursor-pointer hover:text-primary transition-colors">
+                <label key={brand} className="flex items-center gap-2.5 text-xs text-on-surface dark:text-white cursor-pointer hover:text-primary transition-colors">
                   <input 
                     type="checkbox"
                     checked={selectedBrands.has(brand)}
@@ -263,9 +262,9 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
             </div>
 
             {/* Quick Category Switcher */}
-            <div className="flex flex-col gap-2 pt-4 border-t border-surface-variant/30">
+            <div className="flex flex-col gap-2 pt-4 border-t border-surface-variant/30 dark:border-[#262626]">
               <div className="flex justify-between items-center">
-                <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface">All Categories</h4>
+                <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface dark:text-white">All Categories</h4>
                 <button 
                   onClick={() => navigate("/categories")}
                   className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
@@ -285,8 +284,8 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                       onClick={() => navigate(`/categories/${encodeURIComponent(c.name)}`)}
                       className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
                         isCurrent 
-                          ? 'bg-primary text-on-primary' 
-                          : 'text-on-surface hover:bg-surface-container-low'
+                          ? 'bg-primary text-white dark:text-black' 
+                          : 'text-on-surface dark:text-white hover:bg-surface-container dark:hover:bg-[#201f1f]'
                       }`}
                     >
                       <span className="truncate max-w-[170px]">{c.nameDisplay || c.name}</span>
@@ -300,27 +299,27 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
 
 
           {/* Quick Recipes Aside Widget */}
-          <div className="bg-gradient-to-br from-surface-tint to-primary rounded-3xl p-6 shadow-md text-white flex flex-col gap-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100/40 dark:from-[#171717] dark:to-[#171717] border border-primary/20 dark:border-[#262626] rounded-3xl p-6 shadow-md text-on-surface dark:text-white flex flex-col gap-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-xl pointer-events-none" />
             
             <div className="flex items-center justify-between">
-              <span className="px-2.5 py-0.5 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 rounded-full text-[10px] font-black uppercase tracking-wider">
                 {QUICK_RECIPE.badge}
               </span>
-              <span className="text-[11px] font-bold text-white/80">⏱ {QUICK_RECIPE.prepTime}</span>
+              <span className="text-[11px] font-bold text-on-surface-variant">⏱ {QUICK_RECIPE.prepTime}</span>
             </div>
 
             <div className="flex gap-3 items-center">
               <img src={QUICK_RECIPE.image} alt={QUICK_RECIPE.title} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
               <div>
-                <h4 className="font-headline-md text-sm font-extrabold leading-tight">{QUICK_RECIPE.title}</h4>
-                <p className="text-[11px] text-white/80 mt-1 line-clamp-2">{QUICK_RECIPE.description}</p>
+                <h4 className="font-headline-md text-sm font-extrabold leading-tight text-on-surface dark:text-white">{QUICK_RECIPE.title}</h4>
+                <p className="text-[11px] text-on-surface-variant mt-1 line-clamp-2">{QUICK_RECIPE.description}</p>
               </div>
             </div>
 
             <button 
               onClick={() => setShowRecipeModal(true)}
-              className="w-full py-2.5 bg-white text-primary font-label-md text-xs font-bold rounded-xl hover:bg-surface-container-lowest transition-all shadow-sm cursor-pointer"
+              className="w-full py-2.5 bg-white dark:bg-[#201f1f] border border-primary/20 dark:border-[#353534] text-primary dark:text-white font-label-md text-xs font-bold rounded-xl hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-black transition-all shadow-sm cursor-pointer"
             >
               View Recipe & Ingredients
             </button>
@@ -331,8 +330,8 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
           
           {/* Top Sort & Count Bar */}
-          <div className="flex justify-between items-center bg-surface-container-lowest rounded-2xl px-5 py-3 border border-surface-variant/40 shadow-sm">
-            <span className="font-body-md text-xs font-bold text-on-surface">
+          <div className="flex justify-between items-center bg-surface-container-low dark:bg-[#171717] rounded-2xl px-5 py-3 border border-surface-variant/40 dark:border-[#262626] shadow-sm">
+            <span className="font-body-md text-xs font-bold text-on-surface dark:text-white">
               Showing <span className="text-primary">{processedProducts.length}</span> fresh products
             </span>
 
@@ -341,7 +340,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               <select 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-surface-container-low border border-surface-variant/40 rounded-xl px-3 py-1.5 text-xs font-bold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                className="bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl px-3 py-1.5 text-xs font-bold text-on-surface dark:text-white focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -377,12 +376,12 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                   <div
                     key={item.id}
                     onClick={() => setSelectedProduct && setSelectedProduct(itemPayload)}
-                    className="bg-surface-container-lowest rounded-2xl p-4 border border-surface-variant/40 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-3 group relative cursor-pointer"
+                    className="bg-surface-container-low dark:bg-[#171717] rounded-2xl p-4 border border-surface-variant/40 dark:border-[#262626] shadow-sm hover:shadow-md hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-300 flex flex-col justify-between gap-3 group relative cursor-pointer"
                   >
                     {/* Wishlist Button */}
                     <button 
                       onClick={(e) => toggleWishlist(e, item.id)}
-                      className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center transition-colors z-10 cursor-pointer ${
+                      className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-center transition-colors z-10 cursor-pointer ${
                         isWishlisted ? 'text-tertiary bg-error-container/40' : 'text-on-surface-variant hover:text-tertiary'
                       }`}
                     >
@@ -390,11 +389,11 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                     </button>
 
                     {/* Image */}
-                    <div className="h-36 w-full rounded-xl bg-gradient-to-b from-surface-container-lowest to-surface-container/40 flex items-center justify-center overflow-hidden">
+                    <div className="h-36 w-full rounded-xl bg-surface-container-lowest dark:bg-[#0e0e0e] flex items-center justify-center overflow-hidden">
                       <img 
                         src={getUniqueImageUrl(item.imageUrl, item.id, item.itemName)}
                         alt={item.itemName}
-                        className="h-32 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                        className="h-32 object-contain group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => { e.target.src = "https://placehold.co/120x120/f1f5f9/10b981?text=Produce"; }}
                       />
                     </div>
@@ -404,7 +403,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                       <span className="font-label-sm text-[10px] font-bold text-primary uppercase tracking-wider">
                         {item.itemCategory || categoryName}
                       </span>
-                      <h4 className="font-headline-md text-sm font-bold text-on-surface line-clamp-1 leading-tight">
+                      <h4 className="font-headline-md text-sm font-bold text-on-surface dark:text-white line-clamp-1 leading-tight">
                         {item.itemName}
                       </h4>
                       
@@ -413,7 +412,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                         <select 
                           value={selectedUnit}
                           onChange={(e) => setSelectedUnitMap(prev => ({ ...prev, [item.id]: e.target.value }))}
-                          className="w-full bg-surface-container-low border border-surface-variant/30 rounded-lg px-2 py-1 text-[11px] font-bold text-on-surface cursor-pointer focus:outline-none focus:border-primary"
+                          className="w-full bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] rounded-lg px-2 py-1 text-[11px] font-bold text-on-surface dark:text-white cursor-pointer focus:outline-none focus:border-primary"
                         >
                           {availableUnits.map(unit => (
                             <option key={unit} value={unit}>{unit}</option>
@@ -423,24 +422,24 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                     </div>
 
                     {/* Price & Stepper / Add */}
-                    <div className="flex items-center justify-between pt-3 border-t border-surface-variant/30 mt-1">
+                    <div className="flex items-center justify-between pt-3 border-t border-surface-variant/30 dark:border-[#262626] mt-1">
                       <div className="flex flex-col text-left">
-                        <span className="font-label-sm text-[10px] text-slate-text line-through opacity-75">{formatINR(unitAdjustedCost, false)}</span>
-                        <span className="font-headline-md text-base font-black text-on-surface">{formatINR(unitAdjustedPrice)}</span>
+                        <span className="font-label-sm text-[10px] text-on-surface-variant line-through opacity-75">{formatINR(unitAdjustedCost, false)}</span>
+                        <span className="font-headline-md text-base font-black text-on-surface dark:text-white">{formatINR(unitAdjustedPrice)}</span>
                       </div>
 
                       {quantity > 0 ? (
-                        <div className="flex items-center space-x-1.5 bg-primary-50 dark:bg-primary-950/20 border border-primary-200/50 rounded-xl px-1.5 py-1">
+                        <div className="flex items-center space-x-1.5 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl px-1.5 py-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               decreaseCartItem(cartItem);
                             }}
-                            className="w-6 h-6 rounded-lg bg-white dark:bg-[#111724] flex items-center justify-center text-primary hover:bg-slate-50 shadow-sm transition-colors cursor-pointer"
+                            className="w-6 h-6 rounded-lg bg-surface-container-high dark:bg-[#2a2a2a] flex items-center justify-center text-primary hover:bg-slate-50 shadow-sm transition-colors cursor-pointer"
                           >
                             <Minus size={12} />
                           </button>
-                          <span className="text-xs font-black text-on-surface min-w-[14px] text-center">
+                          <span className="text-xs font-black text-on-surface dark:text-white min-w-[14px] text-center">
                             {quantity}
                           </span>
                           <button
@@ -448,7 +447,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                               e.stopPropagation();
                               addToCart(itemPayload);
                             }}
-                            className="w-6 h-6 rounded-lg bg-white dark:bg-[#111724] flex items-center justify-center text-primary hover:bg-slate-50 shadow-sm transition-colors cursor-pointer"
+                            className="w-6 h-6 rounded-lg bg-surface-container-high dark:bg-[#2a2a2a] flex items-center justify-center text-primary hover:bg-slate-50 shadow-sm transition-colors cursor-pointer"
                           >
                             <Plus size={12} />
                           </button>
@@ -457,13 +456,12 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            triggerAddToCartAnimation(itemPayload);
                             addToCart(itemPayload);
                           }}
-                          className="px-4 py-2 bg-primary text-on-primary font-label-md text-xs font-bold rounded-xl hover:bg-primary-container hover:scale-105 active:scale-95 transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                          className="w-9 h-9 bg-primary text-on-primary dark:text-[#003824] rounded-xl flex items-center justify-center hover:bg-primary-container hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                          title="Add to Cart"
                         >
-                          <Plus size={14} />
-                          <span>Add</span>
+                          <Plus size={18} />
                         </button>
                       )}
                     </div>
@@ -472,13 +470,13 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               })}
             </div>
           ) : (
-            <div className="bg-surface-container-lowest rounded-3xl p-12 text-center border border-surface-variant/40 flex flex-col items-center justify-center gap-3">
+            <div className="text-center py-24 bg-surface-container-low/50 dark:bg-[#171717]/50 rounded-3xl border border-dashed border-surface-variant/50 dark:border-[#262626]">
               <span className="material-symbols-outlined text-4xl text-on-surface-variant">inventory_2</span>
-              <h3 className="font-headline-md text-lg font-bold text-on-surface">No products match your filters</h3>
-              <p className="text-xs text-on-surface-variant max-w-sm">Try adjusting your price range or clearing selected dietary options.</p>
-              <button 
+              <p className="font-headline-md text-base font-bold text-on-surface dark:text-white mt-2">No products found</p>
+              <p className="text-xs text-on-surface-variant mt-1">Try adjusting your filters or price range.</p>
+              <button
                 onClick={clearFilters}
-                className="mt-2 px-5 py-2 bg-primary text-on-primary rounded-xl font-label-md text-xs font-bold cursor-pointer"
+                className="mt-4 px-4 py-2 bg-primary text-on-primary rounded-xl text-xs font-bold cursor-pointer"
               >
                 Reset Filters
               </button>
@@ -490,47 +488,43 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
       {/* ── RECIPE MODAL ── */}
       {showRecipeModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#111724] rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-surface-variant/40 max-h-[90vh] overflow-y-auto text-left">
+          <div className="bg-white dark:bg-[#171717] rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-surface-variant/40 dark:border-[#262626] max-h-[90vh] overflow-y-auto text-left">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-primary">{QUICK_RECIPE.badge}</span>
-                <h3 className="font-headline-md text-2xl font-black text-on-surface mt-0.5">{QUICK_RECIPE.title}</h3>
+                <h3 className="font-headline-md text-2xl font-black text-on-surface dark:text-white mt-0.5">{QUICK_RECIPE.title}</h3>
               </div>
-              <button onClick={() => setShowRecipeModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowRecipeModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-200">
                 <X size={22} />
               </button>
             </div>
 
-            <img src={QUICK_RECIPE.image} alt={QUICK_RECIPE.title} className="w-full h-44 object-cover rounded-2xl mb-4" />
+            <img src={QUICK_RECIPE.image} alt={QUICK_RECIPE.title} className="w-full h-48 object-cover rounded-2xl mb-4" />
 
             <p className="text-sm text-on-surface-variant mb-4">{QUICK_RECIPE.description}</p>
 
-            <h4 className="font-label-md text-sm font-bold text-on-surface uppercase tracking-wider mb-2">Ingredients Needed:</h4>
+            <h4 className="font-label-md text-sm font-bold text-on-surface dark:text-white uppercase tracking-wider mb-2">Ingredients in this recipe:</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
               {QUICK_RECIPE.ingredients.map(ing => (
-                <div key={ing.id} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-surface-variant/30">
+                <div key={ing.id} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626]">
                   <div className="flex items-center gap-2">
                     <img src={ing.imageUrl} alt={ing.itemName} className="w-7 h-7 rounded object-cover" />
-                    <span className="text-xs font-bold text-on-surface">{ing.itemName}</span>
+                    <span className="text-xs font-bold text-on-surface dark:text-white">{ing.itemName}</span>
                   </div>
                   <span className="text-xs font-extrabold text-primary">{formatINR(ing.itemPrice, false)}</span>
                 </div>
               ))}
             </div>
 
-            <h4 className="font-label-md text-sm font-bold text-on-surface uppercase tracking-wider mb-2">Instructions:</h4>
-            <ol className="list-decimal pl-4 space-y-1.5 text-xs text-on-surface-variant mb-6">
-              {QUICK_RECIPE.instructions.map((step, idx) => (
-                <li key={idx}>{step}</li>
-              ))}
-            </ol>
-
             <button
-              onClick={handleAddAllRecipeIngredients}
+              onClick={() => {
+                handleAddAllRecipeIngredients(QUICK_RECIPE);
+                setShowRecipeModal(false);
+              }}
               className="w-full py-3 bg-primary text-on-primary font-label-md rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-container transition-all cursor-pointer shadow-md"
             >
               <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-              <span>Add All Recipe Ingredients to Cart</span>
+              <span>Add All Ingredients to Cart</span>
             </button>
           </div>
         </div>

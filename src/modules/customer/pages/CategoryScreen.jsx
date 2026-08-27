@@ -87,13 +87,13 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
       
       {/* ── Header Section ── */}
-      <div className="pt-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-surface-variant/40 pb-6">
+      <div className="pt-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-surface-variant/40 dark:border-[#262626] pb-6">
         <div>
           <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-1">
             <Sparkles size={16} />
             <span>Complete Grocery & Store Catalog</span>
           </div>
-          <h1 className="font-display-lg text-on-surface text-3xl sm:text-4xl font-black tracking-tight">
+          <h1 className="font-display-lg text-on-surface dark:text-white text-3xl sm:text-4xl font-black tracking-tight">
             All Categories Directory
           </h1>
           <p className="font-body-lg text-on-surface-variant mt-1.5 text-xs sm:text-sm max-w-2xl">
@@ -109,7 +109,7 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter categories..."
-            className="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-surface-variant/40 rounded-xl text-xs font-bold text-on-surface focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-slate-text/70 shadow-inner"
+            className="w-full pl-10 pr-4 py-2.5 bg-surface-container-low dark:bg-[#171717] border border-surface-variant/40 dark:border-[#262626] rounded-xl text-xs font-bold text-on-surface dark:text-white focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-slate-text/70 shadow-inner"
           />
         </div>
       </div>
@@ -129,11 +129,11 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
                 isSelected
                   ? "bg-primary text-on-primary shadow-md"
-                  : "bg-surface-container-low text-on-surface border border-surface-variant/40 hover:bg-surface-container"
+                  : "bg-surface-container-low dark:bg-[#171717] text-on-surface dark:text-white border border-surface-variant/40 dark:border-[#262626] hover:bg-surface-container dark:hover:bg-[#201f1f]"
               }`}
             >
               <span>{sec}</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${isSelected ? 'bg-white/25 text-white' : 'bg-surface-variant/40 text-on-surface-variant'}`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${isSelected ? 'bg-black/20 text-white' : 'bg-surface-variant/40 dark:bg-[#262626] text-on-surface-variant'}`}>
                 {count}
               </span>
             </button>
@@ -145,8 +145,8 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
       <div className="flex flex-col gap-10">
         {groupedCategories.map((group, idx) => (
           <section key={idx} className="flex flex-col gap-5">
-            <div className="flex items-center justify-between border-b border-surface-variant/30 pb-2">
-              <h2 className="font-headline-md text-on-surface text-lg sm:text-xl font-bold flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-surface-variant/30 dark:border-[#262626] pb-2">
+              <h2 className="font-headline-md text-on-surface dark:text-white text-lg sm:text-xl font-bold flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary" />
                 <span>{group.title}</span>
               </h2>
@@ -160,19 +160,19 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
                 <button
                   key={cat.id || cat.name}
                   onClick={() => handleSelect(cat)}
-                  className="group relative overflow-hidden rounded-2xl bg-surface-container-lowest shadow-xs hover:shadow-lg transition-all duration-300 border border-surface-variant/40 hover:border-primary/60 flex flex-col justify-between h-40 p-4 text-left cursor-pointer"
+                  className="group relative overflow-hidden rounded-2xl bg-surface-container-low dark:bg-[#171717] shadow-xs hover:shadow-lg transition-all duration-300 border border-surface-variant/40 dark:border-[#262626] hover:border-primary/60 dark:hover:border-primary/60 flex flex-col justify-between h-40 p-4 text-left cursor-pointer"
                 >
                   {/* Category Top details */}
                   <div className="flex justify-between items-start z-10 relative">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-primary/15 dark:bg-primary/20 text-primary flex items-center justify-center shadow-xs">
                         <span className="material-symbols-outlined text-[20px]">{cat.icon || "category"}</span>
                       </div>
                       <div>
-                        <span className="font-headline-md text-on-surface text-sm sm:text-base font-bold leading-tight block">
+                        <span className="font-headline-md text-on-surface dark:text-white text-sm sm:text-base font-bold leading-tight block">
                           {cat.nameDisplay || cat.name}
                         </span>
-                        <span className="text-[11px] text-slate-text font-medium block mt-0.5">
+                        <span className="text-[11px] text-on-surface-variant font-medium block mt-0.5">
                           {categoryCounts[cat.name] || "Explore"}
                         </span>
                       </div>
@@ -203,9 +203,9 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
         ))}
 
         {groupedCategories.length === 0 && (
-          <div className="text-center py-20 bg-surface-container-low/40 rounded-3xl border border-dashed border-surface-variant/50">
+          <div className="text-center py-20 bg-surface-container-low/40 dark:bg-[#171717]/40 rounded-3xl border border-dashed border-surface-variant/50 dark:border-[#262626]">
             <span className="material-symbols-outlined text-4xl text-slate-text">category</span>
-            <p className="font-headline-md text-base font-bold text-on-surface mt-2">No matching categories found</p>
+            <p className="font-headline-md text-base font-bold text-on-surface dark:text-white mt-2">No matching categories found</p>
             <p className="text-xs text-on-surface-variant mt-1">Try searching for a different item or clear the filter.</p>
             <button
               onClick={() => { setSearchQuery(""); setSelectedSection("All"); }}
