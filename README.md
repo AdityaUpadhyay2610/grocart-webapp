@@ -275,8 +275,8 @@ REDIS_URL=redis://localhost:6379
 
 # ---- JWT Authentication Secrets ----
 # Generate via: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-JWT_ACCESS_SECRET=e7b4f8c9d1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8
-JWT_REFRESH_SECRET=a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+JWT_ACCESS_SECRET=add_your_jwt_access_secret_here
+JWT_REFRESH_SECRET=add_your_jwt_refresh_secret_here
 ACCESS_TOKEN_EXPIRES=15m
 REFRESH_TOKEN_EXPIRES_DAYS=7
 
@@ -287,11 +287,6 @@ AUTH_RATE_LIMIT_MAX=10
 GENERAL_RATE_LIMIT_WINDOW_MINUTES=1
 GENERAL_RATE_LIMIT_MAX=300
 
-# ---- Default System Seed Admin ----
-SEED_ADMIN_NAME=Admin User
-SEED_ADMIN_EMAIL=admin@grocart.com
-SEED_ADMIN_PASSWORD=SuperSecretAdminPassword123!
-```
 
 ### `root .env.example`
 
