@@ -42,7 +42,7 @@ export const loadCartThunk = createAsyncThunk(
   "cart/loadCart",
   async (_, { getState, rejectWithValue }) => {
     const { auth } = getState();
-    const userId = auth.user?.id;
+    const userId = auth.user?.uid || auth.user?.id;
     if (!userId) return [];
     try {
       const items = await fetchCart(userId);
@@ -57,7 +57,7 @@ export const addToCartThunk = createAsyncThunk(
   "cart/addToCart",
   async (product, { getState, rejectWithValue, dispatch }) => {
     const { auth, cart } = getState();
-    const userId = auth.user?.id;
+    const userId = auth.user?.uid || auth.user?.id;
     if (!userId) return rejectWithValue("User not logged in");
 
     const unit = product.itemQuantity || product.unit || "500g";
@@ -101,7 +101,7 @@ export const decreaseCartItemThunk = createAsyncThunk(
   "cart/decreaseCartItem",
   async (item, { getState, rejectWithValue, dispatch }) => {
     const { auth } = getState();
-    const userId = auth.user?.id;
+    const userId = auth.user?.uid || auth.user?.id;
     if (!userId) return rejectWithValue("User not logged in");
 
     if (item.quantity <= 1) {
@@ -136,7 +136,7 @@ export const placeOrderThunk = createAsyncThunk(
   "cart/placeOrder",
   async (_, { getState, rejectWithValue }) => {
     const { auth, cart } = getState();
-    const userId = auth.user?.id;
+    const userId = auth.user?.uid || auth.user?.id;
     if (!userId || cart.cartItems.length === 0) {
       return rejectWithValue("Order placement requirements not met");
     }

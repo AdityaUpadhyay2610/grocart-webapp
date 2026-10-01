@@ -23,7 +23,7 @@ export const useAuth = () => {
   const authState = useSelector((state) => state.auth);
 
   const login = useCallback((email, password) => dispatch(loginThunk({ email, password })), [dispatch]);
-  const register = useCallback((username, email, password) => dispatch(registerThunk({ username, email, password })), [dispatch]);
+  const register = useCallback((username, email, password, confirmPassword) => dispatch(registerThunk({ username, email, password, confirmPassword })), [dispatch]);
   const logout = useCallback(() => dispatch(logoutThunk()), [dispatch]);
   const refreshVerification = useCallback(async () => {
     try {

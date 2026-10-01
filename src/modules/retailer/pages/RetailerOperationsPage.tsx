@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { Check, Copy } from 'lucide-react';
 
 import { clearSession } from '@global/store/authSlice';
+import { authApi } from '@global/services/api/authApi';
 import { ProductItem, ProductCategory } from '@global/models';
+import { DEFAULT_CATEGORIES } from '@global/utils/constants';
 import * as XLSX from 'xlsx';
 import { storefrontApi } from '@global/services/api/appApis';
 
@@ -33,8 +34,7 @@ export default function RetailerOperationsPage() {
 
   // Layout State
   const [activeTab, setActiveTab] = useState('all');
-  const [isCopied, setIsCopied] = useState(false);
-  
+
   // Analytics State
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month'>('week');
 
@@ -49,48 +49,57 @@ export default function RetailerOperationsPage() {
   const [inventorySearch, setInventorySearch] = useState('');
   const [showAllInventory, setShowAllInventory] = useState(false);
   
-  const [categories, setCategories] = React.useState<ProductCategory[]>([]);
+  const [categories, setCategories] = React.useState<ProductCategory[]>(DEFAULT_CATEGORIES as ProductCategory[]);
   const prevCategoriesRef = React.useRef<ProductCategory[] | null>(null);
 
   React.useEffect(() => {
     const unsubscribe = storefrontApi.subscribeToCategories((data) => {
-      setCategories(data);
-      
-      if (prevCategoriesRef.current !== null) {
-        // Find which categories are new
-        const newCats = data.filter(d => !prevCategoriesRef.current!.find(p => p.id === d.id));
-        if (newCats.length > 0) {
-          const names = newCats.map(c => c.name).join(', ');
-          showToast(`Admin added new categories: ${names}`, "success");
+      if (Array.isArray(data) && data.length > 0) {
+        setCategories(data);
+        
+        if (prevCategoriesRef.current !== null) {
+          // Find which categories are new
+          const newCats = data.filter(d => !prevCategoriesRef.current!.find(p => p.id === d.id));
+          if (newCats.length > 0) {
+            const names = newCats.map(c => c.name).join(', ');
+            showToast(`Admin added new categories: ${names}`, "success");
+          }
         }
+        prevCategoriesRef.current = data;
       }
-      prevCategoriesRef.current = data;
     });
     return () => unsubscribe();
   }, [showToast]);
 
   // Publish form state
   const defaultForm = {
-    id: undefined, createdAt: undefined, title: '', categoryId: categories.length > 0 ? categories[0].id : '', categoryName: categories.length > 0 ? categories[0].name : '',
-    unit: 'pcs' as 'pcs' | 'kg' | 'pack' | 'liter', imageUrl: '', costPrice: 0, sellingPrice: 0, stockQuantity: 0, description: ''
+    id: undefined,
+    createdAt: undefined,
+    title: '',
+    categoryId: (categories.length > 0 ? categories[0].id : DEFAULT_CATEGORIES[0].id),
+    categoryName: (categories.length > 0 ? categories[0].name : DEFAULT_CATEGORIES[0].name),
+    unit: 'pcs' as 'pcs' | 'kg' | 'pack' | 'liter',
+    imageUrl: '',
+    costPrice: 0,
+    sellingPrice: 0,
+    stockQuantity: 0,
+    description: ''
   };
   const [forms, setForms] = useState<Partial<ProductItem>[]>([{ ...defaultForm }]);
-  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [progress, setProgress] = useState<{ type: 'import' | 'delete' | null, current: number, total: number }>({ type: null, current: 0, total: 0 });
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authApi.logoutUser(); // Clear backend refresh token cookie
+    } catch (e) {
+      console.warn('Logout API error (continuing):', e);
+    }
     dispatch(clearSession());
     navigate('/login');
   };
 
-  const copyVendorId = () => {
-    if (user?.uid) {
-      navigator.clipboard.writeText(user.uid);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
-  };
 
   const handleCategoryChange = (index: number, id: string) => {
     const cat = categories.find(c => String(c.id) === id);
@@ -150,6 +159,37 @@ export default function RetailerOperationsPage() {
     setForms([{ ...defaultForm }]);
   };
 
+  const handleDownloadTemplate = () => {
+    const sampleRows = [
+      {
+        'Title': 'Organic Whole Milk 1L',
+        'Category ID': categories[0]?.id || 'dairy',
+        'Cost Price': 40,
+        'Selling Price': 45,
+        'Stock': 50,
+        'Unit': 'liter',
+        'Unit Size': 1,
+        'Image URL': 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400',
+        'Description': 'Farm fresh organic whole milk'
+      },
+      {
+        'Title': 'Fresh Cavendish Bananas 1kg',
+        'Category ID': categories[1]?.id || categories[0]?.id || 'fruits',
+        'Cost Price': 30,
+        'Selling Price': 40,
+        'Stock': 80,
+        'Unit': 'kg',
+        'Unit Size': 1,
+        'Image URL': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400',
+        'Description': 'Sweet and ripe premium bananas'
+      }
+    ];
+    const ws = XLSX.utils.json_to_sheet(sampleRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products');
+    XLSX.writeFile(wb, 'GroCart_Product_Template.xlsx');
+  };
+
   const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -162,26 +202,78 @@ export default function RetailerOperationsPage() {
         const worksheet = workbook.Sheets[firstSheetName];
         const json = XLSX.utils.sheet_to_json<any>(worksheet);
         
-        if (!Array.isArray(json) || json.length === 0) throw new Error("Excel must contain rows of products");
+        if (!Array.isArray(json) || json.length === 0) {
+          throw new Error("The uploaded Excel file does not contain any product rows.");
+        }
+
+        const findField = (row: any, ...keys: string[]) => {
+          const normalizedRow: Record<string, any> = {};
+          for (const k of Object.keys(row)) {
+            normalizedRow[k.toLowerCase().replace(/[^a-z0-9]/g, '')] = row[k];
+          }
+          for (const key of keys) {
+            const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (cleanKey in normalizedRow && normalizedRow[cleanKey] !== undefined && normalizedRow[cleanKey] !== null && String(normalizedRow[cleanKey]).trim() !== '') {
+              return normalizedRow[cleanKey];
+            }
+          }
+          return undefined;
+        };
+
+        const parseNumber = (val: any, fallback = 0): number => {
+          if (val === undefined || val === null || val === '') return fallback;
+          if (typeof val === 'number') return isNaN(val) ? fallback : val;
+          const cleaned = String(val).replace(/[^0-9.-]/g, '');
+          const num = Number(cleaned);
+          return isNaN(num) ? fallback : num;
+        };
+
+        const ALLOWED_UNITS = ['pcs', 'kg', 'g', 'l', 'ml', 'liter', 'dozen', 'pack', 'bunch', 'bottle', 'box', 'bag'];
+
         setIsBulkUploading(true);
         setProgress({ type: 'import', current: 0, total: json.length });
         
         for (let i = 0; i < json.length; i++) {
           const item = json[i];
+          const rawTitle = findField(item, 'title', 'producttitle', 'productname', 'name', 'itemname', 'item');
+          const title = String(rawTitle || '').trim();
+          if (!title) {
+            throw new Error(`Row ${i + 1} is missing a Product Title.`);
+          }
+
+          const rawCat = String(findField(item, 'categoryid', 'category', 'categoryname') || '').trim();
+          const matchedCategory = categories.find(c => 
+            String(c.id).toLowerCase() === rawCat.toLowerCase() || 
+            c.name.toLowerCase() === rawCat.toLowerCase()
+          ) || categories[0];
+          const categoryId = matchedCategory ? String(matchedCategory.id) : (rawCat || 'general');
+          const categoryName = matchedCategory ? matchedCategory.name : (rawCat || 'General');
+
+          const costPrice = Math.max(0, parseNumber(findField(item, 'costprice', 'cost', 'buyingprice'), 0));
+          const sellingPrice = Math.max(0, parseNumber(findField(item, 'sellingprice', 'price', 'mrp'), costPrice));
+          const stockQuantity = Math.max(0, Math.floor(parseNumber(findField(item, 'stock', 'stockquantity', 'quantity', 'qty'), 0)));
+          
+          const rawUnit = String(findField(item, 'unit', 'uom') || 'pcs').toLowerCase().trim();
+          const unit = ALLOWED_UNITS.includes(rawUnit) ? rawUnit : 'pcs';
+          const unitSize = parseNumber(findField(item, 'unitsize', 'size'), 1);
+          const imageUrl = String(findField(item, 'imageurl', 'image', 'photo', 'picture') || '').trim();
+          const description = String(findField(item, 'description', 'desc', 'details') || '').trim();
+
           const newProd: ProductItem = {
             id: `prod_${Date.now()}_${i}`,
             retailerId: user.uid,
             retailerStoreName: user.storeName || user.name,
-            title: item.title || item.Title,
-            categoryId: String(item.categoryId || item['Category ID'] || (categories[0]?.id || 'unknown')),
-            categoryName: categories.find(c => String(c.id) === String(item.categoryId || item['Category ID']))?.name || (categories[0]?.name || 'Unknown'),
-            unit: (item.unit || item.Unit || 'pcs') as 'kg' | 'pcs' | 'pack' | 'liter',
-            imageUrl: item.imageUrl || item['Image URL'] || '',
-            costPrice: Number(item.costPrice || item['Cost Price']) || 0,
-            sellingPrice: Number(item.sellingPrice || item['Selling Price']) || 0,
-            stockQuantity: Number(item.stockQuantity || item.Stock) || 0,
-            description: item.description || item.Description || '',
-            status: (Number(item.stockQuantity || item.Stock) || 0) > 0 ? 'active' : 'out_of_stock',
+            title,
+            categoryId,
+            categoryName,
+            unit: unit as any,
+            unitSize,
+            imageUrl,
+            costPrice,
+            sellingPrice,
+            stockQuantity,
+            description,
+            status: stockQuantity > 0 ? 'active' : 'out_of_stock',
             createdAt: Date.now(),
             updatedAt: Date.now(),
           };
@@ -190,12 +282,14 @@ export default function RetailerOperationsPage() {
         }
         setIsBulkUploading(false);
         setTimeout(() => setProgress({ type: null, current: 0, total: 0 }), 500);
+        showToast(`Successfully imported ${json.length} product${json.length > 1 ? 's' : ''}!`, "success");
         e.target.value = '';
-      } catch (err) {
+      } catch (err: any) {
         setIsBulkUploading(false);
         setProgress({ type: null, current: 0, total: 0 });
-        showToast("Failed to parse Excel file. Ensure it matches the expected structure.", "error");
-        console.error(err);
+        const errorMsg = err?.response?.data?.message || err?.message || "Failed to parse Excel file. Ensure it matches the expected structure.";
+        showToast(errorMsg, "error");
+        console.error("Bulk upload error:", err);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -301,6 +395,7 @@ export default function RetailerOperationsPage() {
           handleCategoryChange={handleCategoryChange}
           CATEGORIES={categories}
           handleEditProduct={handleEditProduct}
+          handleDownloadTemplate={handleDownloadTemplate}
         />
       )}
 

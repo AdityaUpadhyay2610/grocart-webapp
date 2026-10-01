@@ -21,7 +21,7 @@ interface RetailerLayoutProps {
 export function RetailerLayout({ children, activeTab, setActiveTab, handleLogout, storeName }: RetailerLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
-  const { theme, setTheme, isDark } = useTheme();
+  const { setTheme, isDark } = useTheme();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);

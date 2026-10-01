@@ -8,7 +8,9 @@
     <img src="https://img.shields.io/badge/Vite_8-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
     <img src="https://img.shields.io/badge/Tailwind_CSS_4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
     <img src="https://img.shields.io/badge/Redux_Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white" alt="Redux Toolkit" />
-    <img src="https://img.shields.io/badge/Firebase_12-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
+    <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+    <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
+    <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   </p>
 
   <p>
@@ -35,7 +37,7 @@ GroCart offers a highly polished, responsive shopping experience backed by a rob
 
 ## ✨ Key Features
 
-- 🔐 **Role-Based Authentication**: Secure login and dedicated dashboards for **Admins**, **Retailers**, and **Customers** using a robust `RoleGuard`.
+- 🔐 **Role-Based Authentication**: Secure login and dedicated dashboards for **Admins**, **Retailers**, and **Customers** using JWT access and refresh tokens.
 - 👑 **Admin Dashboard**: Comprehensive admin tools including an Overview, User & Retailer management, global Inventory & Category control, and application Settings.
 - 🏪 **Retailer Operations**: Dedicated retailer tools including Analytics, specialized Inventory management (with Edit Product modal), Order tracking, and profile Settings.
 - 🏗️ **Modular Architecture**: Feature-sliced structure (`global`, `admin`, `retailer`, `customer`) for enhanced scalability, maintainability, and code isolation.
@@ -43,7 +45,7 @@ GroCart offers a highly polished, responsive shopping experience backed by a rob
 - ☁️ **Advanced Data Management**: Uses `@tanstack/react-query` and `axios` for optimal data fetching, with centralized global state via `@reduxjs/toolkit` and `redux-persist`.
 - 📊 **Data Visualization**: Insightful analytics and charts in Admin and Retailer dashboards powered by `recharts`.
 - 🌤️ **Dynamic Weather Themes**: Integrates Geolocation and the Open-Meteo API to dynamically change the seasonal background gradient and canvas animations based on local conditions.
-- 🛒 **Smart Cart Syncing**: Optimistic updates and remote synchronization with Firebase Database for authenticated users, falling back to local storage for guests.
+- 🛒 **Smart Cart Syncing**: Optimistic updates and remote synchronization with PostgreSQL REST API for authenticated users, falling back to local storage for guests.
 - 🚀 **Seamless Deployment**: Built-in support for GitHub Pages and Vercel with route rewrites and SPA fallback handling.
 
 ---
@@ -56,7 +58,7 @@ GroCart offers a highly polished, responsive shopping experience backed by a rob
 | **Styling** | Tailwind CSS 4, Lucide React Icons |
 | **Routing & State** | React Router 8, Redux Toolkit 2, Redux Persist |
 | **Data Fetching** | TanStack React Query, Axios |
-| **Backend & Auth** | Firebase 12 (Authentication & Realtime Database) |
+| **Backend & Auth** | Node.js, Express, PostgreSQL, JWT (httpOnly cookies) |
 | **APIs** | OpenStreetMap Nominatim, Open-Meteo Weather Forecast |
 | **Charts** | Recharts |
 
@@ -80,7 +82,7 @@ src/
 │   ├── context/      # Auth, Theme, and Toast Providers
 │   ├── hooks/        # Shared custom hooks
 │   ├── models/       # TypeScript interfaces (User, Product, Order)
-│   ├── services/     # Firebase Auth, Global APIs
+│   ├── services/     # Auth Service, Global REST APIs
 │   └── store/        # Redux store configurations
 └── modules/
     ├── admin/
@@ -128,15 +130,35 @@ Follow these steps to set up the project locally:
 git clone https://github.com/AdityaUpadhyay2610/grocart-webapp.git
 cd grocart-webapp
 npm install
+
+# Install server dependencies
+cd server
+npm install
+cd ..
 ```
 
-### 2. Configure Environment
-Copy the example environment file and add your Firebase configuration details:
+### 2. Configure Environment & Database
 ```bash
+# Frontend
 cp .env.example .env
+
+# Server
+cd server
+cp .env.example .env
+# Edit server/.env with your PostgreSQL credentials
+npm run init-db
+npm run seed
+cd ..
 ```
 
-### 3. Start Development Server
+### 3. Start Development Servers
+In one terminal, start the Express backend:
+```bash
+cd server
+npm run dev
+```
+
+In a second terminal, start the Vite frontend:
 ```bash
 npm run dev
 ```
@@ -146,11 +168,18 @@ Navigate to `http://localhost:5173` in your browser.
 
 ## 💻 Available Scripts
 
+### Frontend
 - `npm run dev` — Starts the local Vite development server with HMR.
 - `npm run build` — Compiles and minifies the application for production deployment.
 - `npm run preview` — Locally previews the built production bundle.
 - `npm run lint` — Runs the Oxlint linter to ensure code quality.
 - `npm run deploy` — Compiles the app and deploys it to GitHub Pages.
+
+### Backend (`server/`)
+- `npm run dev` — Starts the backend server with nodemon.
+- `npm start` — Starts the production backend server.
+- `npm run init-db` — Applies database schema tables.
+- `npm run seed` — Seeds the initial admin account and default grocery categories.
 
 ---
 
@@ -158,7 +187,7 @@ Navigate to `http://localhost:5173` in your browser.
 
 - **Location Services**: Relies on browser geolocation and OpenStreetMap reverse geocoding.
 - **Weather Integration**: Queries Open-Meteo hourly to parse local outdoor conditions.
-- **Data Persistence**: Cart state is synced to Firebase for authenticated users and stored in local storage for guest sessions. Address and custom avatars are saved locally.
+- **Data Persistence**: Cart state is synced to the PostgreSQL backend for authenticated users and stored in local storage for guest sessions. Address and custom avatars are saved locally.
 - **Email Verification**: Fully supported for newly registered users.
 
 <br />

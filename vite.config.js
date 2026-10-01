@@ -11,6 +11,11 @@ export default defineConfig({
       '@global': path.resolve(import.meta.dirname, './src/global')
     }
   },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:5000'
+    }
+  },
   plugins: [
     react(),
     tailwindcss()

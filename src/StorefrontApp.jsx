@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate, useLocation as useRouterLocation, useOutletContext } from "react-router";
+import { Routes, Route, Navigate, Outlet, useNavigate, useLocation as useRouterLocation, useOutletContext } from "react-router";
 import { store as legacyStore } from "@global/store/legacyStore";
 import { Provider as LegacyProvider } from "react-redux";
 import { AuthProvider, useAuth } from "@global/context/AuthContext";
@@ -8,12 +8,8 @@ import { useProducts } from './modules/customer/hooks/useProducts';
 import { useLocation as useGPSLocation } from "@global/hooks/useLocation";
 import { matchCategory } from "@global/models/Categories";
 import { useCategories } from './modules/customer/hooks/useCategories';
-import { SeasonalOverlay, getSeasonalGradientClass, getSeasonFromWeather } from './modules/customer/components/SeasonalOverlay';
-import { Sidebar } from '@global/components/layout/Sidebar';
+import { SeasonalOverlay, getSeasonFromWeather } from './modules/customer/components/SeasonalOverlay';
 import { ProductDetailModal } from './modules/customer/components/ProductDetailModal';
-import { useDispatch } from "react-redux";
-import { onAuthStateChange } from "@global/services/firebaseAuth";
-import { setUserState, setAuthLoading } from "@global/store/legacyAuthSlice";
 
 // Import Screens
 import { LoginScreen } from './modules/customer/pages/LoginScreen';
@@ -26,15 +22,7 @@ import { OrdersScreen } from './modules/customer/pages/OrdersScreen';
 import { ProfileScreen } from './modules/customer/pages/ProfileScreen';
 
 // Import Icons
-import { MapPin, ChevronDown, Search, X, Moon, Sun, ArrowLeft, Loader2, LogOut, Cloud, CloudRain, CloudSnow } from "lucide-react";
-
-const getWeatherIcon = (weather) => {
-  if (!weather || weather.temperature === null) return null;
-  if (weather.isRaining) return <CloudRain size={13} className="text-blue-500 dark:text-blue-400 animate-bounce" />;
-  if (weather.isSnowing) return <CloudSnow size={13} className="text-sky-300 dark:text-sky-200 animate-spin" style={{ animationDuration: '8s' }} />;
-  if (weather.temperature >= 28) return <Sun size={13} className="text-amber-500 dark:text-amber-400 animate-pulse" />;
-  return <Cloud size={13} className="text-slate-400 dark:text-slate-500" />;
-};
+import { X, Loader2 } from "lucide-react";
 
 // Route Protection wrappers
 function ProtectedRoute({ children }) {
@@ -94,7 +82,6 @@ function AppShell({ categories = [] }) {
   const { products } = useProducts();
   const { locationText, weather, requestLocation, selectLocation, presetLocations } = useGPSLocation();
   const season = useMemo(() => getSeasonFromWeather(weather), [weather]);
-  const bgGradientClass = useMemo(() => getSeasonalGradientClass(season), [season]);
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
 
@@ -108,7 +95,6 @@ function AppShell({ categories = [] }) {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   const [menuExpanded, setMenuExpanded] = useState(false);
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState(null);
   const [avatarEmoji, setAvatarEmoji] = useState(() => {
     return localStorage.getItem("grocart_avatar") || "🍎";
@@ -148,11 +134,6 @@ function AppShell({ categories = [] }) {
     }
   }, [isDarkTheme]);
 
-  const handleCategoryClick = useCallback((category) => {
-    navigate(`/categories/${encodeURIComponent(category.name)}`);
-    setSearchQuery("");
-  }, [navigate]);
-
   const activeCategory = useMemo(() => {
     const match = routerLocation.pathname.match(/\/categories\/(.+)/);
     if (!match) return null;
@@ -190,7 +171,6 @@ function AppShell({ categories = [] }) {
   const isHome = routerLocation.pathname === "/home" || routerLocation.pathname === "/";
   const isCategories = routerLocation.pathname.startsWith("/categories");
   const isOrders = routerLocation.pathname === "/orders";
-  const isCart = routerLocation.pathname === "/cart";
 
   // Gracefully handle loading and fallback geolocation text
   const displayLocation = useMemo(() => {
@@ -587,40 +567,6 @@ function AppShell({ categories = [] }) {
   );
 }
 
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <Routes>
-            <Route path="/login" element={
-              <PublicRoute>
-                <LoginScreen />
-              </PublicRoute>
-            } />
-            
-            <Route path="/" element={
-              <ProtectedRoute>
-                <AppShell />
-              </ProtectedRoute>
-            }>
-              <Route index element={<Navigate to="/home" replace />} />
-              <Route path="home" element={<HomeScreen products={[]} />} />
-              <Route path="categories" element={<Outlet />}>
-                <Route index element={<CategoryScreen />} />
-                <Route path=":categoryId" element={<ProductsScreen />} />
-              </Route>
-              <Route path="cart" element={<CartScreen />} />
-              <Route path="orders" element={<OrdersScreen />} />
-              <Route path="profile" element={<ProfileScreen />} />
-              <Route path="*" element={<Navigate to="/home" replace />} />
-            </Route>
-          </Routes>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
 
 function CategoriesLayout() {
   const context = useOutletContext();
@@ -631,32 +577,13 @@ function AppShellWrapper() {
   const { products, isLoading: productsLoading, isError: productsError } = useProducts();
   const { categories, isLoading: categoriesLoading, isError: categoriesError } = useCategories();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { user } = useAuth();
   const { loadCart } = useCart();
-
-  // Firebase auth state subscription
-  useEffect(() => {
-    dispatch(setAuthLoading(true));
-    const unsubscribe = onAuthStateChange((firebaseUser) => {
-      if (firebaseUser) {
-        dispatch(setUserState({
-          id: firebaseUser.uid,
-          username: firebaseUser.displayName || "User",
-          email: firebaseUser.email || "",
-          emailVerified: firebaseUser.emailVerified
-        }));
-      } else {
-        dispatch(setUserState(null));
-      }
-    });
-    return unsubscribe;
-  }, [dispatch]);
 
   // Load cart when user changes
   useEffect(() => {
     loadCart();
-  }, [user?.id, loadCart]);
+  }, [user?.uid, user?.id, loadCart]);
 
   const handleCategoryClick = useCallback((category) => {
     navigate(`/categories/${encodeURIComponent(category.name)}`);

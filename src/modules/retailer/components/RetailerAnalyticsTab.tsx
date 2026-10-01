@@ -20,7 +20,7 @@ const businessChartData = [
   { name: 'Jun', investment: 250000, stocks: 180000, earnings: 320000, demand: 90000 },
 ];
 
-export function RetailerAnalyticsTab({ stats, timeFilter, setTimeFilter, products = [], orders = [] }: RetailerAnalyticsTabProps) {
+export function RetailerAnalyticsTab({ stats: _stats, timeFilter: _timeFilter, setTimeFilter: _setTimeFilter, products = [], orders = [] }: RetailerAnalyticsTabProps) {
   
   // Real Calculations
   const totalInvestment = products.reduce((acc, p) => acc + (Number(p.costPrice || 0) * Number(p.stockQuantity || 0)), 0);

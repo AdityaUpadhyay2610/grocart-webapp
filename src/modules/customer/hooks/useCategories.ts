@@ -80,7 +80,7 @@ export const useCategories = () => {
           categoryMap.set(cat.name.toLowerCase(), { ...cat });
         });
 
-        // Merge/update with any live categories from Firebase
+        // Merge/update with any live categories from the backend database
         if (data && data.length > 0) {
           data.forEach(cat => {
             const key = cat.name.toLowerCase();

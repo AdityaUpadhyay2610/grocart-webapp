@@ -22,7 +22,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children, activeTab, setActiveTab, handleLogout, adminName }: AdminLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
-  const { theme, setTheme, isDark } = useTheme();
+  const { setTheme, isDark } = useTheme();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronUp, ChevronDown, Plus, Upload, FileJson, X, Search, Trash2, RefreshCw, CheckCircle2, AlertCircle, Edit2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Plus, Upload, FileJson, X, Search, Trash2, RefreshCw, CheckCircle2, AlertCircle, Edit2, Download } from 'lucide-react';
 
 const getUniqueImageUrl = (url: string, id: string, title?: string) => {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
@@ -33,6 +33,7 @@ interface RetailerInventoryTabProps {
   handleCategoryChange: (index: number, val: string) => void;
   CATEGORIES: any[];
   handleEditProduct: (product: any) => void;
+  handleDownloadTemplate?: () => void;
 }
 
 export function RetailerInventoryTab({
@@ -43,7 +44,8 @@ export function RetailerInventoryTab({
   showJsonFormat, setShowJsonFormat,
   handleBulkUpload, handleCreate, handleRemoveAll,
   deleteMutation, createMutation, forms, setForms,
-  handleCategoryChange, CATEGORIES, handleEditProduct
+  handleCategoryChange, CATEGORIES, handleEditProduct,
+  handleDownloadTemplate
 }: RetailerInventoryTabProps) {
 
   const [sortOrder, setSortOrder] = React.useState<'latest' | 'oldest'>('latest');
@@ -78,12 +80,22 @@ export function RetailerInventoryTab({
         {isPublishExpanded && (
           <div className="mt-5 border-t border-slate-100 dark:border-slate-800/80 pt-5 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-3 mb-5">
-              <button type="button" onClick={() => setShowJsonFormat(!showJsonFormat)} className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 hover:underline">
-                <FileJson size={14} /> {showJsonFormat ? 'Hide Template' : 'Excel Template'}
+              {handleDownloadTemplate && (
+                <button 
+                  type="button" 
+                  onClick={handleDownloadTemplate} 
+                  className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 hover:underline cursor-pointer"
+                  title="Download an Excel file pre-filled with sample products and all required columns"
+                >
+                  <Download size={14} /> Download Sample Excel
+                </button>
+              )}
+              <button type="button" onClick={() => setShowJsonFormat(!showJsonFormat)} className="text-[11px] font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 hover:underline cursor-pointer">
+                <FileJson size={14} /> {showJsonFormat ? 'Hide Format' : 'View Columns'}
               </button>
               <div className="relative overflow-hidden inline-block">
                 <input type="file" accept=".xlsx, .xls, .csv" onChange={handleBulkUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                <button type="button" className="text-xs font-bold text-slate-700 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-slate-100 transition-colors">
+                <button type="button" className="text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-sm">
                   <Upload size={14} /> Bulk Import
                 </button>
               </div>

@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate } from "react-router";
 import { useCategories } from "../hooks/useCategories";
 import { useProducts } from "../hooks/useProducts";
 import { matchCategory } from "@global/models/Categories";
-import { Search, Sparkles, ChevronRight, Grid } from "lucide-react";
+import { Search, ChevronRight, Sparkles } from "lucide-react";
 
 export const CategoryScreen = React.memo(({ onCategoryClick }) => {
   const context = useOutletContext() || {};

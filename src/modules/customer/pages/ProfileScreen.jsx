@@ -3,8 +3,8 @@ import { useAuth } from '@global/context/AuthContext';
 import { useOrders } from "../hooks/useOrders";
 import { formatINR } from "@global/utils/calculations";
 import { 
-  User, Mail, Phone, MapPin, CreditCard, Bell, Shield, LogOut, 
-  Plus, Trash2, Check, Sparkles, Home, Briefcase, ChevronRight, Save, Loader2 
+  User, MapPin, CreditCard, Bell, Shield, LogOut, 
+  Plus, Trash2, Check, Home, Briefcase, ChevronRight, Save 
 } from "lucide-react";
 import { useOutletContext } from "react-router";
 
@@ -19,10 +19,10 @@ const AVATARS = [
   { emoji: "🍕", label: "Pizza" }
 ];
 
-export const ProfileScreen = React.memo(({ onNavigateBack }) => {
-  const { user, savedAddress, localAddress, updateProfile, logout, isLoading } = useAuth();
+export const ProfileScreen = React.memo(({ onNavigateBack: _onNavigateBack }) => {
+  const { user, savedAddress, updateProfile, logout, isLoading } = useAuth();
   const { orders = [] } = useOrders();
-  const { requestLocation, locationText } = useOutletContext() || {};
+  const { locationText } = useOutletContext() || {};
 
   const [activeTab, setActiveTab] = useState("overview"); // "overview" | "addresses" | "payments" | "notifications" | "security"
   
@@ -56,8 +56,8 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
   const [newPincode, setNewPincode] = useState("110001");
   const [pinError, setPinError] = useState("");
 
-  // Notification toggles
-  const [notifications, setNotifications] = useState({
+  // Notification toggles (state kept for UI, setter would be wired to API calls)
+  const [notifications] = useState({
     orderUpdates: true,
     flashDeals: true,
     weeklyRecipes: false,
@@ -615,7 +615,7 @@ export const ProfileScreen = React.memo(({ onNavigateBack }) => {
                 <div className="p-4 rounded-2xl bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-between">
                   <div>
                     <p className="font-bold text-on-surface dark:text-white">Two-Factor Authentication (2FA)</p>
-                    <p className="text-[11px] text-on-surface-variant">Secured via your linked Google / Firebase account</p>
+                    <p className="text-[11px] text-on-surface-variant">Secured via your GroCart account</p>
                   </div>
                   <span className="px-2.5 py-0.5 bg-primary/20 text-primary font-black rounded text-[10px]">ENABLED</span>
                 </div>

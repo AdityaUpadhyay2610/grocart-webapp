@@ -1,52 +1,54 @@
+// src/global/store/legacyAuthSlice.js
+// Redux slice for customer-facing auth state.
+// Thunks now call through the authService.js shim which proxies to the REST backend.
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { 
-  login as authLogin, 
-  register as authRegister, 
-  logout as authLogout, 
-  resendVerificationEmail, 
-  updateProfile as authUpdateProfile, 
-  refreshUser 
-} from "../services/firebaseAuth";
+import {
+  login as authLogin,
+  register as authRegister,
+  logout as authLogout,
+  updateProfile as authUpdateProfile,
+  refreshUser
+} from "../services/authService";
 
 const initialState = {
   user: null,
   isGuestSession: false,
   isLoading: false,
   authError: null,
-  isEmailVerified: false,
+  isEmailVerified: true, // Backend doesn't gate on email verification; default true
   savedAddress: localStorage.getItem("grocart_address") || "",
   localAddress: localStorage.getItem("grocart_local_address") || ""
 };
 
-// Async Thunks
+// ─── Async Thunks ────────────────────────────────────────────────────────────
+
 export const loginThunk = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { rejectWithValue }) => {
-    const { user: firebaseUser, error } = await authLogin(email, password);
-    if (error) {
-      return rejectWithValue(error);
-    }
+    const { user, error } = await authLogin(email, password);
+    if (error) return rejectWithValue(error);
     return {
-      id: firebaseUser.uid,
-      username: firebaseUser.displayName || "User",
-      email: firebaseUser.email || "",
-      emailVerified: firebaseUser.emailVerified
+      id: user.id,
+      username: user.username ?? user.name ?? "User",
+      email: user.email ?? email,
+      emailVerified: true,
+      role: user.role ?? "customer"
     };
   }
 );
 
 export const registerThunk = createAsyncThunk(
   "auth/register",
-  async ({ username, email, password }, { rejectWithValue }) => {
-    const { user: firebaseUser, error } = await authRegister(username, email, password);
-    if (error) {
-      return rejectWithValue(error);
-    }
+  async ({ username, email, password, confirmPassword }, { rejectWithValue }) => {
+    const { user, error } = await authRegister(username, email, password, confirmPassword);
+    if (error) return rejectWithValue(error);
     return {
-      id: firebaseUser.uid,
-      username,
-      email,
-      emailVerified: false
+      id: user.id,
+      username: user.username ?? username,
+      email: user.email ?? email,
+      emailVerified: true,
+      role: user.role ?? "customer"
     };
   }
 );
@@ -55,9 +57,7 @@ export const logoutThunk = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     const { error } = await authLogout();
-    if (error) {
-      return rejectWithValue(error);
-    }
+    if (error) return rejectWithValue(error);
     return null;
   }
 );
@@ -66,11 +66,9 @@ export const refreshVerificationThunk = createAsyncThunk(
   "auth/refreshVerification",
   async (_, { rejectWithValue }) => {
     try {
-      const refreshedUser = await refreshUser();
-      if (refreshedUser) {
-        return refreshedUser.emailVerified;
-      }
-      return false;
+      const user = await refreshUser();
+      // In the REST backend model, accounts are always "verified" once registered
+      return user ? true : false;
     } catch (e) {
       return rejectWithValue(e.message);
     }
@@ -80,12 +78,8 @@ export const refreshVerificationThunk = createAsyncThunk(
 export const resendVerificationThunk = createAsyncThunk(
   "auth/resendVerification",
   async (_, { rejectWithValue }) => {
-    try {
-      await resendVerificationEmail();
-      return "Verification email sent — check your inbox!";
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
+    // No-op: email verification is not required in the PostgreSQL backend flow
+    return "Account is active. No verification email required.";
   }
 );
 
@@ -105,6 +99,8 @@ export const updateProfileThunk = createAsyncThunk(
   }
 );
 
+// ─── Slice ───────────────────────────────────────────────────────────────────
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -115,10 +111,11 @@ const authSlice = createSlice({
         state.user = {
           id: payload.id,
           username: payload.username,
-          email: payload.email
+          email: payload.email,
+          role: payload.role ?? "customer"
         };
         state.isGuestSession = false;
-        state.isEmailVerified = payload.emailVerified;
+        state.isEmailVerified = true;
       } else {
         state.user = null;
         state.isEmailVerified = false;
@@ -133,7 +130,8 @@ const authSlice = createSlice({
       state.user = {
         id: "guest_user",
         username: "Guest User",
-        email: "guest@grocart.com"
+        email: "guest@grocart.com",
+        role: "customer"
       };
     },
     endGuestSession(state) {
@@ -159,10 +157,11 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.id,
           username: action.payload.username,
-          email: action.payload.email
+          email: action.payload.email,
+          role: action.payload.role ?? "customer"
         };
         state.isGuestSession = false;
-        state.isEmailVerified = action.payload.emailVerified;
+        state.isEmailVerified = true;
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.isLoading = false;
@@ -179,10 +178,11 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.id,
           username: action.payload.username,
-          email: action.payload.email
+          email: action.payload.email,
+          role: action.payload.role ?? "customer"
         };
-        state.isEmailVerified = false;
-        state.authError = "Verification email sent! Please check your inbox.";
+        state.isEmailVerified = true;
+        state.authError = null;
       })
       .addCase(registerThunk.rejected, (state, action) => {
         state.isLoading = false;
@@ -208,7 +208,7 @@ const authSlice = createSlice({
         state.isEmailVerified = action.payload;
       })
 
-      // Resend verification
+      // Resend verification (no-op)
       .addCase(resendVerificationThunk.fulfilled, (state, action) => {
         state.authError = action.payload;
       })
@@ -230,19 +230,19 @@ const authSlice = createSlice({
           state.localAddress = action.payload.localAddress;
         }
       })
-      .addCase(updateProfileThunk.rejected, (state, action) => {
+      .addCase(updateProfileThunk.rejected, (state) => {
         state.isLoading = false;
       });
   }
 });
 
-export const { 
-  setUserState, 
+export const {
+  setUserState,
   setAuthLoading,
-  startGuestSession, 
-  endGuestSession, 
+  startGuestSession,
+  endGuestSession,
   clearAuthError,
-  setAuthError 
+  setAuthError
 } = authSlice.actions;
 
 export default authSlice.reducer;

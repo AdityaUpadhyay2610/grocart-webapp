@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Truck, Box, DollarSign, Check, Copy, Package, LayoutGrid, PackageCheck } from 'lucide-react';
+import { Truck, Box, DollarSign, Package, LayoutGrid, PackageCheck, Check, Copy } from 'lucide-react';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis, AreaChart, Area } from 'recharts';
 
 interface RetailerOverviewTabProps {

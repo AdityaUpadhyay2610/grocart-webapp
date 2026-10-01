@@ -3,7 +3,7 @@ import { useParams, useOutletContext, useNavigate } from "react-router";
 import { useCart } from "../state/CartContext";
 import { matchCategory } from "@global/models/Categories";
 import { formatINR, calculateUnitPrice, getAvailableUnits } from "@global/utils/calculations";
-import { Heart, Plus, Minus, X, Check, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Heart, Plus, Minus, X, Check, SlidersHorizontal } from "lucide-react";
 
 const getUniqueImageUrl = (url, id, title) => {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
@@ -37,7 +37,7 @@ const QUICK_RECIPE = {
 };
 
 export const ProductsScreen = React.memo(({ category: propCategory, products = [] }) => {
-  const { cartItems, addToCart, decreaseCartItem, triggerAddToCartAnimation } = useCart();
+  const { cartItems, addToCart, decreaseCartItem } = useCart();
   const { setSelectedProduct, categories = [] } = useOutletContext() || {};
   const { categoryId } = useParams();
   const navigate = useNavigate();

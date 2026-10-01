@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from "react"
 import { useOutletContext, useNavigate } from "react-router";
 import { useCart } from '../state/CartContext';
 import { formatINR, calculateUnitPrice, getAvailableUnits } from '@global/utils/calculations';
-import { X, Heart, Plus, Minus, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Heart, Plus, Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Featured recipes data for the seasonal trend feature
 const SEASONAL_RECIPES = [
@@ -29,17 +29,16 @@ const SEASONAL_RECIPES = [
   }
 ];
 
-export const HomeScreen = React.memo(({ products = [], onCategoryClick }) => {
-  const { cartItems, addToCart, triggerAddToCartAnimation } = useCart();
+export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCategoryClick }) => {
+  const { addToCart, triggerAddToCartAnimation } = useCart();
   const { setSelectedProduct, categories = [] } = useOutletContext() || {};
   const navigate = useNavigate();
 
   // Wishlist state for interactive hearts
   const [wishlist, setWishlist] = useState(() => new Set());
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [addedRecipeToast, setAddedRecipeToast] = useState(false);
-  const [heroSlide, setHeroSlide] = useState(0);
   const [selectedUnitMap, setSelectedUnitMap] = useState({});
+  const [addedRecipeToast, setAddedRecipeToast] = useState(false);
 
   // Refs for horizontal scrolling
   const flashDealsScrollRef = useRef(null);
@@ -131,7 +130,7 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick }) => {
     );
   }, []);
 
-  // Curated featured fruits & vegetables from Firebase API
+  // Curated featured fruits & vegetables from product API
   const displayFeaturedProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
     
@@ -142,7 +141,7 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick }) => {
     return [...fvProducts, ...otherProducts].slice(0, 10);
   }, [products, isFruitOrVegetable]);
 
-  // Flash deals specifically showcasing Fruits & Vegetables from live Firebase products
+  // Flash deals specifically showcasing Fruits & Vegetables from live products
   const flashDeals = useMemo(() => {
     if (!products || products.length === 0) return [];
 

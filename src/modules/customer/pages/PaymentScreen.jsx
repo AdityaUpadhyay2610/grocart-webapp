@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useCart } from '../state/CartContext';
 import { CreditCard, Truck, Smartphone, Wallet, CheckCircle, Loader2, ArrowLeft, Receipt, Check } from "lucide-react";
 
@@ -244,7 +244,7 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
       </div>
 
       {/* Pinned Bottom Buy Button */}
-      <div className="sticky bottom-0 bg-surface-container-low dark:bg-[#171717] border-t border-surface-variant/40 dark:border-[#262626] p-4 z-40 transition-colors duration-300">
+      <div className="sticky bottom-0 dark:bg-[#171717] border-t border-surface-variant/40 dark:border-[#262626] p-4 z-40 transition-colors duration-300">
         <div className="max-w-md mx-auto">
           {!selectedPaymentMethod && (
             <p className="text-xs text-on-surface-variant text-center mb-3">Please select a payment method</p>

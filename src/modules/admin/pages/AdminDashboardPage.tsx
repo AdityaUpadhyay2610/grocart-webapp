@@ -18,11 +18,10 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   const {
-    users, usersLoading, handleDeleteUser, platformStats, allProducts,
-    retailers, customers, validProducts, orphanedProducts,
-    totalCatalogValue, totalCatalogCost, potentialProfit,
+    users, usersLoading, handleDeleteUser, platformStats,
+    retailers, customers, validProducts,
     categories, categoriesLoading, createCategoryMutation,
-    allOrders, ordersLoading
+    allOrders
   } = useAdminData();
 
   // State
@@ -39,12 +38,18 @@ export default function AdminDashboard() {
   const [companyFilter, setCompanyFilter] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  void setRoleFilter; // Used in filteredUsers filter below
   
   // Catalog Grouping State
   const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
   const [visibleVendorsCount, setVisibleVendorsCount] = useState(5);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authApi.logoutUser(); // Clear backend refresh token cookie
+    } catch (e) {
+      console.warn('Logout API error (continuing):', e);
+    }
     dispatch(clearSession());
     navigate('/login');
   };
@@ -53,7 +58,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setIsCreatingAdmin(true);
     try {
-      const newProfile = await authApi.registerUser(adminEmail, adminPassword, adminName, 'admin');
+      const newProfile = await authApi.createAdmin(adminEmail, adminPassword, adminName);
       dispatch(setUserProfile(newProfile));
       setAdminName(''); setAdminEmail(''); setAdminPassword('');
       alert(`Successfully created and logged in as ${adminName}.`);

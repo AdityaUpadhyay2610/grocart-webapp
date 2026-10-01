@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from '@global/context/AuthContext';
 import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 export const LoginScreen = React.memo(() => {
   const {
     user,
-    isGuestSession,
     isLoading,
     authError,
     isEmailVerified,
@@ -21,6 +20,7 @@ export const LoginScreen = React.memo(() => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
 
@@ -36,6 +36,7 @@ export const LoginScreen = React.memo(() => {
     setIsSignupMode(prev => !prev);
     setUsername("");
     setPassword("");
+    setConfirmPassword("");
     setEmail("");
     setEmailTouched(false);
     clearAuthError();
@@ -48,6 +49,10 @@ export const LoginScreen = React.memo(() => {
 
   const handlePasswordChange = useCallback((e) => {
     setPassword(e.target.value);
+  }, []);
+
+  const handleConfirmPasswordChange = useCallback((e) => {
+    setConfirmPassword(e.target.value);
   }, []);
 
   const handleUsernameChange = useCallback((e) => {
@@ -68,13 +73,17 @@ export const LoginScreen = React.memo(() => {
       alert("Please enter a valid email address.");
       return;
     }
+    if (isSignupMode && password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
 
     if (isSignupMode) {
-      register(username, email, password);
+      register(username, email, password, confirmPassword);
     } else {
       login(email, password);
     }
-  }, [isSignupMode, username, email, password, isEmailFormatValid, register, login]);
+  }, [isSignupMode, username, email, password, confirmPassword, isEmailFormatValid, register, login]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-6 py-12 select-none bg-slate-50 dark:bg-[#090D16] text-slate-800 dark:text-slate-200 transition-colors duration-300 relative overflow-hidden">
@@ -216,6 +225,25 @@ export const LoginScreen = React.memo(() => {
               </button>
             </div>
           </div>
+
+          {isSignupMode && (
+            <div className="space-y-1.5 text-left animate-fade-in-up">
+              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider pl-1">Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <Lock className="h-4.5 w-4.5 text-slate-400" />
+                </div>
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={handleConfirmPasswordChange}
+                  placeholder="••••••••"
+                  className="block w-full pl-10 pr-10 py-3 border border-slate-200/60 dark:border-slate-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm bg-slate-50/50 dark:bg-[#0c101a]/50 text-slate-800 dark:text-white transition-all placeholder-slate-400"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           <div className="pt-4">
             <button

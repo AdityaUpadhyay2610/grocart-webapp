@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [storeName, setStoreName] = useState('');
   const [role, setRole] = useState<UserRole>('customer');
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const handleReset = () => {
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
     setName('');
     setStoreName('');
     setRole('customer');
@@ -34,13 +36,19 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMsg('');
+
+    if (isRegister && password !== confirmPassword) {
+      setErrorMsg('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       let profile;
       if (isRegister) {
-        profile = await authApi.registerUser(email, password, name, role, storeName);
+        profile = await authApi.registerUser(email, password, name, role, storeName, confirmPassword);
       } else {
         profile = await authApi.loginUser(email, password);
       }
@@ -144,6 +152,22 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {isRegister && (
+              <div className="animate-fade-in-up">
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Confirm Password</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    required 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    className="w-full rounded-xl border border-white/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-3 pr-10 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" 
+                    placeholder="••••••••" 
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-2">

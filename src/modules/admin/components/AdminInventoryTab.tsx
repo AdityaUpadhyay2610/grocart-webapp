@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, MoreHorizontal, AlertCircle, X, AlertTriangle, ChevronUp, ChevronDown, Store } from 'lucide-react';
+import { Search, MoreHorizontal, X, ChevronUp, ChevronDown, Store } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 interface AdminInventoryTabProps {

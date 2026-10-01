@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { useCart } from "../state/CartContext";
 import { useGPSLocation } from "@global/hooks/useLocation";
 import { formatINR, calculateGST, calculateEcoSavings, COUPON_OFFERS } from "@global/utils/calculations";
-import { Plus, Minus, Trash2, Tag, X, Check, ArrowRight, Sparkles, Leaf } from "lucide-react";
+import { Plus, Minus, Trash2, Tag, X, Check, Leaf, ArrowRight } from "lucide-react";
 
 export const CartScreen = React.memo(({ onBrowseProducts }) => {
   const {

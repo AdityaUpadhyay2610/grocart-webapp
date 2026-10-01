@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, setUserProfile, clearSession } from '@global/store';
 import { RoleGuard } from '@global/routes/ProtectedRoute';
+import { store as legacyStore } from '@global/store/legacyStore';
+import { setUserState } from '@global/store/legacyAuthSlice';
 import LoginPage from './modules/customer/pages/LoginPage';
 import RetailerDashboard from './modules/retailer/pages/RetailerOperationsPage';
 import AdminDashboard from './modules/admin/pages/AdminDashboardPage';
 import StorefrontApp from './StorefrontApp.jsx';
-import { onAuthStateChange } from '@global/services/firebaseAuth';
 import { authApi } from '@global/services/api/authApi';
 
 const StorefrontGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -21,30 +22,44 @@ const StorefrontGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 export default function App() {
   const dispatch = useDispatch();
-  const { isLoading } = useSelector((state: RootState) => state.auth);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const [sessionRestored, setSessionRestored] = useState(false);
+  const didRestoreSession = useRef(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          const profile = await authApi.fetchUserProfile(firebaseUser.uid);
+    legacyStore.dispatch(setUserState(user ? {
+      id: user.uid,
+      username: user.name,
+      email: user.email,
+      role: user.role
+    } : null));
+  }, [user]);
+
+  useEffect(() => {
+    if (didRestoreSession.current) return;
+    didRestoreSession.current = true;
+
+    // On mount, attempt to restore session via the httpOnly refresh-token cookie.
+    // Restores user session without requiring external SDK subscriptions.
+    authApi.restoreSession()
+      .then((profile) => {
+        if (profile) {
           dispatch(setUserProfile(profile));
-        } catch (error) {
-          console.error("Error fetching user profile", error);
+        } else {
           dispatch(clearSession());
         }
-      } else {
-        dispatch(clearSession());
-      }
-    });
-
-    return unsubscribe;
+      })
+      .catch(() => {
+        // Keep the persisted profile when refresh fails temporarily (for example, 429).
+      })
+      .finally(() => {
+        setSessionRestored(true);
+      });
   }, [dispatch]);
 
-  // Optionally wait for initial auth loading
-  // if (isLoading) {
-  //  return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  // }
+  if (!sessionRestored) {
+    return <div className="flex h-screen items-center justify-center font-medium text-gray-600">Restoring session...</div>;
+  }
 
   return (
     <Routes>
@@ -61,7 +76,7 @@ export default function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Route>
 
-      {/* 1. Public & Customer Routes (Original UI) */}
+      {/* 4. Public & Customer Routes (Original UI) */}
       <Route path="/*" element={
         <StorefrontGuard>
           <StorefrontApp />

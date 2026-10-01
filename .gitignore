@@ -31,10 +31,6 @@ dist-ssr
 # Virtual Environments
 .venv-video/
 
-# Firebase & Sensitive Data
-database.rules.json
-firebase-debug.log
-firebase-debug.*.log
-*serviceAccount*.json
+# Sensitive Data & Keys
 *.pem
 *.key
