@@ -31,7 +31,7 @@ export interface ProductItem {
   description: string;
   categoryId: string;
   categoryName: string;
-  costPrice: number;       // Base acquisition cost
+  costPrice?: number;
   sellingPrice: number;    // Public catalog price
   stockQuantity: number;   // Unit inventory
   unit: 'kg' | 'pcs' | 'pack' | 'liter' | string;

@@ -13,6 +13,11 @@ import {
 } from '@global/models';
 import { DEFAULT_CATEGORIES } from '@global/utils/constants';
 
+interface PageOptions {
+  limit?: number;
+  offset?: number;
+}
+
 // ─── Retailer API ────────────────────────────────────────────────────────────
 
 export const retailerApi = {
@@ -65,10 +70,11 @@ export const retailerApi = {
 
 export const adminApi = {
   /** Fetch all users on the platform. */
-  fetchAllUsers: async (): Promise<UserProfile[]> => {
+  fetchAllUsers: async (pagination: PageOptions = {}): Promise<UserProfile[]> => {
     try {
-      const res = await apiClient.get('/admin/users');
-      return (res.data?.data?.users ?? []) as UserProfile[];
+      const res = await apiClient.get('/admin/users', { params: pagination });
+      const data = res.data?.data;
+      return (Array.isArray(data) ? data : data?.users ?? []) as UserProfile[];
     } catch (error) {
       console.error('Failed to fetch all users', error);
       return [];
@@ -76,10 +82,11 @@ export const adminApi = {
   },
 
   /** Fetch all orders on the platform. */
-  fetchAllOrders: async (): Promise<Order[]> => {
+  fetchAllOrders: async (pagination: PageOptions = {}): Promise<Order[]> => {
     try {
-      const res = await apiClient.get('/admin/orders');
-      return (res.data?.data?.orders ?? []) as Order[];
+      const res = await apiClient.get('/admin/orders', { params: pagination });
+      const data = res.data?.data;
+      return (Array.isArray(data) ? data : data?.orders ?? []) as Order[];
     } catch (error) {
       console.error('Failed to fetch all orders', error);
       return [];
@@ -115,9 +122,9 @@ export const adminApi = {
 
 export const storefrontApi = {
   /** Fetch all active products once. */
-  fetchAllProducts: async (): Promise<ProductItem[]> => {
+  fetchAllProducts: async (pagination: PageOptions = {}): Promise<ProductItem[]> => {
     try {
-      const res = await apiClient.get('/products');
+      const res = await apiClient.get('/products', { params: pagination });
       const data = res.data?.data;
       return (Array.isArray(data) ? data : data?.products ?? []) as ProductItem[];
     } catch (error) {
@@ -130,13 +137,16 @@ export const storefrontApi = {
    * Subscribe to live product updates using 10-second polling.
    * Provides live updates using 10-second polling. Returns an unsubscribe function.
    */
-  subscribeToProducts: (onData: (products: ProductItem[]) => void): (() => void) => {
+  subscribeToProducts: (
+    onData: (products: ProductItem[]) => void,
+    pagination: PageOptions = {}
+  ): (() => void) => {
     // Fetch immediately on subscribe
-    storefrontApi.fetchAllProducts().then(onData).catch(() => onData([]));
+    storefrontApi.fetchAllProducts(pagination).then(onData).catch(() => onData([]));
 
     // Then poll every 10 seconds
     const interval = setInterval(() => {
-      storefrontApi.fetchAllProducts().then(onData).catch(() => onData([]));
+      storefrontApi.fetchAllProducts(pagination).then(onData).catch(() => onData([]));
     }, 10_000);
 
     // Return unsubscribe (clears interval)

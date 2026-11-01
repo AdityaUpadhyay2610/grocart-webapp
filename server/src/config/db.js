@@ -1,9 +1,9 @@
-// server/src/config/db.js
 // PostgreSQL connection pool and query helpers.
 // Handles standard queries and client checkout for multi-step transactions.
 
 const { Pool } = require('pg');
 const config = require('./config');
+const logger = require('../utils/logger');
 
 // Create connection pool with connection string from frozen config
 const pool = new Pool({
@@ -12,7 +12,7 @@ const pool = new Pool({
 
 // Log any unexpected pool errors
 pool.on('error', (err) => {
-  console.error('[PostgreSQL Pool Error]:', err.message);
+  logger.error('[PostgreSQL Pool Error]:', err.message);
 });
 
 /**
@@ -26,7 +26,7 @@ async function query(text, params) {
   const duration = Date.now() - start;
   // In development, log slow queries (> 200ms)
   if (!config.isProduction && duration > 200) {
-    console.warn(`[Slow Query ${duration}ms]:`, text);
+    logger.warn(`[Slow Query ${duration}ms]:`, text);
   }
   return res;
 }

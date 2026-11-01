@@ -25,10 +25,22 @@ cp .env.example .env
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://user:pass@localhost:5432/grocart` |
 | `JWT_ACCESS_SECRET` | Secret key for signing 15-minute access tokens | *strong-secret-key* |
 | `JWT_REFRESH_SECRET` | Secret key for signing 7-day refresh tokens | *strong-secret-key* |
-| `JWT_ACCESS_EXPIRES_IN` | Access token lifespan | `15m` |
-| `JWT_REFRESH_EXPIRES_IN`| Refresh token lifespan | `7d` |
-| `CLIENT_ORIGIN` | Allowed CORS frontend origin | `http://localhost:5173` |
-| `BCRYPT_ROUNDS` | Bcrypt salt rounds | `10` |
+| `ACCESS_TOKEN_EXPIRES` | Access token lifespan | `15m` |
+| `REFRESH_TOKEN_EXPIRES_DAYS` | Refresh token lifespan in days | `7` |
+| `JWT_ISSUER` | JWT issuer | `grocart-api` |
+| `JWT_AUDIENCE` | JWT audience | `grocart-web` |
+| `CLIENT_URL` | Allowed CORS frontend origin | `http://localhost:5173` |
+| `BCRYPT_ROUNDS` | Bcrypt salt rounds | `12` |
+| `LOG_LEVEL` | Minimum server log level | `info` |
+| `REFRESH_TOKEN_CLEANUP_INTERVAL_MINUTES` | Expired refresh-token cleanup interval | `60` |
+| `JSON_BODY_LIMIT` | Default JSON request body limit | `100kb` |
+| `PROFILE_JSON_BODY_LIMIT` | Profile JSON request body limit | `3mb` |
+| `AVATAR_MAX_BYTES` | Maximum decoded avatar size | `1048576` |
+| `AVATAR_VALIDATION_MESSAGE` | Avatar validation error message | Image formats and configured size |
+| `PRODUCT_IMAGE_VALIDATION_MESSAGE` | Product image validation error message | HTTPS or local public path |
+| `PAGINATION_DEFAULT_LIMIT` | Default list page size | `25` |
+| `PAGINATION_MAX_LIMIT` | Maximum list page size | `100` |
+| `PAGINATION_MAX_OFFSET` | Maximum list offset | `1000000` |
 | `SEED_ADMIN_EMAIL` | Default admin email for seeding | `admin@grocart.com` |
 | `SEED_ADMIN_PASSWORD` | Default admin password for seeding | *strong-admin-pass* |
 | `SEED_ADMIN_NAME` | Default admin display name | `Admin User` |
@@ -58,6 +70,10 @@ Creates the initial platform admin and starter grocery categories (e.g. Fruits &
 ---
 
 ## 📡 API Endpoints
+
+## Rate limiting
+
+The API uses in-memory token buckets for general requests, refresh, order placement, and profile updates. Login failures are tracked separately by email and IP, while registration requests are tracked by IP. Configure `TRUST_PROXY`, `RATE_LIMIT_STORE_CLEANUP_INTERVAL_MS`, `RATE_LIMIT_STORE_IDLE_TIMEOUT_MS`, `RATE_LIMIT_MESSAGE`, `LOGIN_LOCK_MESSAGE`, `COOKIE_REQUEST_HEADER_MESSAGE`, `AUTH_INVALID_CREDENTIALS_MESSAGE`, `REGISTRATION_NEUTRAL_MESSAGE`, `API_RATE_LIMIT_CAPACITY`, `API_RATE_LIMIT_REFILL_PER_SECOND`, `API_RATE_LIMIT_WINDOW_SECONDS`, `REFRESH_RATE_LIMIT_CAPACITY`, `REFRESH_RATE_LIMIT_REFILL_PER_SECOND`, `REFRESH_RATE_LIMIT_WINDOW_SECONDS`, `ORDER_RATE_LIMIT_CAPACITY`, `ORDER_RATE_LIMIT_REFILL_PER_SECOND`, `ORDER_RATE_LIMIT_WINDOW_SECONDS`, `PROFILE_RATE_LIMIT_CAPACITY`, `PROFILE_RATE_LIMIT_REFILL_PER_SECOND`, `PROFILE_RATE_LIMIT_WINDOW_SECONDS`, `LOGIN_EMAIL_FAILURE_CAPACITY`, `LOGIN_EMAIL_FAILURE_WINDOW_MINUTES`, `LOGIN_EMAIL_LOCK_MINUTES`, `LOGIN_IP_FAILURE_CAPACITY`, `LOGIN_IP_FAILURE_WINDOW_MINUTES`, `REGISTER_RATE_LIMIT_CAPACITY`, and `REGISTER_RATE_LIMIT_WINDOW_MINUTES` in `.env`. The store exposes `get` and `set` methods so it can be replaced with Redis when the application needs multiple server instances.
 
 ### 1. Health
 - `GET /api/health` — Server health & database connectivity check

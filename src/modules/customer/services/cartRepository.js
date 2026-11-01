@@ -16,7 +16,6 @@ function toCartItem(raw) {
     itemQuantity: raw.itemQuantity ?? raw.unit ?? '500g',
     imageUrl: raw.image_url ?? raw.imageUrl ?? '',
     quantity: Number(raw.quantity) || 1,
-    itemCost: Number(raw.itemCost ?? raw.cost_price) || 0,
     itemStock: Number(raw.itemStock ?? raw.stock_quantity) || 0,
     retailerId: String(raw.retailer_id ?? raw.retailerId ?? ''),
   });
@@ -81,7 +80,6 @@ export const saveCartItem = async (userId, cartItem) => {
       productId: cartItem.productId || cartItem.id,
       itemName: cartItem.itemName,
       itemPrice: cartItem.itemPrice,
-      itemCost: cartItem.itemCost || 0,
       itemQuantity: cartItem.itemQuantity || '500g',
       imageUrl: cartItem.imageUrl,
       quantity: cartItem.quantity,

@@ -26,7 +26,7 @@ export const authApi = {
 
   /**
    * Register a new customer or retailer account.
-   * Stores access token in memory and returns the created user profile.
+   * Returns a neutral confirmation without revealing whether the email was registered.
    */
   registerUser: async (
     email: string,
@@ -35,7 +35,7 @@ export const authApi = {
     role: UserRole,
     storeName?: string,
     confirmPassword?: string
-  ): Promise<UserProfile> => {
+  ): Promise<string> => {
     try {
       const response = await apiClient.post('/auth/register', {
         email,
@@ -45,11 +45,7 @@ export const authApi = {
         role,
         storeName: storeName || ''
       });
-      const { user, accessToken } = response.data?.data || {};
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      return user as UserProfile;
+      return response.data?.data?.message || '';
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Registration failed';
       throw new Error(msg);

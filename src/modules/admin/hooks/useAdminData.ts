@@ -2,14 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, storefrontApi } from '@global/services/api/appApis';
 import { useSelector } from 'react-redux';
 
-export const useAdminData = () => {
+export const useAdminData = ({ limit, offset }: { limit?: number; offset?: number } = {}) => {
   const queryClient = useQueryClient();
   const user = useSelector((state: any) => state.auth.user);
   const isAdmin = user?.role === 'admin';
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['admin-all-users'],
-    queryFn: adminApi.fetchAllUsers,
+    queryKey: ['admin-all-users', limit, offset],
+    queryFn: () => adminApi.fetchAllUsers({ limit, offset }),
     enabled: isAdmin,
     retry: false
   });
@@ -41,8 +41,8 @@ export const useAdminData = () => {
   });
 
   const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['admin-all-orders'],
-    queryFn: adminApi.fetchAllOrders,
+    queryKey: ['admin-all-orders', limit, offset],
+    queryFn: () => adminApi.fetchAllOrders({ limit, offset }),
     enabled: isAdmin,
     retry: false
   });
@@ -67,10 +67,6 @@ export const useAdminData = () => {
   const validProducts = allProducts.filter((p: any) => validUserIds.has(p.retailerId));
   const orphanedProducts = allProducts.filter((p: any) => !validUserIds.has(p.retailerId));
 
-  const totalCatalogValue = validProducts.reduce((sum: number, p: any) => sum + (p.sellingPrice * p.stockQuantity), 0);
-  const totalCatalogCost = validProducts.reduce((sum: number, p: any) => sum + (p.costPrice * p.stockQuantity), 0);
-  const potentialProfit = totalCatalogValue - totalCatalogCost;
-
   return {
     users,
     usersLoading,
@@ -86,9 +82,6 @@ export const useAdminData = () => {
     customers,
     validProducts,
     orphanedProducts,
-    totalCatalogValue,
-    totalCatalogCost,
-    potentialProfit,
     allOrders,
     ordersLoading
   };

@@ -54,4 +54,17 @@ const loginRules = [
     .withMessage('Password is required.')
 ];
 
-module.exports = { registerRules, loginRules };
+const changePasswordRules = [
+  body('currentPassword')
+    .isLength({ min: 1 })
+    .withMessage('Current password is required.'),
+  body('newPassword')
+    .isLength({ min: 8, max: 72 })
+    .withMessage('New password must be between 8 and 72 characters.')
+];
+
+module.exports = {
+  registerRules,
+  loginRules,
+  changePasswordRules
+};

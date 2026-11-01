@@ -25,11 +25,6 @@ const saveCartItemRules = [
     .isFloat({ min: 0 })
     .withMessage('Item price must be a number >= 0.'),
 
-  body('itemCost')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Item cost must be a number >= 0.'),
-
   body('itemQuantity')
     .optional()
     .trim()

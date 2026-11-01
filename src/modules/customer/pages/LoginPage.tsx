@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [storeName, setStoreName] = useState('');
   const [role, setRole] = useState<UserRole>('customer');
   const [errorMsg, setErrorMsg] = useState('');
+  const [statusMsg, setStatusMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -32,11 +33,13 @@ export default function LoginPage() {
     setStoreName('');
     setRole('customer');
     setErrorMsg('');
+    setStatusMsg('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setStatusMsg('');
 
     if (isRegister && password !== confirmPassword) {
       setErrorMsg('Passwords do not match.');
@@ -46,13 +49,23 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      let profile;
       if (isRegister) {
-        profile = await authApi.registerUser(email, password, name, role, storeName, confirmPassword);
-      } else {
-        profile = await authApi.loginUser(email, password);
+        const message = await authApi.registerUser(
+          email,
+          password,
+          name,
+          role,
+          storeName,
+          confirmPassword
+        );
+        setIsRegister(false);
+        setPassword('');
+        setConfirmPassword('');
+        setStatusMsg(`${message} Sign in to continue.`);
+        return;
       }
 
+      const profile = await authApi.loginUser(email, password);
       dispatch(setUserProfile(profile));
 
       if (profile.role === 'admin') navigate('/admin/dashboard', { replace: true });
@@ -90,6 +103,11 @@ export default function LoginPage() {
           <div className="mb-6 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-200 shadow-sm animate-pulse">
             <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
             {errorMsg}
+          </div>
+        )}
+        {statusMsg && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-bold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+            {statusMsg}
           </div>
         )}
 

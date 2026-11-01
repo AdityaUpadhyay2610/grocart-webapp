@@ -4,27 +4,38 @@
 const express = require('express');
 const router = express.Router();
 
-const { authLimiter, refreshLimiter } = require('../middleware/rateLimiters');
+const {
+  loginLimiter,
+  registerLimiter,
+  refreshLimiter
+} = require('../middleware/rateLimit');
 const validate = require('../middleware/validate');
 const verifyToken = require('../middleware/verifyToken');
-const { registerRules, loginRules } = require('../validators/auth.validators');
+const requireCookieRequestHeader = require('../middleware/requireCookieRequestHeader');
+const {
+  registerRules,
+  loginRules,
+  changePasswordRules
+} = require('../validators/auth.validators');
 const {
   register,
   login,
   refresh,
   logout,
+  changePassword,
   getMe,
   resendVerification
 } = require('../controllers/auth.controller');
 
 // Public routes — rate limited
-router.post('/register', authLimiter, registerRules, validate, register);
-router.post('/login', authLimiter, loginRules, validate, login);
-router.post('/refresh', refreshLimiter, refresh);
-router.post('/logout', logout);
+router.post('/register', registerLimiter, registerRules, validate, register);
+router.post('/login', loginLimiter, loginRules, validate, login);
+router.post('/refresh', refreshLimiter, requireCookieRequestHeader, refresh);
+router.post('/logout', requireCookieRequestHeader, logout);
 
 // Protected routes — require a valid access token
 router.get('/me', verifyToken, getMe);
+router.post('/change-password', verifyToken, changePasswordRules, validate, changePassword);
 router.post('/resend-verification', verifyToken, resendVerification);
 
 module.exports = router;

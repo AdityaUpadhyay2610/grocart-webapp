@@ -1,9 +1,10 @@
-// server/src/config/config.js
-// Single source of truth for all environment variables and secrets.
-// Loads .env once and exports a frozen configuration object.
-
 const path = require('path');
 const dotenv = require('dotenv');
+const {
+  JWT_ALGORITHM,
+  COOKIE_REQUEST_HEADER,
+  COOKIE_REQUEST_HEADER_VALUE
+} = require('./constants');
 
 // Load environment variables from server/.env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -66,13 +67,76 @@ const port = parseNumber('PORT', 5000);
 const bcryptRounds = parseNumber('BCRYPT_ROUNDS', 12);
 const accessExpires = process.env.ACCESS_TOKEN_EXPIRES || '15m';
 const refreshExpiresDays = parseNumber('REFRESH_TOKEN_EXPIRES_DAYS', 7);
+const jwtIssuer = process.env.JWT_ISSUER || 'grocart-api';
+const jwtAudience = process.env.JWT_AUDIENCE || 'grocart-web';
+const logLevel = process.env.LOG_LEVEL || 'info';
 
-const authRateLimitWindow = parseNumber('AUTH_RATE_LIMIT_WINDOW_MINUTES', 15);
-const authRateLimitMax = parseNumber('AUTH_RATE_LIMIT_MAX', 10);
-const refreshRateLimitWindow = parseNumber('REFRESH_RATE_LIMIT_WINDOW_MINUTES', 15);
-const refreshRateLimitMax = parseNumber('REFRESH_RATE_LIMIT_MAX', 60);
-const generalRateLimitWindow = parseNumber('GENERAL_RATE_LIMIT_WINDOW_MINUTES', 1);
-const generalRateLimitMax = parseNumber('GENERAL_RATE_LIMIT_MAX', 300);
+const trustProxy = parseNumber('TRUST_PROXY', isProduction ? 1 : 0);
+const rateLimitStore = {
+  cleanupIntervalMs: parseNumber('RATE_LIMIT_STORE_CLEANUP_INTERVAL_MS', 60000),
+  idleTimeoutMs: parseNumber('RATE_LIMIT_STORE_IDLE_TIMEOUT_MS', 3600000)
+};
+const generalRateLimit = {
+  capacity: parseNumber('API_RATE_LIMIT_CAPACITY', 300),
+  refillPerSecond: parseNumber('API_RATE_LIMIT_REFILL_PER_SECOND', 5),
+  windowMs: parseNumber('API_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
+};
+const refreshRateLimit = {
+  capacity: parseNumber('REFRESH_RATE_LIMIT_CAPACITY', 60),
+  refillPerSecond: parseNumber('REFRESH_RATE_LIMIT_REFILL_PER_SECOND', 1),
+  windowMs: parseNumber('REFRESH_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
+};
+const orderRateLimit = {
+  capacity: parseNumber('ORDER_RATE_LIMIT_CAPACITY', 5),
+  refillPerSecond: parseNumber('ORDER_RATE_LIMIT_REFILL_PER_SECOND', 0.1),
+  windowMs: parseNumber('ORDER_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
+};
+const profileRateLimit = {
+  capacity: parseNumber('PROFILE_RATE_LIMIT_CAPACITY', 10),
+  refillPerSecond: parseNumber('PROFILE_RATE_LIMIT_REFILL_PER_SECOND', 0.2),
+  windowMs: parseNumber('PROFILE_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
+};
+const loginEmailRateLimit = {
+  capacity: parseNumber('LOGIN_EMAIL_FAILURE_CAPACITY', 5),
+  windowMs: parseNumber('LOGIN_EMAIL_FAILURE_WINDOW_MINUTES', 15) * 60 * 1000
+};
+const loginIpRateLimit = {
+  capacity: parseNumber('LOGIN_IP_FAILURE_CAPACITY', 20),
+  windowMs: parseNumber('LOGIN_IP_FAILURE_WINDOW_MINUTES', 15) * 60 * 1000
+};
+const loginRateLimit = {
+  email: loginEmailRateLimit,
+  ip: loginIpRateLimit,
+  lockMs: parseNumber('LOGIN_EMAIL_LOCK_MINUTES', 15) * 60 * 1000,
+  lockMessage: process.env.LOGIN_LOCK_MESSAGE || 'Too many failed sign-in attempts. Try again later.'
+};
+const registerRateLimit = {
+  capacity: parseNumber('REGISTER_RATE_LIMIT_CAPACITY', 5),
+  windowMs: parseNumber('REGISTER_RATE_LIMIT_WINDOW_MINUTES', 60) * 60 * 1000
+};
+const refreshTokenCleanupIntervalMs =
+  parseNumber('REFRESH_TOKEN_CLEANUP_INTERVAL_MINUTES', 60) * 60 * 1000;
+const bodyLimits = {
+  json: process.env.JSON_BODY_LIMIT || '100kb',
+  profileJson: process.env.PROFILE_JSON_BODY_LIMIT || '3mb'
+};
+const pagination = {
+  defaultLimit: parseNumber('PAGINATION_DEFAULT_LIMIT', 25),
+  maxLimit: parseNumber('PAGINATION_MAX_LIMIT', 100),
+  maxOffset: parseNumber('PAGINATION_MAX_OFFSET', 1000000)
+};
+const avatarMaxBytes = parseNumber('AVATAR_MAX_BYTES', 1048576);
+const authMessages = {
+  invalidCredentials:
+    process.env.AUTH_INVALID_CREDENTIALS_MESSAGE || 'Invalid email or password.',
+  registrationNeutral:
+    process.env.REGISTRATION_NEUTRAL_MESSAGE ||
+    'If this email can be registered, the request has been accepted.'
+};
+const allowedLogLevels = ['error', 'warn', 'info', 'debug'];
+if (!allowedLogLevels.includes(logLevel)) {
+  throw new Error(`LOG_LEVEL must be one of: ${allowedLogLevels.join(', ')}.`);
+}
 
 // 5. Cookie settings derived from environment
 const cookieSettings = {
@@ -93,6 +157,8 @@ module.exports = Object.freeze({
   isProduction,
   port,
   clientUrl,
+  trustProxy,
+  logLevel,
   db: {
     url: databaseUrl
   },
@@ -100,23 +166,42 @@ module.exports = Object.freeze({
     accessSecret: jwtAccessSecret,
     refreshSecret: jwtRefreshSecret,
     accessExpires,
-    refreshExpiresDays
+    refreshExpiresDays,
+    algorithm: JWT_ALGORITHM,
+    issuer: jwtIssuer,
+    audience: jwtAudience,
+    verifyOptions: Object.freeze({
+      algorithms: [JWT_ALGORITHM],
+      issuer: jwtIssuer,
+      audience: jwtAudience
+    })
   },
   cookie: cookieSettings,
   security: {
     bcryptRounds,
-    authRateLimit: {
-      windowMinutes: authRateLimitWindow,
-      max: authRateLimitMax
-    },
-    refreshRateLimit: {
-      windowMinutes: refreshRateLimitWindow,
-      max: refreshRateLimitMax
-    },
-    generalRateLimit: {
-      windowMinutes: generalRateLimitWindow,
-      max: generalRateLimitMax
-    }
+    authMessages,
+    bodyLimits,
+    pagination,
+    avatarMaxBytes,
+    avatarValidationMessage:
+      process.env.AVATAR_VALIDATION_MESSAGE ||
+      'Avatar must be a png, jpeg, or webp image within the configured size limit.',
+    productImageValidationMessage:
+      process.env.PRODUCT_IMAGE_VALIDATION_MESSAGE ||
+      'Product images must use HTTPS or a local public path.',
+    rateLimitMessage: process.env.RATE_LIMIT_MESSAGE || 'Too many requests. Please try again later.',
+    rateLimitStore,
+    generalRateLimit,
+    refreshRateLimit,
+    orderRateLimit,
+    profileRateLimit,
+    loginRateLimit,
+    registerRateLimit,
+    refreshTokenCleanupIntervalMs,
+    cookieRequestHeader: COOKIE_REQUEST_HEADER,
+    cookieRequestHeaderValue: COOKIE_REQUEST_HEADER_VALUE,
+    cookieRequestHeaderMessage:
+      process.env.COOKIE_REQUEST_HEADER_MESSAGE || 'A custom request header is required.'
   },
   seedAdmin
 });

@@ -10,13 +10,14 @@ const requireRole = require('../middleware/requireRole');
 const validate = require('../middleware/validate');
 const { createAdminRules, idParamRules } = require('../validators/admin.validators');
 const { saveCategoryRules } = require('../validators/category.validators');
+const { paginationRules } = require('../validators/pagination.validators');
 
 // All admin routes require authentication and the admin role
 router.use(verifyToken);
 router.use(requireRole('admin'));
 
 // GET /api/admin/users — fetch all users across all roles
-router.get('/users', adminController.getAllUsers);
+router.get('/users', paginationRules, validate, adminController.getAllUsers);
 
 // DELETE /api/admin/users/:id — delete user account (cascades all related data)
 router.delete('/users/:id', idParamRules, validate, adminController.deleteUser);
@@ -25,7 +26,7 @@ router.delete('/users/:id', idParamRules, validate, adminController.deleteUser);
 router.post('/admins', createAdminRules, validate, adminController.createAdmin);
 
 // GET /api/admin/orders — fetch all orders across the platform
-router.get('/orders', adminController.getAllOrders);
+router.get('/orders', paginationRules, validate, adminController.getAllOrders);
 
 // GET /api/admin/platform-analytics — fetch platform-wide GMV, profit, retailers count
 router.get('/platform-analytics', adminController.getPlatformAnalytics);

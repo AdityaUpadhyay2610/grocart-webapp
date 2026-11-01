@@ -14,7 +14,6 @@ function toCartItem(raw) {
     productId: raw.productId ?? raw.product_id ?? raw.id ?? 0,
     itemName: raw.product_name ?? raw.itemName ?? raw.title ?? '',
     itemPrice: Number(raw.price ?? raw.itemPrice ?? raw.item_price) || 0,
-    itemCost: Number(raw.cost_price ?? raw.itemCost ?? raw.item_cost) || 0,
     itemQuantity: raw.unit ?? raw.itemQuantity ?? raw.item_quantity ?? '500g',
     imageUrl: raw.image_url ?? raw.imageUrl ?? '',
     quantity: Number(raw.quantity) || 1,
@@ -61,7 +60,7 @@ export const fetchOrders = async (userId) => {
  * Returns the new order ID string, or null on failure.
  *
  * @param {string} userId
- * @param {{ items: CartItem[], totalPaid: number, couponDiscount: number }} order
+ * @param {{ items: CartItem[], couponCode?: string }} order
  * @returns {Promise<string|null>}
  */
 export const placeOrder = async (userId, order) => {
@@ -73,14 +72,8 @@ export const placeOrder = async (userId, order) => {
         id: item.id,
         productId: item.productId || item.id,
         quantity: item.quantity,
-        itemPrice: item.itemPrice,
-        itemCost: item.itemCost,
-        itemName: item.itemName,
-        itemQuantity: item.itemQuantity,
-        imageUrl: item.imageUrl,
       })),
-      totalPaid: order.totalPaid,
-      couponDiscount: order.couponDiscount ?? 0,
+      couponCode: order.couponCode,
     };
 
     const response = await apiClient.post('/orders', payload);

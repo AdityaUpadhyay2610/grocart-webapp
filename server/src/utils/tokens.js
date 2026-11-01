@@ -1,4 +1,3 @@
-// server/src/utils/tokens.js
 // Helpers for creating and verifying JWTs, and hashing refresh tokens.
 
 const jwt = require('jsonwebtoken');
@@ -13,7 +12,12 @@ function createAccessToken(userId, role) {
   return jwt.sign(
     { sub: userId, role },
     config.jwt.accessSecret,
-    { expiresIn: config.jwt.accessExpires }
+    {
+      algorithm: config.jwt.algorithm,
+      audience: config.jwt.audience,
+      expiresIn: config.jwt.accessExpires,
+      issuer: config.jwt.issuer
+    }
   );
 }
 
@@ -25,7 +29,12 @@ function createRefreshToken(userId) {
   return jwt.sign(
     { sub: userId, jti: crypto.randomUUID() },
     config.jwt.refreshSecret,
-    { expiresIn: `${config.jwt.refreshExpiresDays}d` }
+    {
+      algorithm: config.jwt.algorithm,
+      audience: config.jwt.audience,
+      expiresIn: `${config.jwt.refreshExpiresDays}d`,
+      issuer: config.jwt.issuer
+    }
   );
 }
 
@@ -33,14 +42,14 @@ function createRefreshToken(userId) {
  * Verify an access token. Returns the payload or throws an error.
  */
 function verifyAccessToken(token) {
-  return jwt.verify(token, config.jwt.accessSecret);
+  return jwt.verify(token, config.jwt.accessSecret, config.jwt.verifyOptions);
 }
 
 /**
  * Verify a refresh token. Returns the payload or throws an error.
  */
 function verifyRefreshToken(token) {
-  return jwt.verify(token, config.jwt.refreshSecret);
+  return jwt.verify(token, config.jwt.refreshSecret, config.jwt.verifyOptions);
 }
 
 /**

@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const config = require('./config/config');
 const errorHandler = require('./middleware/errorHandler');
-const { generalLimiter } = require('./middleware/rateLimiters');
+const { generalLimiter } = require('./middleware/rateLimit');
 const { sendSuccess } = require('./utils/response');
 
 // Route files
@@ -18,9 +18,11 @@ const productRoutes = require('./routes/product.routes');
 const retailerRoutes = require('./routes/retailer.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
+const couponRoutes = require('./routes/coupon.routes');
 const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
+app.set('trust proxy', config.trustProxy);
 
 // Security headers
 app.use(helmet());
@@ -36,9 +38,15 @@ app.use(
 // Cookie parsing for refresh tokens
 app.use(cookieParser());
 
-// Body parsing with 2MB limit (avatars can be large base64 strings)
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(
+  '/api/users/me',
+  express.json({ limit: config.security.bodyLimits.profileJson })
+);
+app.use(express.json({ limit: config.security.bodyLimits.json }));
+app.use(express.urlencoded({
+  extended: true,
+  limit: config.security.bodyLimits.json
+}));
 
 // Apply general rate limit to all routes
 app.use(generalLimiter);
@@ -56,6 +64,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/retailer', retailerRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/coupons', couponRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Central error handler — must be the LAST middleware

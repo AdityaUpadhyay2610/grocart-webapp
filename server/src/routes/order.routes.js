@@ -5,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/order.controller');
 const verifyToken = require('../middleware/verifyToken');
+const { orderLimiter } = require('../middleware/rateLimit');
 const validate = require('../middleware/validate');
 const { placeOrderRules, updateStatusRules } = require('../validators/order.validators');
 
@@ -17,6 +18,7 @@ router.get('/my', orderController.getMyOrders);
 // POST /api/orders — place a new order
 router.post(
   '/',
+  orderLimiter,
   placeOrderRules,
   validate,
   orderController.placeOrder

@@ -149,14 +149,10 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
     const fvProducts = products.filter(isFruitOrVegetable);
     const candidateList = fvProducts.length > 0 ? fvProducts : products;
 
-    return candidateList.slice(0, 8).map((p, idx) => {
-      const originalPrice = p.itemCost || p.originalPrice || Math.round(p.itemPrice * (1.25 + ((idx % 3) * 0.1)));
-      const discountVal = Math.max(15, Math.round(((originalPrice - p.itemPrice) / originalPrice) * 100));
+    return candidateList.slice(0, 8).map((p) => {
       return {
         id: p.id,
         itemName: p.itemName,
-        discount: `-${discountVal}%`,
-        originalPrice: originalPrice,
         price: p.itemPrice,
         itemQuantity: p.itemQuantity || "500g",
         imageUrl: p.imageUrl,
@@ -284,9 +280,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
             >
               {flashDeals.map(deal => (
                 <div key={deal.id} className="min-w-[160px] max-w-[170px] flex-shrink-0 bg-surface-container-lowest dark:bg-[#171717] rounded-xl p-3 shadow-md flex flex-col justify-between gap-2 relative border border-surface-variant/40 dark:border-[#262626]">
-                  <div className="absolute -top-2 -right-2 bg-error text-on-error text-[10px] font-bold px-2 py-0.5 rounded-full z-10 shadow-sm">
-                    {deal.discount}
-                  </div>
                   <div className="h-20 w-full rounded-lg bg-surface-container-low dark:bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
                     <img src={deal.imageUrl} alt={deal.itemName} className="w-full h-full object-cover" />
                   </div>
@@ -295,7 +288,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                     <span className="text-[10px] text-on-surface-variant font-semibold">{deal.itemQuantity || '500g'}</span>
                     <div className="flex items-baseline gap-1.5 mt-0.5">
                       <span className="font-headline-md text-primary text-sm font-black">{formatINR(deal.price, false)}</span>
-                      <span className="font-label-sm text-on-surface-variant line-through opacity-70 text-[10px]">{formatINR(deal.originalPrice, false)}</span>
                     </div>
                   </div>
                   <button 
@@ -595,4 +587,3 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
 });
 
 HomeScreen.displayName = "HomeScreen";
-

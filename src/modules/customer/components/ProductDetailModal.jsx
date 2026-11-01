@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { X, Plus, Minus, ShieldCheck, Leaf, ShoppingCart } from "lucide-react";
 import { useCart } from '../state/CartContext';
-import { formatINR, calculateUnitPrice, getAvailableUnits } from '@global/utils/calculations';
+import { calculateUnitPrice, getAvailableUnits } from '@global/utils/calculations';
 
 const getUniqueImageUrl = (url, id, title) => {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
@@ -108,14 +108,9 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
   if (!product) return null;
 
   const basePrice = product.itemPrice || 0;
-  const baseCost = product.itemCost || Math.round(basePrice * 1.25);
   const baseQuantity = product.itemQuantity || "500g";
 
-  const discountedPrice = calculateUnitPrice(basePrice, selectedUnit, baseQuantity);
-  const originalPrice = calculateUnitPrice(baseCost, selectedUnit, baseQuantity);
-  const discountPercent = originalPrice > discountedPrice 
-    ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
-    : 0;
+  const unitPrice = calculateUnitPrice(basePrice, selectedUnit, baseQuantity);
 
   const cartItemId = `${product.id}_${selectedUnit.replace(/\s+/g, '')}`;
   const cartItem = cartItems.find(i => i.id === cartItemId || (i.productId === product.id && i.itemQuantity === selectedUnit) || (i.id === product.id && (!i.itemQuantity || i.itemQuantity === selectedUnit)));
@@ -125,8 +120,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
     ...product,
     cartItemId,
     itemQuantity: selectedUnit,
-    itemPrice: discountedPrice,
-    itemCost: originalPrice
+    itemPrice: unitPrice
   };
 
   return (
@@ -148,11 +142,6 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             <span className="bg-primary text-white dark:text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
               {product.itemCategory}
             </span>
-            {discountPercent > 0 && (
-              <span className="bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
-                {discountPercent}% OFF
-              </span>
-            )}
           </div>
 
           <img
@@ -209,10 +198,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             {/* Price section (Changes on Unit Selection) */}
             <div className="flex items-baseline space-x-2.5 my-4 text-left">
               <span className="text-2xl font-black text-primary">
-                ₹{discountedPrice}
-              </span>
-              <span className="text-sm text-on-surface-variant line-through">
-                ₹{originalPrice}
+                ₹{unitPrice}
               </span>
               <span className="text-sm font-bold text-on-surface-variant">
                 / {selectedUnit}
@@ -258,7 +244,7 @@ export const ProductDetailModal = React.memo(({ product, onClose }) => {
             <div className="text-left">
               <span className="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">Item Subtotal</span>
               <span className="text-lg font-black text-on-surface dark:text-white">
-                ₹{discountedPrice * (quantity || 1)}
+                ₹{unitPrice * (quantity || 1)}
               </span>
             </div>
 

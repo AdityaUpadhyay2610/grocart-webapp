@@ -2,9 +2,8 @@
 // express-validator rules for product endpoints.
 
 const { body, param } = require('express-validator');
-
-// Units the app supports. Must match what the frontend sends.
-const ALLOWED_UNITS = ['pcs', 'kg', 'g', 'l', 'ml', 'liter', 'dozen', 'pack', 'bunch', 'bottle', 'box', 'bag'];
+const config = require('../config/config');
+const { PRODUCT_UNITS, PRODUCT_STATUS } = require('../config/constants');
 
 // Rules for PUT /retailer/products/:id (create or update a product)
 const saveProductRules = [
@@ -46,8 +45,8 @@ const saveProductRules = [
   body('unit')
     .optional({ checkFalsy: true })
     .customSanitizer((val) => (typeof val === 'string' ? val.toLowerCase().trim() : val))
-    .isIn(ALLOWED_UNITS)
-    .withMessage(`Unit must be one of: ${ALLOWED_UNITS.join(', ')}.`),
+    .isIn(PRODUCT_UNITS)
+    .withMessage(`Unit must be one of: ${PRODUCT_UNITS.join(', ')}.`),
 
   body('unitSize')
     .optional({ nullable: true, checkFalsy: true })
@@ -64,12 +63,33 @@ const saveProductRules = [
     .optional()
     .trim()
     .isLength({ max: 2000 })
-    .withMessage('Image URL must be under 2000 characters.'),
+    .withMessage('Image URL must be under 2000 characters.')
+    .custom((value) => {
+      if (!value) {
+        return true;
+      }
+
+      if (value.startsWith('/') && !value.startsWith('//')) {
+        return true;
+      }
+
+      let imageUrl;
+      try {
+        imageUrl = new URL(value);
+      } catch {
+        throw new Error(config.security.productImageValidationMessage);
+      }
+
+      if (imageUrl.protocol !== 'https:' || !imageUrl.hostname) {
+        throw new Error(config.security.productImageValidationMessage);
+      }
+      return true;
+    }),
 
   body('status')
     .optional()
-    .isIn(['active', 'out_of_stock', 'inactive'])
-    .withMessage('Status must be active, out_of_stock, or inactive.')
+    .isIn(Object.values(PRODUCT_STATUS))
+    .withMessage(`Status must be one of: ${Object.values(PRODUCT_STATUS).join(', ')}.`)
 ];
 
 // Validate :id param

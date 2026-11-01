@@ -2,6 +2,7 @@
 // express-validator rules for user profile update (PUT /users/me).
 
 const { body } = require('express-validator');
+const config = require('../config/config');
 
 // All fields are optional on update — only validate what's present.
 const updateProfileRules = [
@@ -41,16 +42,29 @@ const updateProfileRules = [
     .isLength({ max: 100 })
     .withMessage('Avatar seed must be under 100 characters.'),
 
-  // avatarUrl can be a base64 data URL (several hundred KB) or a regular URL.
   body('avatarUrl')
     .optional()
     .trim()
-    .isLength({ max: 1500000 })
-    .withMessage('Avatar URL is too large.')
     .custom((value) => {
-      if (value && !value.startsWith('http://') && !value.startsWith('https://') && !value.startsWith('data:image/')) {
-        throw new Error('Avatar URL must start with http://, https://, or data:image/');
+      if (!value) {
+        return true;
       }
+
+      const match = value.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$/i);
+      if (!match) {
+        throw new Error(config.security.avatarValidationMessage);
+      }
+
+      const encodedImage = match[2];
+      const decodedImage = Buffer.from(encodedImage, 'base64');
+      if (
+        encodedImage.length % 4 !== 0 ||
+        decodedImage.toString('base64') !== encodedImage ||
+        decodedImage.length > config.security.avatarMaxBytes
+      ) {
+        throw new Error(config.security.avatarValidationMessage);
+      }
+
       return true;
     })
 ];

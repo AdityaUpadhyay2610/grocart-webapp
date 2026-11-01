@@ -1,33 +1,53 @@
-// server/src/server.js
 // Server entry point. Tests database connection and starts HTTP server.
 
 const app = require('./app');
 const config = require('./config/config');
 const db = require('./config/db');
+const logger = require('./utils/logger');
 
 async function startServer() {
-  try {
-    // Verify database connectivity
-    console.log('[Server] Connecting to PostgreSQL database...');
-    await db.query('SELECT 1');
-    console.log('[Server] PostgreSQL connection established successfully.');
+  let server;
+  let refreshTokenCleanupTimer;
 
-    // Start Express server
-    const server = app.listen(config.port, () => {
-      console.log(`[Server] GroCart backend running in "${config.env}" mode on port ${config.port}`);
-      console.log(`[Server] Health check: http://localhost:${config.port}/api/health`);
+  try {
+    logger.info('[Server] Connecting to PostgreSQL database...');
+    await db.query('SELECT 1');
+    logger.info('[Server] PostgreSQL connection established successfully.');
+
+    const cleanupExpiredRefreshTokens = async () => {
+      try {
+        const result = await db.query(
+          'DELETE FROM refresh_tokens WHERE expires_at <= NOW()'
+        );
+        if (result.rowCount > 0) {
+          logger.info(`Removed ${result.rowCount} expired refresh tokens.`);
+        }
+      } catch (error) {
+        logger.error('Expired refresh-token cleanup failed:', error.message);
+      }
+    };
+
+    await cleanupExpiredRefreshTokens();
+    refreshTokenCleanupTimer = setInterval(
+      cleanupExpiredRefreshTokens,
+      config.security.refreshTokenCleanupIntervalMs
+    );
+    refreshTokenCleanupTimer.unref();
+
+    server = app.listen(config.port, () => {
+      logger.info(`[Server] GroCart backend running in "${config.env}" mode on port ${config.port}`);
     });
 
-    // Graceful shutdown handling
     const shutdown = async (signal) => {
-      console.log(`\n[Server] Received ${signal}. Shutting down gracefully...`);
+      logger.info(`[Server] Received ${signal}. Shutting down gracefully...`);
+      clearInterval(refreshTokenCleanupTimer);
       server.close(async () => {
         try {
           await db.pool.end();
-          console.log('[Server] Database pool closed.');
+          logger.info('[Server] Database pool closed.');
           process.exit(0);
         } catch (err) {
-          console.error('[Server] Error closing pool:', err.message);
+          logger.error('[Server] Error closing pool:', err.message);
           process.exit(1);
         }
       });
@@ -35,8 +55,8 @@ async function startServer() {
 
     process.on('SIGINT', () => shutdown('SIGINT'));
     process.on('SIGTERM', () => shutdown('SIGTERM'));
-  } catch (err) {
-    console.error('[Server Startup Failure]:', err.message);
+  } catch (error) {
+    logger.error('[Server Startup Failure]:', error.message);
     process.exit(1);
   }
 }

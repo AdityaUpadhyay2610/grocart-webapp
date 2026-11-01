@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useCart } from "../state/CartContext";
 import { useGPSLocation } from "@global/hooks/useLocation";
-import { formatINR, calculateGST, calculateEcoSavings, COUPON_OFFERS } from "@global/utils/calculations";
-import { Plus, Minus, Trash2, Tag, X, Check, Leaf, ArrowRight } from "lucide-react";
+import { formatINR, calculateGST, calculateEcoSavings } from "@global/utils/calculations";
+import { Plus, Minus, Trash2, Tag, X, Leaf, ArrowRight } from "lucide-react";
 
 export const CartScreen = React.memo(({ onBrowseProducts }) => {
   const {
@@ -33,8 +33,8 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
     return cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
   }, [cartItems]);
 
-  const handleApplyCoupon = useCallback((code) => {
-    const error = applyCouponCode(code);
+  const handleApplyCoupon = useCallback(async (code) => {
+    const error = await applyCouponCode(code);
     if (error) {
       setCouponError(error);
       setCouponSuccess(false);
@@ -233,7 +233,7 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                       type="text" 
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                      placeholder="e.g. GROCART10" 
+                      placeholder="Enter coupon code"
                       className="flex-1 bg-white/15 dark:bg-[#201f1f] border border-white/20 dark:border-[#262626] rounded-xl px-3 py-2 text-xs font-bold text-white dark:text-white placeholder:text-white/50 dark:placeholder:text-on-surface-variant focus:outline-none focus:bg-white/20 uppercase"
                     />
                     <button 
@@ -261,21 +261,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                   {couponError && <span className="text-xs text-red-300 dark:text-error font-bold">{couponError}</span>}
                   {couponSuccess && <span className="text-xs text-primary-fixed dark:text-primary font-bold">Coupon applied successfully!</span>}
 
-                  {/* Quick Coupon Chips */}
-                  {!appliedCoupon && (
-                    <div className="flex gap-2 mt-1">
-                      {COUPON_OFFERS.slice(0, 2).map(c => (
-                        <button
-                          key={c.code}
-                          type="button"
-                          onClick={() => handleApplyCoupon(c.code)}
-                          className="px-2.5 py-1 bg-white/10 dark:bg-[#201f1f] hover:bg-white/20 dark:hover:border-primary rounded-lg text-[10px] font-bold text-white/90 dark:text-on-surface-variant border border-white/10 dark:border-[#262626] cursor-pointer"
-                        >
-                          {c.code} ({c.discountPercent}% OFF)
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* INR Bill Breakdown */}
@@ -346,5 +331,3 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
 });
 
 CartScreen.displayName = "CartScreen";
-
-

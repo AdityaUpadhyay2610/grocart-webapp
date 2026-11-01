@@ -7,6 +7,12 @@ const { query, getClient } = require('../config/db');
 const { formatOrder } = require('../utils/formatters');
 const { sendSuccess, sendError } = require('../utils/response');
 const asyncHandler = require('../utils/asyncHandler');
+const { findValidCoupon, incrementCouponUse } = require('../utils/coupons');
+const {
+  ORDER_STATUS,
+  ORDER_STATUS_TRANSITIONS,
+  PRODUCT_STATUS
+} = require('../config/constants');
 
 // GET /api/orders/my — returns all orders placed by the logged-in customer
 const getMyOrders = asyncHandler(async (req, res) => {
@@ -48,50 +54,42 @@ const getMyOrders = asyncHandler(async (req, res) => {
 // POST /api/orders — place an order within a single atomic database transaction
 const placeOrder = asyncHandler(async (req, res) => {
   const customerId = req.user.id;
-  const { items, couponDiscount = 0, totalPaid, totalAmount } = req.body;
-  const finalTotal = totalPaid !== undefined ? Number(totalPaid) : (Number(totalAmount) || 0);
+  const { items, couponCode } = req.body;
 
   const client = await getClient();
   try {
     await client.query('BEGIN');
 
-    const orderId = req.body.id || crypto.randomUUID();
+    const orderId = crypto.randomUUID();
     const now = Date.now();
     let totalGMV = 0;
     let totalCost = 0;
 
-    // 1. Lock and validate each product
+    // Lock products in a consistent order so simultaneous orders do not deadlock.
+    const productIds = [...new Set(items.map((item) => item.productId || item.id))].sort();
+    const productResult = await client.query(
+      'SELECT * FROM products WHERE id = ANY($1::text[]) ORDER BY id FOR UPDATE',
+      [productIds]
+    );
+    const productsById = new Map(productResult.rows.map((product) => [product.id, product]));
+    const quantitiesByProduct = new Map();
     const preparedItems = [];
     for (const item of items) {
       const prodId = item.productId || item.id;
-      const prodRes = await client.query(
-        'SELECT * FROM products WHERE id = $1 FOR UPDATE',
-        [prodId]
-      );
-
-      if (prodRes.rows.length === 0) {
+      const product = productsById.get(prodId);
+      if (!product || product.status !== 'active') {
         await client.query('ROLLBACK');
-        return sendError(res, `${item.itemName || item.title || 'Product'} is no longer available.`, [], 400);
+        return sendError(res, 'One or more products are no longer available.', [], 400);
       }
 
-      const product = prodRes.rows[0];
       const requestedQty = parseInt(item.quantity, 10);
-      const availableStock = product.stock_quantity;
-
-      if (requestedQty > availableStock) {
+      const totalRequested = (quantitiesByProduct.get(prodId) || 0) + requestedQty;
+      quantitiesByProduct.set(prodId, totalRequested);
+      if (totalRequested > product.stock_quantity) {
         await client.query('ROLLBACK');
-        return sendError(res, `Only ${availableStock} left for ${product.title || item.itemName}.`, [], 409);
+        return sendError(res, `Only ${product.stock_quantity} left for ${product.title}.`, [], 409);
       }
 
-      // Reduce product stock; mark out_of_stock if empty
-      const newStock = availableStock - requestedQty;
-      const newStatus = newStock === 0 ? 'out_of_stock' : product.status;
-      await client.query(
-        'UPDATE products SET stock_quantity = $1, status = $2, updated_at = $3 WHERE id = $4',
-        [newStock, newStatus, now, prodId]
-      );
-
-      // Security Fix: Always use authoritative database prices/costs to prevent price tampering attacks
       const price = Number(product.selling_price);
       const cost = Number(product.cost_price);
       const lineRev = price * requestedQty;
@@ -103,11 +101,11 @@ const placeOrder = asyncHandler(async (req, res) => {
       preparedItems.push({
         itemId: item.id,
         productId: prodId,
-        itemName: item.itemName || product.title,
+        itemName: product.title,
         itemPrice: price,
         itemCost: cost,
         itemQuantity: item.itemQuantity || product.item_quantity || '500g',
-        imageUrl: item.imageUrl || product.image_url || '',
+        imageUrl: product.image_url || '',
         quantity: requestedQty,
         retailerId: product.retailer_id, // Always take retailer_id from DB
         lineRev,
@@ -115,14 +113,38 @@ const placeOrder = asyncHandler(async (req, res) => {
       });
     }
 
-    // Security Fix: Compute total paid server-side after applying discount
-    const computedTotalPaid = Math.max(0, totalGMV - Number(couponDiscount || 0));
+    for (const [productId, requestedQty] of quantitiesByProduct) {
+      const product = productsById.get(productId);
+      const newStock = product.stock_quantity - requestedQty;
+      const newStatus = newStock === 0 ? PRODUCT_STATUS.OUT_OF_STOCK : PRODUCT_STATUS.ACTIVE;
+      await client.query(
+        'UPDATE products SET stock_quantity = $1, status = $2, updated_at = $3 WHERE id = $4',
+        [newStock, newStatus, now, productId]
+      );
+    }
+
+    let couponDiscount = 0;
+    if (couponCode) {
+      const couponResult = await findValidCoupon(client, couponCode, totalGMV, true);
+      if (couponResult.error) {
+        await client.query('ROLLBACK');
+        return sendError(res, couponResult.error, [], 400);
+      }
+      const used = await incrementCouponUse(client, couponResult.coupon.code);
+      if (!used) {
+        await client.query('ROLLBACK');
+        return sendError(res, 'Coupon is no longer available.', [], 409);
+      }
+      couponDiscount = couponResult.coupon.discount;
+    }
+
+    const computedTotalPaid = Math.max(0, totalGMV - couponDiscount);
 
     // 2. Insert into orders table
     await client.query(
       `INSERT INTO orders (id, customer_id, total_paid, coupon_discount, status, created_at)
        VALUES ($1, $2, $3, $4, 'placed', $5)`,
-      [orderId, customerId, computedTotalPaid, Number(couponDiscount || 0), now]
+      [orderId, customerId, computedTotalPaid, couponDiscount, now]
     );
 
     // 3. Insert order items & update retailer analytics
@@ -176,63 +198,69 @@ const placeOrder = asyncHandler(async (req, res) => {
 
 // PATCH /api/orders/:id/status — update order status or cancel/return with stock reversion
 const updateOrderStatus = asyncHandler(async (req, res) => {
-  const orderId = req.params.id;
+  const { id: orderId } = req.params;
   const { status: newStatus } = req.body;
   const { id: userId, role: userRole } = req.user;
+  const client = await getClient();
 
-  // 1. Fetch existing order
-  const orderRes = await query('SELECT * FROM orders WHERE id = $1', [orderId]);
-  if (orderRes.rows.length === 0) {
-    return sendError(res, 'Order not found.', [], 404);
-  }
-  const order = orderRes.rows[0];
+  try {
+    await client.query('BEGIN');
+    const orderResult = await client.query(
+      'SELECT * FROM orders WHERE id = $1 FOR UPDATE',
+      [orderId]
+    );
+    if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return sendError(res, 'Order not found.', [], 404);
+    }
+    const order = orderResult.rows[0];
+    const itemResult = await client.query(
+      'SELECT * FROM order_items WHERE order_id = $1',
+      [orderId]
+    );
+    const items = itemResult.rows;
 
-  // 2. Fetch order items to verify retailer involvement
-  const itemsRes = await query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
-  const items = itemsRes.rows;
-
-  // 3. Permission checks
-  if (userRole === 'customer') {
-    if (order.customer_id !== userId) {
+    if (userRole === 'customer' && order.customer_id !== userId) {
+      await client.query('ROLLBACK');
       return sendError(res, 'You do not have permission to modify this order.', [], 403);
     }
-    if (newStatus !== 'cancelled' && newStatus !== 'returned') {
-      return sendError(res, 'Customers can only cancel or return an order.', [], 403);
-    }
-  } else if (userRole === 'retailer') {
-    const hasRetailerItem = items.some((item) => item.retailer_id === userId);
-    if (!hasRetailerItem) {
+    if (userRole === 'retailer' && !items.some((item) => item.retailer_id === userId)) {
+      await client.query('ROLLBACK');
       return sendError(res, 'You do not have permission to modify this order.', [], 403);
     }
-    if (newStatus !== 'processing' && newStatus !== 'delivered') {
-      return sendError(res, 'Retailers can only update status to processing or delivered.', [], 403);
-    }
-  }
 
-  // 4. Handle cancellation or return: revert stock, analytics, and delete the order
-  if (newStatus === 'cancelled' || newStatus === 'returned') {
-    const client = await getClient();
-    try {
-      await client.query('BEGIN');
+    const allowedStatuses = ORDER_STATUS_TRANSITIONS[order.status]?.[userRole] || [];
+    if (!allowedStatuses.includes(newStatus)) {
+      await client.query('ROLLBACK');
+      return sendError(res, 'This order status change is not allowed.', [], 409);
+    }
+
+    if (newStatus === ORDER_STATUS.CANCELLED || newStatus === ORDER_STATUS.RETURNED) {
+      const productIds = [...new Set(items.map((item) => item.product_id))].sort();
+      const productResult = await client.query(
+        'SELECT id, stock_quantity, status FROM products WHERE id = ANY($1::text[]) ORDER BY id FOR UPDATE',
+        [productIds]
+      );
+      const productsById = new Map(productResult.rows.map((product) => [product.id, product]));
       const now = Date.now();
       let totalGMV = 0;
       let totalCost = 0;
 
       for (const item of items) {
-        // Revert product stock
-        const prodRes = await client.query('SELECT stock_quantity, status FROM products WHERE id = $1 FOR UPDATE', [item.product_id]);
-        if (prodRes.rows.length > 0) {
-          const currentStock = prodRes.rows[0].stock_quantity;
-          const restoredStock = currentStock + item.quantity;
-          const status = (restoredStock > 0 && prodRes.rows[0].status === 'out_of_stock') ? 'active' : prodRes.rows[0].status;
-          await client.query('UPDATE products SET stock_quantity = $1, status = $2, updated_at = $3 WHERE id = $4', [restoredStock, status, now, item.product_id]);
+        const product = productsById.get(item.product_id);
+        if (product) {
+          const restoredStock = product.stock_quantity + item.quantity;
+          const restoredStatus = product.status === PRODUCT_STATUS.OUT_OF_STOCK
+            ? PRODUCT_STATUS.ACTIVE
+            : product.status;
+          product.stock_quantity = restoredStock;
+          product.status = restoredStatus;
         }
 
-        // Revert retailer analytics
         if (item.retailer_id) {
-          const rev = Number(item.item_price) * item.quantity;
+          const revenue = Number(item.item_price) * item.quantity;
           const cost = Number(item.item_cost) * item.quantity;
-          totalGMV += rev;
+          totalGMV += revenue;
           totalCost += cost;
 
           await client.query(
@@ -243,38 +271,37 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
                  total_orders_fulfilled = GREATEST(0, total_orders_fulfilled - 1),
                  last_updated = $4
              WHERE retailer_id = $1`,
-            [item.retailer_id, rev, cost, now]
+            [item.retailer_id, revenue, cost, now]
           );
         }
       }
 
-      // Revert platform analytics
-      const profit = totalGMV - totalCost;
+      for (const product of productsById.values()) {
+        await client.query(
+          'UPDATE products SET stock_quantity = $1, status = $2, updated_at = $3 WHERE id = $4',
+          [product.stock_quantity, product.status, now, product.id]
+        );
+      }
+
       await client.query(
         `UPDATE platform_analytics
          SET total_gmv = GREATEST(0, total_gmv - $1),
              total_platform_profit = GREATEST(0, total_platform_profit - $2),
              total_orders = GREATEST(0, total_orders - 1)
          WHERE id = 1`,
-        [totalGMV, profit]
+        [totalGMV, totalGMV - totalCost]
       );
-
-      // Delete order (cascade deletes order_items)
-      await client.query('DELETE FROM orders WHERE id = $1', [orderId]);
-
-      await client.query('COMMIT');
-      return sendSuccess(res, { message: `Order ${newStatus} and removed successfully.` });
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
     }
-  }
 
-  // 5. Standard status update (processing, delivered, etc.)
-  await query('UPDATE orders SET status = $1 WHERE id = $2', [newStatus, orderId]);
-  return sendSuccess(res, { message: `Order status updated to ${newStatus}.` });
+    await client.query('UPDATE orders SET status = $1 WHERE id = $2', [newStatus, orderId]);
+    await client.query('COMMIT');
+    return sendSuccess(res, { message: `Order status updated to ${newStatus}.` });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 module.exports = {

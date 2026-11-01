@@ -6,17 +6,27 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { query } = require('../config/db');
 const config = require('../config/config');
-const { formatUser, formatOrder, formatPlatformAnalytics } = require('../utils/formatters');
+const {
+  formatUser,
+  formatAdminUser,
+  formatOrder,
+  formatPlatformAnalytics
+} = require('../utils/formatters');
 const { sendSuccess, sendError } = require('../utils/response');
 const asyncHandler = require('../utils/asyncHandler');
+const getPagination = require('../utils/pagination');
 
 // GET /api/admin/users — fetch all users across all roles (customer, retailer, admin)
 const getAllUsers = asyncHandler(async (req, res) => {
+  const { limit, offset } = getPagination(req.query);
   const result = await query(
-    'SELECT * FROM users ORDER BY created_at DESC',
-    []
+    `SELECT id, name, email, role, store_name, phone_number, address, created_at, email_verified
+     FROM users
+     ORDER BY created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
-  const users = result.rows.map(formatUser);
+  const users = result.rows.map(formatAdminUser);
   return sendSuccess(res, users);
 });
 
@@ -69,12 +79,14 @@ const createAdmin = asyncHandler(async (req, res) => {
 
 // GET /api/admin/orders — fetch all orders on the platform
 const getAllOrders = asyncHandler(async (req, res) => {
+  const { limit, offset } = getPagination(req.query);
   const ordersResult = await query(
     `SELECT o.*, u.email as customer_email
      FROM orders o
      JOIN users u ON o.customer_id = u.id
-     ORDER BY o.created_at DESC`,
-    []
+     ORDER BY o.created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
 
   if (ordersResult.rows.length === 0) {

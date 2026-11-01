@@ -55,6 +55,18 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at           BIGINT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS coupons (
+  code         TEXT PRIMARY KEY CHECK (code = UPPER(code)),
+  type         TEXT NOT NULL CHECK (type IN ('percent', 'fixed')),
+  value        NUMERIC(10,2) NOT NULL CHECK (value > 0),
+  minimum_order NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (minimum_order >= 0),
+  expires_at   TIMESTAMPTZ,
+  max_uses     INTEGER CHECK (max_uses IS NULL OR max_uses > 0),
+  used_count   INTEGER NOT NULL DEFAULT 0 CHECK (used_count >= 0),
+  active       BOOLEAN NOT NULL DEFAULT TRUE,
+  CHECK (type != 'percent' OR value <= 100)
+);
+
 CREATE TABLE IF NOT EXISTS cart_items (
   user_id        TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   item_id        TEXT NOT NULL,                         -- e.g. "prod_123_0_500g" (the frontend's cart item id)

@@ -1,5 +1,5 @@
 export class CartItem {
-  constructor({ id, productId, itemName, itemPrice, itemQuantity = "500g", imageUrl, itemStock = 0, quantity = 1, itemCost = 0, retailerId = "" }) {
+  constructor({ id, productId, itemName, itemPrice, itemQuantity = "500g", imageUrl, itemStock = 0, quantity = 1, retailerId = "" }) {
     this.id = id;
     this.productId = productId;
     this.itemName = itemName;
@@ -8,7 +8,6 @@ export class CartItem {
     this.imageUrl = imageUrl;
     this.itemStock = itemStock;
     this.quantity = quantity;
-    this.itemCost = itemCost;
     this.retailerId = retailerId;
   }
 
@@ -17,4 +16,3 @@ export class CartItem {
     return this.itemPrice * this.quantity;
   }
 }
-

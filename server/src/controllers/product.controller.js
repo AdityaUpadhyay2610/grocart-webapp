@@ -3,15 +3,20 @@
 // All database queries use parameterized SQL; identity is enforced from req.user.id.
 
 const { query } = require('../config/db');
-const { formatProduct } = require('../utils/formatters');
+const { formatProduct, formatOwnerProduct } = require('../utils/formatters');
 const { sendSuccess, sendError } = require('../utils/response');
 const asyncHandler = require('../utils/asyncHandler');
+const getPagination = require('../utils/pagination');
 
 // GET /api/products — public, returns all active products
 const getProducts = asyncHandler(async (req, res) => {
+  const { limit, offset } = getPagination(req.query);
   const result = await query(
-    "SELECT * FROM products WHERE status = 'active' ORDER BY created_at DESC",
-    []
+    `SELECT * FROM products
+     WHERE status = 'active'
+     ORDER BY created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
   const products = result.rows.map(formatProduct);
   return sendSuccess(res, products);
@@ -24,7 +29,7 @@ const getRetailerProducts = asyncHandler(async (req, res) => {
     'SELECT * FROM products WHERE retailer_id = $1 ORDER BY created_at DESC',
     [retailerId]
   );
-  const products = result.rows.map(formatProduct);
+  const products = result.rows.map(formatOwnerProduct);
   return sendSuccess(res, products);
 });
 
@@ -131,7 +136,7 @@ const saveProduct = asyncHandler(async (req, res) => {
   }
 
   const statusCode = existing.rows.length > 0 ? 200 : 201;
-  return sendSuccess(res, formatProduct(result.rows[0]), statusCode);
+  return sendSuccess(res, formatOwnerProduct(result.rows[0]), statusCode);
 });
 
 // DELETE /api/retailer/products/:id — retailer only (or admin), deletes a product

@@ -1,4 +1,3 @@
-// src/global/utils/axiosInstance.ts
 // Central HTTP client for the GroCart web application.
 // Handles baseURL, withCredentials, in-memory JWT access token management,
 // automatic 401 token refresh, and de-duplicated session restoration.
@@ -22,6 +21,7 @@ export const apiClient = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'X-GroCart-Request': '1',
   },
 });
 
@@ -44,7 +44,10 @@ export const refreshSession = async (): Promise<any> => {
       const response = await axios.post(
         `${appConfig.apiUrl}/auth/refresh`,
         {},
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: { 'X-GroCart-Request': '1' },
+        }
       );
 
       const data = response.data?.data;

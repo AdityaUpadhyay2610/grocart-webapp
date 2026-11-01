@@ -358,8 +358,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                 const availableUnits = getAvailableUnits(item);
                 const selectedUnit = selectedUnitMap[item.id] || item.itemQuantity || availableUnits[1] || availableUnits[0] || "500g";
                 const unitAdjustedPrice = calculateUnitPrice(item.itemPrice, selectedUnit, item.itemQuantity || "500g");
-                const unitAdjustedCost = calculateUnitPrice(item.itemCost || Math.round(item.itemPrice * 1.25), selectedUnit, item.itemQuantity || "500g");
-
                 const cartItemId = `${item.id}_${selectedUnit.replace(/\s+/g, '')}`;
                 const cartItem = cartItems.find(i => i.id === cartItemId || (i.productId === item.id && i.itemQuantity === selectedUnit) || (i.id === item.id && (!i.itemQuantity || i.itemQuantity === selectedUnit)));
                 const quantity = cartItem ? cartItem.quantity : 0;
@@ -368,8 +366,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                   ...item,
                   cartItemId,
                   itemQuantity: selectedUnit,
-                  itemPrice: unitAdjustedPrice,
-                  itemCost: unitAdjustedCost
+                  itemPrice: unitAdjustedPrice
                 };
 
                 return (
@@ -542,4 +539,3 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
 });
 
 ProductsScreen.displayName = "ProductsScreen";
-

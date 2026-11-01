@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { storefrontApi } from '@global/services/api/appApis';
 
-export const useProducts = () => {
+export const useProducts = ({ limit, offset } = {}) => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -24,12 +24,11 @@ export const useProducts = () => {
           imageUrl: item.imageUrl,
           retailerStoreName: item.retailerStoreName,
           retailerId: item.retailerId,
-          description: item.description,
-          itemCost: item.costPrice
+          description: item.description
         }));
         setProducts(mappedItems);
         setIsLoading(false);
-      });
+      }, { limit, offset });
 
       return () => {
         if (unsubscribe) {
@@ -41,7 +40,7 @@ export const useProducts = () => {
       setIsError(true);
       setIsLoading(false);
     }
-  }, []);
+  }, [limit, offset]);
 
   return {
     products,

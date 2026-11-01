@@ -26,6 +26,20 @@ function formatUser(row) {
   };
 }
 
+function formatAdminUser(row) {
+  return {
+    uid: row.id,
+    name: row.name || '',
+    email: row.email || '',
+    role: row.role || 'customer',
+    storeName: row.store_name || '',
+    phoneNumber: row.phone_number || '',
+    address: row.address || '',
+    createdAt: Number(row.created_at),
+    emailVerified: row.email_verified
+  };
+}
+
 /**
  * Format a product row from the DB.
  */
@@ -38,7 +52,6 @@ function formatProduct(row) {
     description: row.description || '',
     categoryId: row.category_id || '',
     categoryName: row.category_name || '',
-    costPrice: Number(row.cost_price),
     sellingPrice: Number(row.selling_price),
     stockQuantity: Number(row.stock_quantity),
     unit: row.unit || 'pcs',
@@ -48,6 +61,13 @@ function formatProduct(row) {
     status: row.status,
     createdAt: Number(row.created_at),
     updatedAt: Number(row.updated_at)
+  };
+}
+
+function formatOwnerProduct(row) {
+  return {
+    ...formatProduct(row),
+    costPrice: Number(row.cost_price)
   };
 }
 
@@ -75,7 +95,6 @@ function formatCartItem(row) {
     productId: row.product_id || '',
     itemName: row.item_name || '',
     itemPrice: Number(row.item_price),
-    itemCost: Number(row.item_cost),
     itemQuantity: row.item_quantity || '',
     imageUrl: row.image_url || '',
     quantity: Number(row.quantity),
@@ -99,11 +118,8 @@ function formatOrder(row, items = [], customerUser = null) {
     id: item.item_id,
     productId: item.product_id || '',
     itemName: item.item_name || '',
-    title: item.item_name || '',            // alias used in some screens
     itemPrice: Number(item.item_price),
-    unitPrice: Number(item.item_price),     // alias
-    itemCost: Number(item.item_cost),
-    costPrice: Number(item.item_cost),      // alias
+    unitPrice: Number(item.item_price),
     itemQuantity: item.item_quantity || '',
     imageUrl: item.image_url || '',
     quantity: Number(item.quantity),
@@ -160,7 +176,9 @@ function formatPlatformAnalytics(row, totalRetailers) {
 
 module.exports = {
   formatUser,
+  formatAdminUser,
   formatProduct,
+  formatOwnerProduct,
   formatCategory,
   formatCartItem,
   formatOrder,

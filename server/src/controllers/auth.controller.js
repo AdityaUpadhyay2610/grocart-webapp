@@ -1,9 +1,8 @@
-// server/src/controllers/auth.controller.js
 // Handles register, login, refresh, logout, /me, and resend-verification.
 
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
 const config = require('../config/config');
 const {
   createAccessToken,
@@ -15,6 +14,11 @@ const {
 const { formatUser } = require('../utils/formatters');
 const { sendSuccess, sendError } = require('../utils/response');
 const asyncHandler = require('../utils/asyncHandler');
+
+const dummyPasswordHash = bcrypt.hashSync(
+  crypto.randomBytes(32).toString('hex'),
+  config.security.bcryptRounds
+);
 
 // Cookie settings for the refresh token
 function getRefreshCookieOptions() {
@@ -28,10 +32,11 @@ function getRefreshCookieOptions() {
 }
 
 // Helper: save a new refresh token hash in the DB
-async function saveRefreshToken(userId, rawToken) {
+async function saveRefreshToken(userId, rawToken, client = null) {
   const hash = hashToken(rawToken);
   const expiresAt = getRefreshTokenExpiry();
-  await query(
+  const executeQuery = client ? client.query.bind(client) : query;
+  await executeQuery(
     'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)',
     [userId, hash, expiresAt]
   );
@@ -41,32 +46,22 @@ async function saveRefreshToken(userId, rawToken) {
 const register = asyncHandler(async (req, res) => {
   const { email, password, name, role, storeName = '' } = req.body;
   const normalizedEmail = email.toLowerCase();
-
-  // Check if email is already taken
-  const existing = await query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
-  if (existing.rows.length > 0) {
-    return sendError(res, 'An account with this email already exists.', [], 409);
-  }
-
   const passwordHash = await bcrypt.hash(password, config.security.bcryptRounds);
   const userId = crypto.randomUUID();
   const createdAt = Date.now();
 
   await query(
     `INSERT INTO users (id, name, email, password_hash, role, store_name, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     ON CONFLICT (email) DO NOTHING`,
     [userId, name.trim(), normalizedEmail, passwordHash, role, storeName.trim(), createdAt]
   );
 
-  const userRow = await query('SELECT * FROM users WHERE id = $1', [userId]);
-  const user = formatUser(userRow.rows[0]);
-
-  const accessToken = createAccessToken(userId, role);
-  const refreshToken = createRefreshToken(userId);
-  await saveRefreshToken(userId, refreshToken);
-
-  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
-  return sendSuccess(res, { user, accessToken }, 201);
+  return sendSuccess(
+    res,
+    { message: config.security.authMessages.registrationNeutral },
+    202
+  );
 });
 
 // POST /api/auth/login
@@ -78,16 +73,12 @@ const login = asyncHandler(async (req, res) => {
 
   // Use the same error message for both "wrong email" and "wrong password"
   // to prevent attackers from guessing which emails exist.
-  const genericError = 'Invalid email or password.';
-
-  if (result.rows.length === 0) {
-    return sendError(res, genericError, [], 401);
-  }
+  const genericError = config.security.authMessages.invalidCredentials;
 
   const user = result.rows[0];
-
-  const isMatch = await bcrypt.compare(password, user.password_hash);
-  if (!isMatch) {
+  const passwordHash = user ? user.password_hash : dummyPasswordHash;
+  const isMatch = await bcrypt.compare(password, passwordHash);
+  if (!user || !isMatch) {
     return sendError(res, genericError, [], 401);
   }
 
@@ -113,35 +104,50 @@ const refresh = asyncHandler(async (req, res) => {
     return sendError(res, 'Refresh token is invalid or has expired.', [], 401);
   }
 
-  const tokenHash = hashToken(rawToken);
-  const stored = await query(
-    'SELECT id, user_id FROM refresh_tokens WHERE token_hash = $1 AND expires_at > NOW()',
-    [tokenHash]
-  );
-
-  if (stored.rows.length === 0) {
-    // Token not in DB — possible reuse attack, clear cookie
+  if (!payload.sub) {
     res.clearCookie('refreshToken', { path: '/api/auth' });
-    return sendError(res, 'Refresh token has been revoked or expired.', [], 401);
+    return sendError(res, 'Refresh token is invalid or has expired.', [], 401);
   }
 
-  const userId = stored.rows[0].user_id;
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    const rotated = await client.query(
+      `DELETE FROM refresh_tokens
+       WHERE token_hash = $1 AND expires_at > NOW()
+       RETURNING user_id`,
+      [hashToken(rawToken)]
+    );
 
-  // Delete the old refresh token (rotation: each token can only be used once)
-  await query('DELETE FROM refresh_tokens WHERE id = $1', [stored.rows[0].id]);
+    if (rotated.rows.length === 0) {
+      await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [payload.sub]);
+      await client.query('COMMIT');
+      res.clearCookie('refreshToken', { path: '/api/auth' });
+      return sendError(res, 'Refresh token has been revoked or expired.', [], 401);
+    }
 
-  const userRow = await query('SELECT * FROM users WHERE id = $1', [userId]);
-  if (userRow.rows.length === 0) {
-    return sendError(res, 'User not found.', [], 401);
+    const userId = rotated.rows[0].user_id;
+    const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.clearCookie('refreshToken', { path: '/api/auth' });
+      return sendError(res, 'User not found.', [], 401);
+    }
+
+    const user = userResult.rows[0];
+    const newAccessToken = createAccessToken(user.id, user.role);
+    const newRefreshToken = createRefreshToken(user.id);
+    await saveRefreshToken(user.id, newRefreshToken, client);
+    await client.query('COMMIT');
+
+    res.cookie('refreshToken', newRefreshToken, getRefreshCookieOptions());
+    return sendSuccess(res, { user: formatUser(user), accessToken: newAccessToken });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
-
-  const user = userRow.rows[0];
-  const newAccessToken = createAccessToken(user.id, user.role);
-  const newRefreshToken = createRefreshToken(user.id);
-  await saveRefreshToken(user.id, newRefreshToken);
-
-  res.cookie('refreshToken', newRefreshToken, getRefreshCookieOptions());
-  return sendSuccess(res, { user: formatUser(user), accessToken: newAccessToken });
 });
 
 // POST /api/auth/logout
@@ -150,17 +156,53 @@ const logout = asyncHandler(async (req, res) => {
 
   if (rawToken) {
     const tokenHash = hashToken(rawToken);
-    // Delete this specific token
     await query('DELETE FROM refresh_tokens WHERE token_hash = $1', [tokenHash]);
-    // Also clean up any expired tokens for this user
-    try {
-      const stored = await query('SELECT user_id FROM refresh_tokens WHERE token_hash = $1', [tokenHash]);
-      // token was already deleted, try to get user from payload
-    } catch {}
   }
 
   res.clearCookie('refreshToken', { path: '/api/auth' });
   return sendSuccess(res, { message: 'Logged out successfully.' });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const client = await getClient();
+
+  try {
+    await client.query('BEGIN');
+    const result = await client.query(
+      'SELECT password_hash FROM users WHERE id = $1 FOR UPDATE',
+      [req.user.id]
+    );
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return sendError(res, 'User not found.', [], 404);
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      result.rows[0].password_hash
+    );
+    if (!isCurrentPasswordValid) {
+      await client.query('ROLLBACK');
+      return sendError(res, 'Current password is incorrect.', [], 400);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, config.security.bcryptRounds);
+    await client.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [passwordHash, req.user.id]
+    );
+    await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [req.user.id]);
+    await client.query('COMMIT');
+
+    res.clearCookie('refreshToken', { path: '/api/auth' });
+    return sendSuccess(res, { message: 'Password changed successfully.' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 // GET /api/auth/me
@@ -176,7 +218,6 @@ const getMe = asyncHandler(async (req, res) => {
 // POST /api/auth/resend-verification
 // Stub: email verification is out of scope. All users have email_verified = true.
 const resendVerification = asyncHandler(async (req, res) => {
-  // TODO: integrate an SMTP service (e.g., SendGrid, Resend) to send real verification emails.
   return sendSuccess(res, { message: 'Verification email sent. Please check your inbox.' });
 });
 
@@ -187,6 +228,7 @@ module.exports = {
   login,
   refresh,
   logout,
+  changePassword,
   getMe,
   resendVerification
 };

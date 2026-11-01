@@ -5,9 +5,7 @@ import {
   calculateItemTotal,
   calculateHandlingCharge,
   getDeliveryFee,
-  calculateCouponDiscount,
-  calculateGrandTotal,
-  applyCoupon
+  calculateGrandTotal
 } from "@global/utils/calculations";
 
 const initialState = {
@@ -28,7 +26,7 @@ const recalculateTotals = (state) => {
   state.itemTotal = calculateItemTotal(state.cartItems);
   state.handlingCharge = calculateHandlingCharge(state.itemTotal);
   state.deliveryFee = getDeliveryFee();
-  state.couponDiscount = calculateCouponDiscount(state.appliedCoupon, state.itemTotal);
+  state.couponDiscount = state.appliedCoupon?.discount || 0;
   state.grandTotal = calculateGrandTotal(
     state.itemTotal,
     state.handlingCharge,
@@ -76,7 +74,6 @@ export const addToCartThunk = createAsyncThunk(
       productId: product.productId || product.id,
       itemName: product.itemName,
       itemPrice: Number(product.itemPrice) || 0,
-      itemCost: Number(product.itemCost || product.costPrice) || 0,
       itemQuantity: unit,
       imageUrl: product.imageUrl || product.image || '',
       retailerId: product.retailerId || "",
@@ -144,9 +141,7 @@ export const placeOrderThunk = createAsyncThunk(
     try {
       const order = {
         items: cart.cartItems,
-        timestamp: Date.now(),
-        totalPaid: cart.grandTotal,
-        couponDiscount: cart.couponDiscount
+        couponCode: cart.appliedCoupon?.code
       };
 
       const orderId = await dbPlaceOrder(userId, order);
@@ -174,11 +169,13 @@ const cartSlice = createSlice({
       } else {
         state.cartItems.push(updatedItem);
       }
+      state.appliedCoupon = null;
       recalculateTotals(state);
     },
     removeItemOptimistic(state, action) {
       const id = action.payload;
       state.cartItems = state.cartItems.filter(item => item.id !== id);
+      state.appliedCoupon = null;
       recalculateTotals(state);
     },
     triggerAddToCartAnimation(state, action) {
@@ -197,15 +194,8 @@ const cartSlice = createSlice({
       state.selectedPaymentMethod = action.payload;
     },
     applyCouponCode(state, action) {
-      const code = action.payload;
-      const { error, coupon } = applyCoupon(code, state.itemTotal);
-      if (!error) {
-        state.appliedCoupon = coupon;
-        recalculateTotals(state);
-        action.payload = { error: null };
-      } else {
-        action.payload = { error };
-      }
+      state.appliedCoupon = action.payload;
+      recalculateTotals(state);
     },
     removeAppliedCoupon(state) {
       state.appliedCoupon = null;

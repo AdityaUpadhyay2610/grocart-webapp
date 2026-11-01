@@ -1,12 +1,3 @@
-export const COUPON_OFFERS = [
-  { code: 'GROCART10', description: '10% off on all fresh grocery orders', discountPercent: 10, minOrder: 100 },
-  { code: 'SAVE10', description: '10% off on orders above ₹200', discountPercent: 10, minOrder: 200 },
-  { code: 'FRESH20', description: '20% off on orders above ₹500', discountPercent: 20, minOrder: 500 },
-  { code: 'GROCART5', description: 'Flat 5% off on all orders', discountPercent: 5, minOrder: 0 },
-  { code: 'FIRST50', description: '50% off — Max ₹100 (New User)', discountPercent: 50, minOrder: 100 },
-  { code: 'FESTIVE15', description: 'Festive 15% off above ₹300', discountPercent: 15, minOrder: 300 }
-];
-
 /**
  * Formats a number into Indian Rupee currency standard
  * e.g. 124999.5 -> "₹1,24,999.50" or 249 -> "₹249.00"
@@ -51,35 +42,9 @@ export const calculateEcoSavings = (cartItems) => {
   };
 };
 
-export const calculateCouponDiscount = (coupon, itemTotal) => {
-  if (!coupon) return 0;
-  if (itemTotal < coupon.minOrder) return 0;
-  
-  let discount = Number(((itemTotal * coupon.discountPercent) / 100).toFixed(2));
-  
-  // Custom rule for FIRST50: Max ₹100
-  if (coupon.code === 'FIRST50' && discount > 100) {
-    discount = 100;
-  }
-  
-  return discount;
-};
-
 export const calculateGrandTotal = (itemTotal, handlingCharge, deliveryFee, couponDiscount, gst = 0) => {
   const grand = itemTotal + handlingCharge + deliveryFee + gst - couponDiscount;
   return Number(Math.max(0, grand).toFixed(2));
-};
-
-export const applyCoupon = (code, itemTotal) => {
-  if (!code) return { error: 'Please enter a coupon code', coupon: null };
-  const found = COUPON_OFFERS.find(c => c.code.toLowerCase() === code.trim().toLowerCase());
-  if (!found) {
-    return { error: 'Invalid coupon code', coupon: null };
-  }
-  if (itemTotal < found.minOrder) {
-    return { error: `Minimum order ${formatINR(found.minOrder, false)} required`, coupon: null };
-  }
-  return { error: null, coupon: found };
 };
 
 /**
@@ -146,5 +111,4 @@ export const calculateUnitPrice = (basePrice, selectedUnit, baseQuantity = "500g
   const computed = Math.round(price * ratio);
   return Math.max(5, computed);
 };
-
 

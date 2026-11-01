@@ -2,6 +2,7 @@
 // express-validator rules for placing and updating orders.
 
 const { body, param } = require('express-validator');
+const { ORDER_STATUSES } = require('../config/constants');
 
 // Rules for POST /api/orders (place an order)
 const placeOrderRules = [
@@ -18,14 +19,11 @@ const placeOrderRules = [
     .isInt({ min: 1, max: 999 })
     .withMessage('Each item quantity must be between 1 and 999.'),
 
-  body('totalPaid')
-    .isFloat({ min: 0 })
-    .withMessage('Total paid must be a number >= 0.'),
-
-  body('couponDiscount')
+  body('couponCode')
     .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Coupon discount must be a number >= 0.')
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Coupon code must be between 1 and 100 characters.')
 ];
 
 // Rules for PATCH /api/orders/:id/status
@@ -36,8 +34,8 @@ const updateStatusRules = [
     .withMessage('Invalid order id.'),
 
   body('status')
-    .isIn(['placed', 'processing', 'delivered', 'cancelled', 'returned'])
-    .withMessage('Status must be one of: placed, processing, delivered, cancelled, returned.')
+    .isIn(ORDER_STATUSES)
+    .withMessage(`Status must be one of: ${ORDER_STATUSES.join(', ')}.`)
 ];
 
 // Rules for param :id

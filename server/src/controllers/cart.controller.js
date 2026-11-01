@@ -27,7 +27,6 @@ const saveCartItem = asyncHandler(async (req, res) => {
     productId = '',
     itemName = '',
     itemPrice = 0,
-    itemCost = 0,
     itemQuantity = '500g',
     imageUrl = '',
     quantity = 1,
@@ -41,16 +40,14 @@ const saveCartItem = asyncHandler(async (req, res) => {
   const sql = `
     INSERT INTO cart_items (
       user_id, item_id, product_id, item_name, item_price,
-      item_cost, item_quantity, image_url, quantity, item_stock, retailer_id
+      item_quantity, image_url, quantity, item_stock, retailer_id
     ) VALUES (
-      $1, $2, $3, $4, $5,
-      $6, $7, $8, $9, $10, $11
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
     )
     ON CONFLICT (user_id, item_id) DO UPDATE SET
       product_id = EXCLUDED.product_id,
       item_name = EXCLUDED.item_name,
       item_price = EXCLUDED.item_price,
-      item_cost = EXCLUDED.item_cost,
       item_quantity = EXCLUDED.item_quantity,
       image_url = EXCLUDED.image_url,
       quantity = EXCLUDED.quantity,
@@ -65,7 +62,6 @@ const saveCartItem = asyncHandler(async (req, res) => {
     resolvedProductId,
     itemName,
     Number(itemPrice),
-    Number(itemCost),
     itemQuantity,
     imageUrl,
     parseInt(quantity, 10),
