@@ -172,30 +172,65 @@ function createLoginLimiter() {
 const byUserOrIp = (req) => getUserId(req) || getClientIp(req);
 
 module.exports = {
+  // Applied globally to all requests
   generalLimiter: createTokenBucketLimiter({
     name: 'general',
     ...config.security.generalRateLimit,
     keyGenerator: byUserOrIp
   }),
+
+  // Public catalog reads — token bucket, generous for browsing
+  searchLimiter: createTokenBucketLimiter({
+    name: 'search',
+    ...config.security.searchRateLimit,
+    keyGenerator: byUserOrIp
+  }),
+
+  // Auth routes
   refreshLimiter: createTokenBucketLimiter({
     name: 'refresh',
     ...config.security.refreshRateLimit,
     keyGenerator: byUserOrIp
   }),
-  orderLimiter: createTokenBucketLimiter({
-    name: 'order',
-    ...config.security.orderRateLimit,
-    keyGenerator: byUserOrIp
-  }),
-  profileLimiter: createTokenBucketLimiter({
-    name: 'profile',
-    ...config.security.profileRateLimit,
-    keyGenerator: byUserOrIp
-  }),
+  loginLimiter: createLoginLimiter(),
   registerLimiter: createLeakyBucketLimiter({
     name: 'register',
     ...config.security.registerRateLimit,
     keyGenerator: getClientIp
   }),
-  loginLimiter: createLoginLimiter()
+
+  // Order placement
+  orderLimiter: createTokenBucketLimiter({
+    name: 'order',
+    ...config.security.orderRateLimit,
+    keyGenerator: byUserOrIp
+  }),
+
+  // Profile updates
+  profileLimiter: createTokenBucketLimiter({
+    name: 'profile',
+    ...config.security.profileRateLimit,
+    keyGenerator: byUserOrIp
+  }),
+
+  // Cart mutations — token bucket per user
+  cartLimiter: createTokenBucketLimiter({
+    name: 'cart',
+    ...config.security.cartRateLimit,
+    keyGenerator: byUserOrIp
+  }),
+
+  // Coupon validation — leaky bucket to stop brute-force code guessing
+  couponLimiter: createLeakyBucketLimiter({
+    name: 'coupon',
+    ...config.security.couponRateLimit,
+    keyGenerator: byUserOrIp
+  }),
+
+  // Bulk import — leaky bucket, slow drain (expensive DB write operation)
+  bulkUploadLimiter: createLeakyBucketLimiter({
+    name: 'bulk',
+    ...config.security.bulkUploadRateLimit,
+    keyGenerator: byUserOrIp
+  }),
 };

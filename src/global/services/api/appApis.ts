@@ -39,6 +39,16 @@ export const retailerApi = {
   },
 
   /** Delete a product. Only the owner can do this. */
+  /** Bulk create or update products (upsert). */
+  bulkSaveProducts: async (products: ProductItem[]): Promise<void> => {
+    await apiClient.post('/retailer/products/bulk', { products });
+  },
+
+  /** Bulk delete products. If productIds omitted, deletes all. */
+  bulkDeleteProducts: async (productIds?: string[]): Promise<void> => {
+    await apiClient.post('/retailer/products/bulk-delete', { productIds });
+  },
+
   deleteProduct: async (productId: string): Promise<void> => {
     await apiClient.delete(`/retailer/products/${productId}`);
   },
@@ -47,7 +57,8 @@ export const retailerApi = {
   fetchAnalytics: async (_retailerId: string): Promise<RetailerAnalytics | null> => {
     try {
       const res = await apiClient.get('/retailer/analytics');
-      return (res.data?.data?.analytics ?? null) as RetailerAnalytics | null;
+      const data = res.data?.data;
+      return (data?.analytics ?? data ?? null) as RetailerAnalytics | null;
     } catch (error) {
       console.error('Failed to fetch analytics', error);
       return null;
@@ -58,7 +69,8 @@ export const retailerApi = {
   fetchRetailerOrders: async (_retailerId: string): Promise<(Order & { customerDetails?: UserProfile })[]> => {
     try {
       const res = await apiClient.get('/retailer/orders');
-      return (res.data?.data?.orders ?? []) as (Order & { customerDetails?: UserProfile })[];
+      const data = res.data?.data;
+      return (Array.isArray(data) ? data : data?.orders ?? []) as (Order & { customerDetails?: UserProfile })[];
     } catch (error) {
       console.error('Failed to fetch retailer orders', error);
       return [];
@@ -147,7 +159,7 @@ export const storefrontApi = {
     // Then poll every 10 seconds
     const interval = setInterval(() => {
       storefrontApi.fetchAllProducts(pagination).then(onData).catch(() => onData([]));
-    }, 10_000);
+    }, 60_000);
 
     // Return unsubscribe (clears interval)
     return () => clearInterval(interval);
@@ -157,7 +169,8 @@ export const storefrontApi = {
   fetchCategories: async (): Promise<ProductCategory[]> => {
     try {
       const res = await apiClient.get('/categories');
-      const cats = res.data?.data?.categories;
+      const raw = res.data?.data;
+      const cats = Array.isArray(raw) ? raw : raw?.categories;
       if (Array.isArray(cats) && cats.length > 0) {
         return cats as ProductCategory[];
       }
@@ -179,7 +192,7 @@ export const storefrontApi = {
     // Then poll every 10 seconds
     const interval = setInterval(() => {
       storefrontApi.fetchCategories().then(onData).catch(() => onData([]));
-    }, 10_000);
+    }, 60_000);
 
     // Return unsubscribe (clears interval)
     return () => clearInterval(interval);

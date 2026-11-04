@@ -15,8 +15,9 @@ export const useProducts = ({ limit, offset } = {}) => {
         const mappedItems = items.map(item => ({
           id: item.id,
           itemName: item.title,
-          itemCategory: item.categoryName || item.categoryId,
+          itemCategory: item.categoryName || item.categoryId || '',
           itemPrice: item.sellingPrice,
+          itemCost: item.costPrice || Math.round((item.sellingPrice || 0) * 1.15),
           unit: item.unit,
           unitSize: item.unitSize,
           itemQuantity: item.itemQuantity,

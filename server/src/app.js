@@ -20,6 +20,7 @@ const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
 const couponRoutes = require('./routes/coupon.routes');
 const adminRoutes = require('./routes/admin.routes');
+const webhookRoutes = require('./routes/webhook.routes');
 
 const app = express();
 app.set('trust proxy', config.trustProxy);
@@ -27,7 +28,7 @@ app.set('trust proxy', config.trustProxy);
 // Security headers
 app.use(helmet());
 
-// CORS — only allow the configured frontend URL with credentials (for cookies)
+// CORS — only allow the configured frontend URL with credentials
 app.use(
   cors({
     origin: config.clientUrl,
@@ -66,6 +67,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // Central error handler — must be the LAST middleware
 app.use(errorHandler);

@@ -1,6 +1,5 @@
 // src/modules/customer/services/orderRepository.js
-// Order persistence layer – now backed by Express + PostgreSQL REST API.
-// All stock deduction, analytics, and ACID transactions happen server-side.
+// Order persistence layer backed by Express + PostgreSQL REST API and Razorpay.
 
 import { apiClient } from '@global/utils/axiosInstance';
 import { Order } from '@global/models/Order';
@@ -32,13 +31,15 @@ function toOrder(raw) {
     totalPaid: Number(raw.total_amount ?? raw.totalPaid) || 0,
     couponDiscount: Number(raw.couponDiscount ?? raw.discount_amount) || 0,
     status: raw.status ?? 'placed',
+    paymentMethod: raw.paymentMethod ?? raw.payment_method ?? 'COD',
+    paymentStatus: raw.paymentStatus ?? raw.payment_status ?? 'pending',
   });
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 /**
- * Fetch all orders for a user.
+ * Fetch all orders for a customer.
  */
 export const fetchOrders = async (userId) => {
   if (!userId) return [];
@@ -55,13 +56,7 @@ export const fetchOrders = async (userId) => {
 };
 
 /**
- * Place a new order.
- * The backend handles stock deduction, analytics, and ACID transactions.
- * Returns the new order ID string, or null on failure.
- *
- * @param {string} userId
- * @param {{ items: CartItem[], couponCode?: string }} order
- * @returns {Promise<string|null>}
+ * Place a standard Cash on Delivery (COD) order.
  */
 export const placeOrder = async (userId, order) => {
   if (!userId || !order) return null;
@@ -87,8 +82,45 @@ export const placeOrder = async (userId, order) => {
 };
 
 /**
- * Update the status of an existing order (admin / retailer use).
- * Cancellation / return stock reversal is handled server-side.
+ * Initializes a Razorpay order on the backend.
+ * @param {{ items: Array, couponCode?: string }} orderPayload
+ */
+export const createRazorpayOrder = async (orderPayload) => {
+  try {
+    const payload = {
+      items: orderPayload.items.map((item) => ({
+        id: item.id,
+        productId: item.productId || item.id,
+        quantity: item.quantity,
+      })),
+      couponCode: orderPayload.couponCode,
+    };
+
+    const response = await apiClient.post('/orders/razorpay/create-order', payload);
+    return response.data?.data;
+  } catch (error) {
+    console.error('Failed to create Razorpay order:', error);
+    throw error;
+  }
+};
+
+/**
+ * Verifies Razorpay payment signature and commits the order.
+ * @param {Object} verificationData
+ */
+export const verifyRazorpayPayment = async (verificationData) => {
+  try {
+    const response = await apiClient.post('/orders/razorpay/verify', verificationData);
+    const data = response.data?.data;
+    return data?.orderId ?? data?.id;
+  } catch (error) {
+    console.error('Failed to verify Razorpay payment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update order status (Admin / Retailer).
  */
 export const updateOrderStatus = async (orderId, newStatus) => {
   if (!orderId) return;

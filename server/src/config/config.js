@@ -77,8 +77,8 @@ const rateLimitStore = {
   idleTimeoutMs: parseNumber('RATE_LIMIT_STORE_IDLE_TIMEOUT_MS', 3600000)
 };
 const generalRateLimit = {
-  capacity: parseNumber('API_RATE_LIMIT_CAPACITY', 300),
-  refillPerSecond: parseNumber('API_RATE_LIMIT_REFILL_PER_SECOND', 5),
+  capacity: parseNumber('API_RATE_LIMIT_CAPACITY', 3000),
+  refillPerSecond: parseNumber('API_RATE_LIMIT_REFILL_PER_SECOND', 30),
   windowMs: parseNumber('API_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
 };
 const refreshRateLimit = {
@@ -113,6 +113,24 @@ const loginRateLimit = {
 const registerRateLimit = {
   capacity: parseNumber('REGISTER_RATE_LIMIT_CAPACITY', 5),
   windowMs: parseNumber('REGISTER_RATE_LIMIT_WINDOW_MINUTES', 60) * 60 * 1000
+};
+const searchRateLimit = {
+  capacity: parseNumber('SEARCH_RATE_LIMIT_CAPACITY', 120),
+  refillPerSecond: parseNumber('SEARCH_RATE_LIMIT_REFILL_PER_SECOND', 2),
+  windowMs: parseNumber('SEARCH_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
+};
+const cartRateLimit = {
+  capacity: parseNumber('CART_RATE_LIMIT_CAPACITY', 60),
+  refillPerSecond: parseNumber('CART_RATE_LIMIT_REFILL_PER_SECOND', 1),
+  windowMs: parseNumber('CART_RATE_LIMIT_WINDOW_SECONDS', 60) * 1000
+};
+const couponRateLimit = {
+  capacity: parseNumber('COUPON_RATE_LIMIT_CAPACITY', 10),
+  windowMs: parseNumber('COUPON_RATE_LIMIT_WINDOW_MINUTES', 5) * 60 * 1000
+};
+const bulkUploadRateLimit = {
+  capacity: parseNumber('BULK_UPLOAD_RATE_LIMIT_CAPACITY', 3),
+  windowMs: parseNumber('BULK_UPLOAD_RATE_LIMIT_WINDOW_MINUTES', 60) * 60 * 1000
 };
 const refreshTokenCleanupIntervalMs =
   parseNumber('REFRESH_TOKEN_CLEANUP_INTERVAL_MINUTES', 60) * 60 * 1000;
@@ -151,6 +169,13 @@ const seedAdmin = {
   password: process.env.SEED_ADMIN_PASSWORD || ''
 };
 
+// 7. Razorpay configuration
+const razorpay = {
+  keyId: process.env.RAZORPAY_KEY_ID || '',
+  keySecret: process.env.RAZORPAY_KEY_SECRET || '',
+  webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || ''
+};
+
 // Export one frozen object
 module.exports = Object.freeze({
   env,
@@ -160,7 +185,13 @@ module.exports = Object.freeze({
   trustProxy,
   logLevel,
   db: {
-    url: databaseUrl
+    url: databaseUrl,
+    pool: {
+      max: parseNumber('DB_POOL_MAX', 20),
+      min: parseNumber('DB_POOL_MIN', 2),
+      idleTimeoutMillis: parseNumber('DB_POOL_IDLE_TIMEOUT_MS', 30000),
+      connectionTimeoutMillis: parseNumber('DB_POOL_CONNECT_TIMEOUT_MS', 5000)
+    }
   },
   jwt: {
     accessSecret: jwtAccessSecret,
@@ -192,9 +223,13 @@ module.exports = Object.freeze({
     rateLimitMessage: process.env.RATE_LIMIT_MESSAGE || 'Too many requests. Please try again later.',
     rateLimitStore,
     generalRateLimit,
+    searchRateLimit,
     refreshRateLimit,
     orderRateLimit,
     profileRateLimit,
+    cartRateLimit,
+    couponRateLimit,
+    bulkUploadRateLimit,
     loginRateLimit,
     registerRateLimit,
     refreshTokenCleanupIntervalMs,
@@ -203,5 +238,6 @@ module.exports = Object.freeze({
     cookieRequestHeaderMessage:
       process.env.COOKIE_REQUEST_HEADER_MESSAGE || 'A custom request header is required.'
   },
-  seedAdmin
+  seedAdmin,
+  razorpay
 });

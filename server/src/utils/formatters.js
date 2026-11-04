@@ -136,6 +136,10 @@ function formatOrder(row, items = [], customerUser = null) {
     totalAmount: totalPaid,                 // same value, two names
     couponDiscount: Number(row.coupon_discount),
     status: row.status,
+    paymentMethod: row.payment_method || 'COD',
+    paymentStatus: row.payment_status || 'pending',
+    razorpayOrderId: row.razorpay_order_id || null,
+    razorpayPaymentId: row.razorpay_payment_id || null,
     items: formattedItems
   };
 

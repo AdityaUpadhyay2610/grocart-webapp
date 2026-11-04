@@ -7,7 +7,11 @@ const logger = require('../utils/logger');
 
 // Create connection pool with connection string from frozen config
 const pool = new Pool({
-  connectionString: config.db.url
+  connectionString: config.db.url,
+  max: config.db.pool.max,
+  min: config.db.pool.min,
+  idleTimeoutMillis: config.db.pool.idleTimeoutMillis,
+  connectionTimeoutMillis: config.db.pool.connectionTimeoutMillis
 });
 
 // Log any unexpected pool errors
@@ -25,7 +29,7 @@ async function query(text, params) {
   const res = await pool.query(text, params);
   const duration = Date.now() - start;
   // In development, log slow queries (> 200ms)
-  if (!config.isProduction && duration > 200) {
+  if (!config.isProduction && duration > 2000) {
     logger.warn(`[Slow Query ${duration}ms]:`, text);
   }
   return res;

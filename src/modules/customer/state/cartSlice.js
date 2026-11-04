@@ -14,7 +14,6 @@ const initialState = {
   selectedPaymentMethod: null,
   appliedCoupon: null,
   animatingItem: null,
-  // Derived state fields stored in state for convenience
   itemTotal: 0,
   handlingCharge: 0,
   deliveryFee: getDeliveryFee(),
@@ -35,7 +34,6 @@ const recalculateTotals = (state) => {
   );
 };
 
-// Async Thunks
 export const loadCartThunk = createAsyncThunk(
   "cart/loadCart",
   async (_, { getState, rejectWithValue }) => {
@@ -81,14 +79,13 @@ export const addToCartThunk = createAsyncThunk(
       quantity: newQuantity
     };
 
-    // Optimistic dispatch
     dispatch(cartSlice.actions.updateItemOptimistic(cartItem));
 
     try {
       await saveCartItem(userId, cartItem);
     } catch (e) {
       console.error("Failed to sync add cart item:", e);
-      dispatch(loadCartThunk()); // Rollback
+      dispatch(loadCartThunk());
       return rejectWithValue(e.message);
     }
   }
@@ -102,13 +99,12 @@ export const decreaseCartItemThunk = createAsyncThunk(
     if (!userId) return rejectWithValue("User not logged in");
 
     if (item.quantity <= 1) {
-      // Optimistic dispatch
       dispatch(cartSlice.actions.removeItemOptimistic(item.id));
       try {
         await removeCartItem(userId, item.id);
       } catch (e) {
         console.error("Failed to sync remove cart item:", e);
-        dispatch(loadCartThunk()); // Rollback
+        dispatch(loadCartThunk());
         return rejectWithValue(e.message);
       }
     } else {
@@ -116,22 +112,43 @@ export const decreaseCartItemThunk = createAsyncThunk(
         ...item,
         quantity: item.quantity - 1
       };
-      // Optimistic dispatch
       dispatch(cartSlice.actions.updateItemOptimistic(updatedItem));
       try {
         await saveCartItem(userId, updatedItem);
       } catch (e) {
         console.error("Failed to sync decrease cart item:", e);
-        dispatch(loadCartThunk()); // Rollback
+        dispatch(loadCartThunk());
         return rejectWithValue(e.message);
       }
     }
   }
 );
 
+export const clearCartThunk = createAsyncThunk(
+  "cart/clearCart",
+  async (_, { getState, dispatch }) => {
+    const { auth } = getState();
+    const userId = auth.user?.uid || auth.user?.id;
+    
+    // Immediately clear local Redux state
+    dispatch(cartSlice.actions.clearCartState());
+    localStorage.removeItem("grocart_guest_cart");
+
+    // Clear backend database
+    if (userId) {
+      try {
+        await clearCart(userId);
+      } catch (e) {
+        console.warn("Failed to clear backend cart:", e);
+      }
+    }
+    return true;
+  }
+);
+
 export const placeOrderThunk = createAsyncThunk(
   "cart/placeOrder",
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { getState, rejectWithValue, dispatch }) => {
     const { auth, cart } = getState();
     const userId = auth.user?.uid || auth.user?.id;
     if (!userId || cart.cartItems.length === 0) {
@@ -146,7 +163,7 @@ export const placeOrderThunk = createAsyncThunk(
 
       const orderId = await dbPlaceOrder(userId, order);
       if (orderId) {
-        await clearCart(userId);
+        dispatch(clearCartThunk());
         return orderId;
       }
       return rejectWithValue("Could not place order");
@@ -216,6 +233,13 @@ const cartSlice = createSlice({
         recalculateTotals(state);
       })
       .addCase(placeOrderThunk.fulfilled, (state) => {
+        state.cartItems = [];
+        state.appliedCoupon = null;
+        state.selectedPaymentMethod = null;
+        state.showPaymentScreen = false;
+        recalculateTotals(state);
+      })
+      .addCase(clearCartThunk.fulfilled, (state) => {
         state.cartItems = [];
         state.appliedCoupon = null;
         state.selectedPaymentMethod = null;

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useParams, useOutletContext, useNavigate } from "react-router";
 import { useCart } from "../state/CartContext";
 import { matchCategory } from "@global/models/Categories";
@@ -46,7 +46,17 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
   const [wishlist, setWishlist] = useState(() => new Set());
   const [activeSubcategory, setActiveSubcategory] = useState("All Items");
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(500);
+
+  const maxAvailablePrice = useMemo(() => {
+    const highest = Math.max(...(products || []).map(p => Number(p.itemPrice) || 0), 0);
+    return Math.max(highest > 0 ? Math.ceil(highest / 100) * 100 : 5000, 5000);
+  }, [products]);
+
+  const [maxPrice, setMaxPrice] = useState(50000);
+
+  useEffect(() => {
+    setMaxPrice(maxAvailablePrice);
+  }, [maxAvailablePrice]);
   const [selectedDietary, setSelectedDietary] = useState(() => new Set());
   const [selectedBrands, setSelectedBrands] = useState(() => new Set());
   const [sortBy, setSortBy] = useState("featured");
@@ -98,7 +108,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
 
   const clearFilters = useCallback(() => {
     setMinPrice(0);
-    setMaxPrice(500);
+    setMaxPrice(maxAvailablePrice || 50000);
     setSelectedDietary(new Set());
     setSelectedBrands(new Set());
     setActiveSubcategory("All Items");
@@ -111,13 +121,11 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
       list = list.filter(product => matchCategory(product.itemCategory, category.name));
     }
 
-    // Fallback if current category is empty in DB
-    if (list.length === 0 && products.length > 0) {
-      list = products.slice(0, 12);
-    }
-
     // Price Filter
-    list = list.filter(item => item.itemPrice >= minPrice && item.itemPrice <= maxPrice);
+    list = list.filter(item => {
+      const price = Number(item.itemPrice) || 0;
+      return price >= minPrice && price <= maxPrice;
+    });
 
     // Sort
     if (sortBy === "price-low") {
@@ -216,9 +224,9 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               <input 
                 type="range" 
                 min="0" 
-                max="500" 
-                step="10"
-                value={maxPrice}
+                max={maxAvailablePrice}
+                step={maxAvailablePrice > 2000 ? 100 : 50}
+                value={Math.min(maxPrice, maxAvailablePrice)}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="w-full accent-primary cursor-pointer"
               />
@@ -358,6 +366,8 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                 const availableUnits = getAvailableUnits(item);
                 const selectedUnit = selectedUnitMap[item.id] || item.itemQuantity || availableUnits[1] || availableUnits[0] || "500g";
                 const unitAdjustedPrice = calculateUnitPrice(item.itemPrice, selectedUnit, item.itemQuantity || "500g");
+                const costVal = item.itemCost || item.costPrice || null;
+                const unitAdjustedCost = costVal ? calculateUnitPrice(costVal, selectedUnit, item.itemQuantity || "500g") : null;
                 const cartItemId = `${item.id}_${selectedUnit.replace(/\s+/g, '')}`;
                 const cartItem = cartItems.find(i => i.id === cartItemId || (i.productId === item.id && i.itemQuantity === selectedUnit) || (i.id === item.id && (!i.itemQuantity || i.itemQuantity === selectedUnit)));
                 const quantity = cartItem ? cartItem.quantity : 0;
@@ -421,7 +431,9 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                     {/* Price & Stepper / Add */}
                     <div className="flex items-center justify-between pt-3 border-t border-surface-variant/30 dark:border-[#262626] mt-1">
                       <div className="flex flex-col text-left">
-                        <span className="font-label-sm text-[10px] text-on-surface-variant line-through opacity-75">{formatINR(unitAdjustedCost, false)}</span>
+                        {unitAdjustedCost && unitAdjustedCost > unitAdjustedPrice && (
+                          <span className="font-label-sm text-[10px] text-on-surface-variant line-through opacity-75">{formatINR(unitAdjustedCost, false)}</span>
+                        )}
                         <span className="font-headline-md text-base font-black text-on-surface dark:text-white">{formatINR(unitAdjustedPrice)}</span>
                       </div>
 

@@ -9,6 +9,7 @@ const verifyToken = require('../middleware/verifyToken');
 const requireRole = require('../middleware/requireRole');
 const validate = require('../middleware/validate');
 const { saveProductRules, idParamRules } = require('../validators/product.validators');
+const { bulkUploadLimiter } = require('../middleware/rateLimit');
 
 // All retailer routes require a valid access token
 router.use(verifyToken);
@@ -18,6 +19,22 @@ router.get(
   '/products',
   requireRole('retailer'),
   productController.getRetailerProducts
+);
+
+
+// POST /api/retailer/products/bulk — retailer only, bulk upsert products
+router.post(
+  '/products/bulk',
+  requireRole('retailer'),
+  bulkUploadLimiter,
+  productController.bulkSaveProducts
+);
+
+// POST /api/retailer/products/bulk-delete — retailer only, bulk delete products
+router.post(
+  '/products/bulk-delete',
+  requireRole('retailer', 'admin'),
+  productController.bulkDeleteProducts
 );
 
 // PUT /api/retailer/products/:id — retailer only, upsert product (create or update)

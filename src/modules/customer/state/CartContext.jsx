@@ -6,6 +6,7 @@ import {
   addToCartThunk, 
   decreaseCartItemThunk, 
   placeOrderThunk,
+  clearCartThunk,
   triggerAddToCartAnimation as triggerAddToCartAnimationAction,
   clearAnimatingItem as clearAnimatingItemAction,
   proceedToPay as proceedToPayAction,
@@ -16,7 +17,6 @@ import {
 } from './cartSlice';
 import { validateCoupon } from '../services/couponRepository';
 
-// Legacy provider for backward compatibility (no-op context)
 export const CartProvider = ({ children }) => {
   return <>{children}</>;
 };
@@ -28,15 +28,18 @@ export const useCart = () => {
   const loadCart = useCallback(() => dispatch(loadCartThunk()), [dispatch]);
   const addToCart = useCallback((product) => dispatch(addToCartThunk(product)), [dispatch]);
   const decreaseCartItem = useCallback((item) => dispatch(decreaseCartItemThunk(item)), [dispatch]);
+  
   const triggerAddToCartAnimation = useCallback((product) => {
     dispatch(triggerAddToCartAnimationAction(product));
     setTimeout(() => {
       dispatch(clearAnimatingItemAction());
     }, 800);
   }, [dispatch]);
+
   const proceedToPay = useCallback(() => dispatch(proceedToPayAction()), [dispatch]);
   const cancelPayment = useCallback(() => dispatch(cancelPaymentAction()), [dispatch]);
   const setPaymentMethod = useCallback((method) => dispatch(setPaymentMethodAction(method)), [dispatch]);
+
   const applyCouponCode = useCallback(async (code) => {
     try {
       const coupon = await validateCoupon(code, cartState.cartItems);
@@ -47,10 +50,22 @@ export const useCart = () => {
       return message;
     }
   }, [dispatch, cartState.cartItems]);
+
   const removeAppliedCoupon = useCallback(() => dispatch(removeAppliedCouponAction()), [dispatch]);
-  const completePayment = useCallback(() => dispatch(cancelPaymentAction()), [dispatch]);
+
+  const clearCartData = useCallback(() => {
+    dispatch(clearCartThunk());
+  }, [dispatch]);
+
+  const completePayment = useCallback(() => {
+    dispatch(clearCartThunk());
+    dispatch(cancelPaymentAction());
+  }, [dispatch]);
+
   const placeOrder = useCallback(async () => {
-    return await dispatch(placeOrderThunk()).unwrap();
+    const orderId = await dispatch(placeOrderThunk()).unwrap();
+    dispatch(clearCartThunk());
+    return orderId;
   }, [dispatch]);
 
   return {
@@ -64,6 +79,8 @@ export const useCart = () => {
     setPaymentMethod,
     applyCouponCode,
     removeAppliedCoupon,
+    clearCartData,
+    clearCart: clearCartData,
     completePayment,
     placeOrder
   };

@@ -89,6 +89,12 @@ CREATE TABLE IF NOT EXISTS orders (
   coupon_discount  NUMERIC(10,2) NOT NULL DEFAULT 0,
   status           TEXT NOT NULL DEFAULT 'placed'
                    CHECK (status IN ('placed','processing','delivered','cancelled','returned')),
+  payment_method   TEXT NOT NULL DEFAULT 'COD',
+  payment_status   TEXT NOT NULL DEFAULT 'pending'
+                   CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
+  razorpay_order_id TEXT,
+  razorpay_payment_id TEXT,
+  razorpay_signature TEXT,
   created_at       BIGINT NOT NULL
 );
 

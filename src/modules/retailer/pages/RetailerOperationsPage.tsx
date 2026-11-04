@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
@@ -7,7 +8,7 @@ import { authApi } from '@global/services/api/authApi';
 import { ProductItem, ProductCategory } from '@global/models';
 import { DEFAULT_CATEGORIES } from '@global/utils/constants';
 import * as XLSX from 'xlsx';
-import { storefrontApi } from '@global/services/api/appApis';
+import { storefrontApi, retailerApi } from '@global/services/api/appApis';
 
 import { useRetailerOperations } from '../hooks/useRetailerOperations';
 import { RetailerLayout } from '../components/RetailerLayout';
@@ -26,6 +27,7 @@ export default function RetailerOperationsPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
 
   const {
     products, isLoadingProducts, stats, orders, isLoadingOrders,
@@ -231,19 +233,18 @@ export default function RetailerOperationsPage() {
         const ALLOWED_UNITS = ['pcs', 'kg', 'g', 'l', 'ml', 'liter', 'dozen', 'pack', 'bunch', 'bottle', 'box', 'bag'];
 
         setIsBulkUploading(true);
-        setProgress({ type: 'import', current: 0, total: json.length });
-        
+        const productsToSave: ProductItem[] = [];
+
         for (let i = 0; i < json.length; i++) {
           const item = json[i];
           const rawTitle = findField(item, 'title', 'producttitle', 'productname', 'name', 'itemname', 'item');
           const title = String(rawTitle || '').trim();
-          if (!title) {
-            throw new Error(`Row ${i + 1} is missing a Product Title.`);
-          }
+          if (!title) continue;
 
           const rawCat = String(findField(item, 'categoryid', 'category', 'categoryname') || '').trim();
           const matchedCategory = categories.find(c => 
             String(c.id).toLowerCase() === rawCat.toLowerCase() || 
+            String(c.slug || '').toLowerCase() === rawCat.toLowerCase() ||
             c.name.toLowerCase() === rawCat.toLowerCase()
           ) || categories[0];
           const categoryId = matchedCategory ? String(matchedCategory.id) : (rawCat || 'general');
@@ -259,7 +260,7 @@ export default function RetailerOperationsPage() {
           const imageUrl = String(findField(item, 'imageurl', 'image', 'photo', 'picture') || '').trim();
           const description = String(findField(item, 'description', 'desc', 'details') || '').trim();
 
-          const newProd: ProductItem = {
+          productsToSave.push({
             id: `prod_${Date.now()}_${i}`,
             retailerId: user.uid,
             retailerStoreName: user.storeName || user.name,
@@ -276,13 +277,27 @@ export default function RetailerOperationsPage() {
             status: stockQuantity > 0 ? 'active' : 'out_of_stock',
             createdAt: Date.now(),
             updatedAt: Date.now(),
-          };
-          await createMutation.mutateAsync(newProd);
-          setProgress({ type: 'import', current: i + 1, total: json.length });
+          });
         }
+
+        if (productsToSave.length === 0) {
+          throw new Error("No valid products found in the file.");
+        }
+
+        setProgress({ type: 'import', current: 0, total: productsToSave.length });
+
+        // Save in batches of 50 to maximize speed, maintain progress bar, and stay well within rate limits
+        const BATCH_SIZE = 50;
+        for (let i = 0; i < productsToSave.length; i += BATCH_SIZE) {
+          const chunk = productsToSave.slice(i, i + BATCH_SIZE);
+          await retailerApi.bulkSaveProducts(chunk);
+          setProgress({ type: 'import', current: Math.min(i + chunk.length, productsToSave.length), total: productsToSave.length });
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['retailer-products', user?.uid] });
         setIsBulkUploading(false);
         setTimeout(() => setProgress({ type: null, current: 0, total: 0 }), 500);
-        showToast(`Successfully imported ${json.length} product${json.length > 1 ? 's' : ''}!`, "success");
+        showToast(`Successfully imported ${productsToSave.length} product${productsToSave.length > 1 ? 's' : ''}!`, "success");
         e.target.value = '';
       } catch (err: any) {
         setIsBulkUploading(false);
@@ -298,12 +313,17 @@ export default function RetailerOperationsPage() {
   const handleRemoveAll = () => {
     if (window.confirm('Are you sure you want to remove ALL your items? This cannot be undone.')) {
       const deleteProcess = async () => {
-        setProgress({ type: 'delete', current: 0, total: products.length });
-        for (let i = 0; i < products.length; i++) {
-          await deleteMutation.mutateAsync(products[i].id);
-          setProgress({ type: 'delete', current: i + 1, total: products.length });
+        try {
+          setProgress({ type: 'delete', current: 0, total: products.length });
+          await retailerApi.bulkDeleteProducts();
+          setProgress({ type: 'delete', current: products.length, total: products.length });
+          queryClient.invalidateQueries({ queryKey: ['retailer-products', user?.uid] });
+          showToast('All products removed successfully!', 'success');
+        } catch (err: any) {
+          showToast(err?.message || 'Failed to remove products', 'error');
+        } finally {
+          setTimeout(() => setProgress({ type: null, current: 0, total: 0 }), 500);
         }
-        setTimeout(() => setProgress({ type: null, current: 0, total: 0 }), 500);
       };
       deleteProcess();
     }

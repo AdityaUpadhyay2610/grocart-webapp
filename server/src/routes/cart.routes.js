@@ -7,6 +7,7 @@ const cartController = require('../controllers/cart.controller');
 const verifyToken = require('../middleware/verifyToken');
 const validate = require('../middleware/validate');
 const { saveCartItemRules, itemIdParamRules } = require('../validators/cart.validators');
+const { cartLimiter } = require('../middleware/rateLimit');
 
 // All cart routes require authentication
 router.use(verifyToken);

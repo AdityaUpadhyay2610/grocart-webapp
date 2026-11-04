@@ -1,20 +1,34 @@
 // server/src/controllers/category.controller.js
 // Handles categories retrieval (public) and creation/update (admin).
-// The frontend uses snapshot fetches and polling (subscribeToCategories -> setInterval).
 
 const { query } = require('../config/db');
 const { formatCategory } = require('../utils/formatters');
 const { sendSuccess } = require('../utils/response');
 const asyncHandler = require('../utils/asyncHandler');
 
+// In-memory cache for fast public reads (60s TTL)
+let categoriesCache = null;
+let cacheExpiry = 0;
+
+const clearCategoryCache = () => {
+  categoriesCache = null;
+  cacheExpiry = 0;
+};
+
 // GET /api/categories — public, returns all active categories
 const getCategories = asyncHandler(async (req, res) => {
+  const now = Date.now();
+  if (categoriesCache && now < cacheExpiry) {
+    return sendSuccess(res, categoriesCache);
+  }
+
   const result = await query(
     'SELECT * FROM categories WHERE is_active = TRUE ORDER BY name ASC',
     []
   );
-  const categories = result.rows.map(formatCategory);
-  return sendSuccess(res, categories);
+  categoriesCache = result.rows.map(formatCategory);
+  cacheExpiry = now + 60 * 1000; // 60 seconds
+  return sendSuccess(res, categoriesCache);
 });
 
 // POST /api/admin/categories — admin only, create or update a category by id
@@ -35,10 +49,12 @@ const saveCategory = asyncHandler(async (req, res) => {
     RETURNING *;
   `;
   const result = await query(sql, [categoryId, name, slug, isActive, description, image]);
+  clearCategoryCache();
   return sendSuccess(res, formatCategory(result.rows[0]), 200);
 });
 
 module.exports = {
   getCategories,
-  saveCategory
+  saveCategory,
+  clearCategoryCache
 };
