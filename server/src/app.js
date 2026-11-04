@@ -1,6 +1,3 @@
-// server/src/app.js
-// Express application configuration and middleware stack.
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -10,7 +7,6 @@ const errorHandler = require('./middleware/errorHandler');
 const { generalLimiter } = require('./middleware/rateLimit');
 const { sendSuccess } = require('./utils/response');
 
-// Route files
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const categoryRoutes = require('./routes/category.routes');
@@ -25,39 +21,34 @@ const webhookRoutes = require('./routes/webhook.routes');
 const app = express();
 app.set('trust proxy', config.trustProxy);
 
-// Security headers
 app.use(helmet());
-
-// CORS — only allow the configured frontend URL with credentials
-app.use(
-  cors({
-    origin: config.clientUrl,
-    credentials: true
-  })
-);
-
-// Cookie parsing for refresh tokens
+app.use(cors({
+  origin: config.clientUrl,
+  credentials: true
+}));
 app.use(cookieParser());
 
 app.use(
   '/api/users/me',
   express.json({ limit: config.security.bodyLimits.profileJson })
 );
-app.use(express.json({ limit: config.security.bodyLimits.json }));
+app.use(express.json({
+  limit: config.security.bodyLimits.json,
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({
   extended: true,
   limit: config.security.bodyLimits.json
 }));
 
-// Apply general rate limit to all routes
 app.use(generalLimiter);
 
-// Public health check
 app.get('/api/health', (req, res) => {
   return sendSuccess(res, { ok: true, status: 'healthy', timestamp: Date.now() });
 });
 
-// Mount route files
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -69,7 +60,6 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/webhooks', webhookRoutes);
 
-// Central error handler — must be the LAST middleware
 app.use(errorHandler);
 
 module.exports = app;

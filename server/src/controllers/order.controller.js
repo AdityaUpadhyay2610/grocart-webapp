@@ -1,7 +1,3 @@
-// server/src/controllers/order.controller.js
-// Handles order creation with transactions and row locks, customer order history,
-// order status transitions, and full Razorpay Payment Gateway integration.
-
 const crypto = require('crypto');
 const { query, getClient } = require('../config/db');
 const razorpay = require('../config/razorpay');
@@ -140,7 +136,10 @@ const placeOrder = asyncHandler(async (req, res) => {
       couponDiscount = couponResult.coupon.discount;
     }
 
-    const computedTotalPaid = Math.max(0, totalGMV - couponDiscount);
+    // Include delivery & handling fees consistent with createRazorpayOrder
+    const deliveryFee = totalGMV >= 500 ? 0 : 29;
+    const handlingCharge = 5;
+    const computedTotalPaid = Math.max(0, Math.round(totalGMV - couponDiscount + deliveryFee + handlingCharge));
 
     // Insert into orders table (payment_method: COD, payment_status: pending)
     await client.query(
@@ -305,6 +304,20 @@ const verifyRazorpayPayment = asyncHandler(async (req, res) => {
   if (expectedSignature !== razorpay_signature) {
     console.error(`[Security Alert] Signature mismatch for customer ${customerId}`);
     return sendError(res, 'Payment verification failed: invalid signature.', [], 400);
+  }
+
+  // Idempotency check: prevent duplicate order creation if customer retries
+  const existingOrderResult = await query(
+    'SELECT id, payment_status FROM orders WHERE razorpay_order_id = $1',
+    [razorpay_order_id]
+  );
+  if (existingOrderResult.rows.length > 0) {
+    return sendSuccess(res, {
+      orderId: existingOrderResult.rows[0].id,
+      id: existingOrderResult.rows[0].id,
+      paymentId: razorpay_payment_id,
+      replayed: true
+    }, 200);
   }
 
   // 2. Begin ACID Transaction

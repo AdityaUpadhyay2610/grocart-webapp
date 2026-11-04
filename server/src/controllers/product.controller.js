@@ -1,7 +1,3 @@
-// server/src/controllers/product.controller.js
-// Handles public product catalog and retailer inventory CRUD.
-// All database queries use parameterized SQL; identity is enforced from req.user.id.
-
 const { query } = require('../config/db');
 const { formatProduct, formatOwnerProduct } = require('../utils/formatters');
 const { sendSuccess, sendError } = require('../utils/response');
@@ -20,7 +16,8 @@ function clearCatalogCache() {
 // GET /api/products — public, returns all active products
 const getProducts = asyncHandler(async (req, res) => {
   const { limit, offset } = getPagination(req.query);
-  const cacheKey = `${limit}_${offset}`;
+  const category = req.query.category ? String(req.query.category).trim() : null;
+  const cacheKey = `${category || 'all'}_${limit}_${offset}`;
   const now = Date.now();
   const cached = catalogCache.get(cacheKey);
 
@@ -28,13 +25,24 @@ const getProducts = asyncHandler(async (req, res) => {
     return sendSuccess(res, cached.data);
   }
 
-  const result = await query(
-    `SELECT * FROM products
+  let sql;
+  let params;
+  if (category) {
+    sql = `SELECT * FROM products
+     WHERE status = 'active'
+       AND (category_id = $1 OR category_name ILIKE $2)
+     ORDER BY created_at DESC
+     LIMIT $3 OFFSET $4`;
+    params = [category, `%${category}%`, limit, offset];
+  } else {
+    sql = `SELECT * FROM products
      WHERE status = 'active'
      ORDER BY created_at DESC
-     LIMIT $1 OFFSET $2`,
-    [limit, offset]
-  );
+     LIMIT $1 OFFSET $2`;
+    params = [limit, offset];
+  }
+
+  const result = await query(sql, params);
   const products = result.rows.map(formatProduct);
   catalogCache.set(cacheKey, { data: products, expiresAt: now + CATALOG_CACHE_TTL });
   return sendSuccess(res, products);

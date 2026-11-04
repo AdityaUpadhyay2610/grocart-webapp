@@ -1,28 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 
-const parseWeatherCode = (code) => {
-  let description = "Clear";
-  let isRaining = false;
-  let isSnowing = false;
-
-  if (code === 0) {
-    description = "Clear Sky";
-  } else if (code >= 1 && code <= 3) {
-    description = code === 1 ? "Mainly Clear" : code === 2 ? "Partly Cloudy" : "Overcast";
-  } else if (code === 45 || code === 48) {
-    description = "Foggy";
-  } else if ((code >= 51 && code <= 57) || (code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
-    description = "Raining";
-    isRaining = true;
-  } else if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
-    description = "Snowing";
-    isSnowing = true;
-  } else if (code >= 95 && code <= 99) {
-    description = "Thunderstorm";
-    isRaining = true;
-  }
-  return { description, isRaining, isSnowing };
-};
 
 export const INDIAN_LOCATIONS = [
   { city: "New Delhi", address: "Connaught Place, New Delhi 110001", lat: 28.6315, lon: 77.2167 },
@@ -49,39 +26,7 @@ export const useLocation = () => {
     error: null
   });
 
-  const fetchWeather = async (lat, lon) => {
-    try {
-      setWeather(prev => ({ ...prev, isLoading: true }));
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const temp = data.current.temperature_2m;
-        const code = data.current.weather_code;
-        const parsed = parseWeatherCode(code);
-        setWeather({
-          temperature: temp,
-          weatherCode: code,
-          description: parsed.description,
-          isRaining: parsed.isRaining,
-          isSnowing: parsed.isSnowing,
-          isLoading: false,
-          error: null
-        });
-      }
-    } catch (e) {
-      console.warn("Weather fetch failed:", e);
-      setWeather(prev => ({
-        ...prev,
-        isLoading: false,
-        temperature: 24,
-        description: "Clear Sky"
-      }));
-    }
-  };
-
-  const fetchAddress = async (lat, lon) => {
+    const fetchAddress = async (lat, lon) => {
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
@@ -113,14 +58,12 @@ export const useLocation = () => {
     const lon = loc.lon || 77.2167;
     setLocationText(address);
     setCoords({ latitude: lat, longitude: lon });
-    fetchWeather(lat, lon);
     localStorage.setItem("grocart_local_address", address);
     window.dispatchEvent(new Event("storage"));
   }, []);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      fetchWeather(28.6315, 77.2167);
       return;
     }
 
@@ -130,12 +73,10 @@ export const useLocation = () => {
         const { latitude, longitude } = position.coords;
         setCoords({ latitude, longitude });
         fetchAddress(latitude, longitude);
-        fetchWeather(latitude, longitude);
       },
       (error) => {
         console.warn("Geolocation fallback:", error);
         setPermissionGranted(false);
-        fetchWeather(28.6315, 77.2167);
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
     );

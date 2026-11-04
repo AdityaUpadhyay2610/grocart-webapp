@@ -1,10 +1,9 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useOutletContext, useNavigate } from "react-router";
-import { useCart } from '../state/CartContext';
-import { formatINR, calculateUnitPrice, getAvailableUnits } from '@global/utils/calculations';
-import { X, Heart, Plus, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCart } from "../state/CartContext";
+import { formatINR, calculateUnitPrice, getAvailableUnits } from "@global/utils/calculations";
+import { X, Heart, Plus, Check, ChevronLeft, ChevronRight, Leaf, ArrowRight, Flame, LayoutGrid, ShoppingCart } from "lucide-react";
 
-// Featured recipes data for the seasonal trend feature
 const SEASONAL_RECIPES = [
   {
     id: "summer-berry-salad",
@@ -34,13 +33,11 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
   const { setSelectedProduct, categories = [] } = useOutletContext() || {};
   const navigate = useNavigate();
 
-  // Wishlist state for interactive hearts
   const [wishlist, setWishlist] = useState(() => new Set());
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [selectedUnitMap, setSelectedUnitMap] = useState({});
   const [addedRecipeToast, setAddedRecipeToast] = useState(false);
 
-  // Refs for horizontal scrolling
   const flashDealsScrollRef = useRef(null);
   const categoryScrollRef = useRef(null);
 
@@ -56,7 +53,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
     }
   };
 
-  // Active flash deal countdown timer state (HH:MM:SS)
   const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 35, seconds: 47 });
 
   useEffect(() => {
@@ -96,7 +92,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
     setTimeout(() => setAddedRecipeToast(false), 3000);
   }, [addToCart]);
 
-  // Helper to determine if a product is a Fruit or Vegetable
   const isFruitOrVegetable = useCallback((p) => {
     if (!p) return false;
     const cat = (p.itemCategory || "").toLowerCase();
@@ -130,57 +125,41 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
     );
   }, []);
 
-  // Curated featured fruits & vegetables from product API
   const displayFeaturedProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
-    
-    // Prioritize Fruits & Vegetables first in the Featured section
     const fvProducts = products.filter(isFruitOrVegetable);
     const otherProducts = products.filter(p => !isFruitOrVegetable(p));
-    
     return [...fvProducts, ...otherProducts].slice(0, 10);
   }, [products, isFruitOrVegetable]);
 
-  // Flash deals specifically showcasing Fruits & Vegetables from live products
   const flashDeals = useMemo(() => {
     if (!products || products.length === 0) return [];
-
-    // Filter Fruits and Vegetables for Flash Deals
     const fvProducts = products.filter(isFruitOrVegetable);
     const candidateList = fvProducts.length > 0 ? fvProducts : products;
 
-    return candidateList.slice(0, 8).map((p) => {
-      return {
-        id: p.id,
-        itemName: p.itemName,
-        price: p.itemPrice,
-        itemQuantity: p.itemQuantity || "500g",
-        imageUrl: p.imageUrl,
-        itemCategory: p.itemCategory || "Fresh Produce",
-        ...p
-      };
-    });
+    return candidateList.slice(0, 8).map((p) => ({
+      id: p.id,
+      itemName: p.itemName,
+      price: p.itemPrice,
+      itemQuantity: p.itemQuantity || "500g",
+      imageUrl: p.imageUrl,
+      itemCategory: p.itemCategory || "Fresh Produce",
+      ...p
+    }));
   }, [products, isFruitOrVegetable]);
 
-  // Quick categories
   const displayQuickCategories = useMemo(() => {
     return categories.slice(0, 12);
   }, [categories]);
 
   return (
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 gap-10 md:gap-14 animate-fade-in text-left">
-      
-      {/* ── 1. HERO SECTION ── */}
       <section className="relative w-full rounded-[2rem] overflow-hidden bg-gradient-to-r from-primary-50 via-surface-container-low to-primary-100/30 dark:from-[#171717] dark:via-[#171717] dark:to-[#171717] shadow-2xl min-h-[320px] md:min-h-[380px] lg:min-h-[420px] flex items-center justify-between mt-4 border border-primary/20 dark:border-[#262626] group">
-        {/* Texture & Gradient Overlays */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-50/90 dark:from-[#171717] via-surface-container-low/95 dark:via-[#171717]/90 to-transparent z-0" />
-          
-          {/* Ambient Glowing Aura behind the image */}
           <div className="absolute right-6 top-1/2 -translate-y-1/2 w-80 h-80 sm:w-96 sm:h-96 bg-primary-container/15 rounded-full blur-3xl opacity-60 pointer-events-none" />
         </div>
 
-        {/* Mobile Background Watermark Image */}
         <div className="md:hidden absolute right-[-20px] bottom-[-20px] w-52 opacity-25 pointer-events-none">
           <img 
             src="/fresh-veges.png" 
@@ -189,10 +168,9 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
           />
         </div>
 
-        {/* Left Content */}
         <div className="relative z-10 w-full md:w-3/5 p-6 sm:p-8 md:p-12 lg:p-16 flex flex-col items-start gap-4">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary/20 dark:bg-primary/15 backdrop-blur-md rounded-full text-[11px] font-extrabold text-primary tracking-wide uppercase border border-primary/30 shadow-sm">
-            <span className="material-symbols-outlined text-[15px]">eco</span>
+            <Leaf size={14} className="text-primary" />
             <span>Fresh Produce</span>
           </div>
           <h1 className="font-display-lg text-on-surface dark:text-white leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black drop-shadow-sm">
@@ -207,11 +185,10 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
             className="mt-2 px-8 py-3.5 bg-primary text-on-primary font-label-md rounded-xl shadow-[0_8px_16px_rgba(16,185,129,0.3)] hover:scale-105 transition-all duration-300 cursor-pointer font-bold text-xs sm:text-sm flex items-center gap-2.5 active:scale-95"
           >
             <span>Shop Now</span>
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            <ArrowRight size={16} />
           </button>
         </div>
 
-        {/* Right Extended Banner Image with Aura, Opacity & Hover Effects */}
         <div className="hidden md:flex absolute right-2 lg:right-6 xl:right-10 top-0 bottom-0 w-1/2 lg:w-[48%] xl:w-[50%] h-full z-10 items-center justify-end pointer-events-none">
           <div className="relative flex items-center justify-center pointer-events-auto">
             <img 
@@ -223,21 +200,16 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
         </div>
       </section>
 
-
-      {/* ── 2. FLASH DEALS & QUICK CATEGORIES ROW ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        
-        {/* Flash Deals Panel (5 cols) */}
         <div className="col-span-1 lg:col-span-5 bg-gradient-to-br from-primary-50 via-surface-container-lowest to-primary-100/40 dark:from-[#171717] dark:via-[#171717] dark:to-[#1a1a1a] rounded-3xl p-1 relative overflow-hidden group shadow-lg border border-primary/20 dark:border-[#262626]">
           <div className="w-full h-full rounded-[1.35rem] p-5 sm:p-6 flex flex-col gap-4 relative z-10">
             <div className="flex justify-between items-center w-full flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary animate-pulse text-[26px]">local_fire_department</span>
+                <Flame size={24} className="text-amber-500 animate-pulse" />
                 <h2 className="font-headline-md text-on-surface dark:text-white text-xl font-bold">Flash Deals</h2>
               </div>
               
               <div className="flex items-center gap-2">
-                {/* Countdown Timer */}
                 <div className="flex items-center gap-1.5 bg-surface-container-lowest/80 dark:bg-[#0a0a0a]/60 backdrop-blur-sm rounded-lg p-1.5 border border-surface-variant/40 dark:border-[#262626] shadow-inner">
                   <span className="font-label-sm text-on-surface-variant text-[10px] uppercase font-bold">Ends in:</span>
                   <div className="bg-surface-container-low dark:bg-[#171717] text-on-surface dark:text-white font-label-md px-2 py-0.5 rounded text-xs font-bold font-mono border border-surface-variant/40 dark:border-[#262626]">
@@ -253,7 +225,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                   </div>
                 </div>
 
-                {/* Scroll Buttons < > for Flash Deals */}
                 <div className="flex items-center gap-1 bg-surface-container-lowest/60 dark:bg-[#0a0a0a]/60 p-1 rounded-xl border border-surface-variant/40 dark:border-[#262626]">
                   <button 
                     onClick={() => scrollFlashDeals('left')}
@@ -273,7 +244,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
               </div>
             </div>
 
-            {/* Flash Deal Cards with Horizontal Scroll */}
             <div 
               ref={flashDealsScrollRef}
               className="flex gap-4 overflow-x-auto pb-1 hide-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden scroll-smooth"
@@ -302,12 +272,10 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
           </div>
         </div>
 
-        {/* Categories Quick-cards (7 cols) */}
         <div className="col-span-1 lg:col-span-7 flex flex-col justify-center gap-4">
           <div className="flex justify-between items-center">
             <h2 className="font-headline-md text-on-surface dark:text-white text-xl font-bold">Category Quick-cards</h2>
             <div className="flex items-center gap-3">
-              {/* < > Horizontal Scroll Buttons for Category Cards */}
               <div className="flex items-center gap-1.5 bg-surface-container-low dark:bg-[#171717] p-1 rounded-xl border border-surface-variant/40 dark:border-[#262626] shadow-xs">
                 <button 
                   onClick={() => scrollCategories('left')}
@@ -356,13 +324,12 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                 </div>
               ))}
               
-              {/* View All Card */}
               <div
                 onClick={() => navigate("/categories")}
                 className="min-w-[95px] flex flex-col items-center gap-2 cursor-pointer group flex-shrink-0"
               >
                 <div className="w-20 h-20 rounded-2xl bg-primary/10 text-primary shadow-sm flex flex-col items-center justify-center group-hover:shadow-md group-hover:-translate-y-1 transition-all duration-300 border border-primary/30 dark:border-primary/30">
-                  <span className="material-symbols-outlined text-[24px]">grid_view</span>
+                  <LayoutGrid size={22} className="text-primary" />
                   <span className="text-[10px] font-black uppercase tracking-wider mt-0.5">All</span>
                 </div>
                 <span className="font-label-md text-xs font-bold text-primary group-hover:underline text-center">
@@ -370,18 +337,14 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                 </span>
               </div>
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* ── 3. SEASONAL TREND RECIPE BANNER ── */}
       <section className="w-full relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary via-on-primary-fixed-variant to-[#003824] dark:from-[#171717] dark:to-[#171717] border border-primary-100/10 dark:border-[#262626] shadow-lg flex flex-col md:flex-row items-center text-white">
-        {/* Background decorative glows */}
         <div className="absolute -right-20 -top-20 w-96 h-96 bg-primary-container/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-primary/20 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Recipe Image */}
         <div className="w-full md:w-1/2 h-64 md:h-auto relative z-10 flex justify-center items-center p-8">
           <div className="w-60 h-60 md:w-72 md:h-72 rounded-full overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 border-white/20 dark:border-[#262626] relative">
             <img 
@@ -392,7 +355,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
           </div>
         </div>
 
-        {/* Recipe Content */}
         <div className="w-full md:w-1/2 p-8 md:p-12 md:pl-0 flex flex-col gap-4 relative z-10 text-center md:text-left">
           <div className="inline-block px-3 py-1 bg-white/20 dark:bg-primary/15 text-white dark:text-primary font-label-sm text-xs rounded-full w-max mx-auto md:mx-0 border border-white/30 dark:border-primary/30 backdrop-blur-sm font-bold">
             {SEASONAL_RECIPES[0].badge}
@@ -414,14 +376,13 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
               onClick={() => handleAddAllRecipeIngredients(SEASONAL_RECIPES[0])}
               className="px-6 py-3 bg-primary-fixed text-on-primary-fixed dark:bg-primary dark:text-black font-label-md text-xs font-extrabold rounded-xl hover:bg-pure-white transition-all flex items-center gap-2 backdrop-blur-sm cursor-pointer active:scale-95 shadow-md"
             >
-              <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+              <ShoppingCart size={16} />
               Add All Ingredients
             </button>
           </div>
         </div>
       </section>
 
-      {/* ── 4. FEATURED PRODUCTS GRID ── */}
       <section className="flex flex-col gap-6">
         <div className="flex justify-between items-end">
           <div>
@@ -433,7 +394,7 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
             className="font-label-md text-primary hover:text-primary-container transition-colors flex items-center gap-1 group text-xs font-bold cursor-pointer"
           >
             View All
-            <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 
@@ -450,7 +411,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                 onClick={() => setSelectedProduct && setSelectedProduct({ ...item, itemQuantity: selectedUnit, itemPrice: unitAdjustedPrice })}
                 className="bg-surface-container-low dark:bg-[#171717] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-3 group relative border border-surface-variant/40 dark:border-[#262626] hover:border-primary/50 dark:hover:border-primary/50 cursor-pointer justify-between"
               >
-                {/* Wishlist Button */}
                 <button 
                   onClick={(e) => toggleWishlist(e, item.id)}
                   className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-center transition-colors z-10 cursor-pointer ${
@@ -466,7 +426,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                   </div>
                 )}
 
-                {/* Product Image */}
                 <div className="h-32 w-full rounded-xl bg-surface-container-lowest dark:bg-[#0e0e0e] flex items-center justify-center overflow-hidden mb-1">
                   <img 
                     src={item.imageUrl} 
@@ -476,12 +435,10 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                   />
                 </div>
 
-                {/* Info */}
                 <div className="flex flex-col gap-1.5 flex-1">
                   <span className="font-label-sm text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">{item.itemCategory}</span>
                   <h3 className="font-headline-md text-on-surface dark:text-white text-sm font-bold leading-tight truncate">{item.itemName}</h3>
                   
-                  {/* Unit Selector Dropdown */}
                   <div onClick={(e) => e.stopPropagation()} className="mt-0.5">
                     <select
                       value={selectedUnit}
@@ -497,7 +454,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
                   </div>
                 </div>
 
-                {/* Price & Add Action */}
                 <div className="flex items-center justify-between mt-1 pt-3 border-t border-surface-variant/40 dark:border-[#262626]">
                   <div className="flex flex-col text-left">
                     <span className="font-headline-md text-on-surface dark:text-white font-black text-base">
@@ -523,7 +479,6 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
         </div>
       </section>
 
-      {/* ── RECIPE DETAIL MODAL ── */}
       {selectedRecipe && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white dark:bg-[#171717] rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-surface-variant/40 dark:border-[#262626] max-h-[90vh] overflow-y-auto text-left">
@@ -568,14 +523,13 @@ export const HomeScreen = React.memo(({ products = [], onCategoryClick: _onCateg
               }}
               className="w-full py-3 bg-primary text-on-primary font-label-md rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-container transition-all cursor-pointer shadow-md"
             >
-              <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+              <ShoppingCart size={16} />
               <span>Add All Ingredients to Cart</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Toast Feedback */}
       {addedRecipeToast && (
         <div className="fixed bottom-6 right-6 z-[100] bg-primary text-on-primary px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-xs animate-slide-up">
           <Check size={18} />

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { useCart } from "../state/CartContext";
 import { useGPSLocation } from "@global/hooks/useLocation";
 import { formatINR, calculateGST, calculateEcoSavings } from "@global/utils/calculations";
-import { Plus, Minus, Trash2, Tag, X, Leaf, ArrowRight } from "lucide-react";
+import { Plus, Minus, Trash2, Tag, X, Leaf, ArrowRight, MapPin, ShoppingCart } from "lucide-react";
 
 export const CartScreen = React.memo(({ onBrowseProducts }) => {
   const {
@@ -64,8 +64,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
       {cartItems.length > 0 ? (
         <div className="flex flex-col gap-6">
-          
-          {/* Header Title */}
           <div>
             <h1 className="font-display-lg text-on-surface dark:text-white text-3xl sm:text-4xl font-black">Review Your Organic Cart</h1>
             <p className="font-body-md text-on-surface-variant mt-1 text-sm">
@@ -73,13 +71,8 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
             </p>
           </div>
 
-          {/* ── 2-Column Responsive Layout (8 cols Table + 4 cols Summary) ── */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* ── Left: Cart Table & Eco Impact (8 cols) ── */}
             <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
-              
-              {/* Cart Items Table Card */}
               <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl border border-surface-variant/40 dark:border-[#262626] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
@@ -99,7 +92,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
 
                         return (
                           <tr key={item.id} className="hover:bg-surface-container/30 dark:hover:bg-[#201f1f]/40 transition-colors">
-                            {/* Product info */}
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-3.5">
                                 <img 
@@ -110,18 +102,16 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                                 />
                                 <div>
                                   <h4 className="font-headline-md text-sm font-bold text-on-surface dark:text-white line-clamp-1 leading-tight">{item.itemName}</h4>
-                                  <span className="font-label-sm text-xs text-on-surface-variant">{item.itemQuantity || '500g'}</span>
+                                  <span className="font-label-sm text-xs text-on-surface-variant">{item.itemQuantity || "500g"}</span>
                                   <span className="sm:hidden font-headline-md text-xs font-black text-primary block mt-0.5">{formatINR(price)}</span>
                                 </div>
                               </div>
                             </td>
 
-                            {/* Unit Price */}
                             <td className="py-4 px-4 hidden sm:table-cell font-headline-md text-sm font-bold text-on-surface dark:text-white">
                               {formatINR(price)}
                             </td>
 
-                            {/* Quantity Stepper */}
                             <td className="py-4 px-4">
                               <div className="flex items-center justify-center space-x-2 bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] rounded-xl px-2 py-1 w-max mx-auto">
                                 <button
@@ -142,12 +132,10 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                               </div>
                             </td>
 
-                            {/* Total */}
                             <td className="py-4 px-4 text-right font-headline-md text-sm font-black text-on-surface dark:text-white">
                               {formatINR(rowTotal)}
                             </td>
 
-                            {/* Actions */}
                             <td className="py-4 px-6 text-center">
                               <button
                                 onClick={() => removeFromCart ? removeFromCart(item.id) : decreaseCartItem(item)}
@@ -165,7 +153,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                 </div>
               </div>
 
-              {/* ── Eco-Impact Tracker Widget ── */}
               <div className="bg-gradient-to-r from-primary-50 via-surface-container-lowest to-primary-100/30 dark:from-[#171717] dark:to-[#171717] rounded-3xl p-6 border border-primary/20 dark:border-[#262626] flex flex-col sm:flex-row items-center gap-5 shadow-sm">
                 <div className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/20">
                   <Leaf size={28} />
@@ -181,7 +168,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                     By choosing local organic growers, you reduced standard supply chain transport emissions.
                   </p>
                   
-                  {/* Target Progress Bar */}
                   <div className="mt-3 flex flex-col gap-1">
                     <div className="flex justify-between text-[11px] font-bold text-on-surface dark:text-white">
                       <span>Plastic-Free Packaging Progress</span>
@@ -198,15 +184,12 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
               </div>
             </div>
 
-            {/* ── Right: Summary Card (4 cols) ── */}
             <div className="col-span-1 lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
-              
               <div className="bg-gradient-to-b from-primary via-on-primary-fixed-variant to-[#003824] dark:from-[#171717] dark:to-[#171717] rounded-3xl p-6 sm:p-7 text-white dark:text-white shadow-xl flex flex-col gap-6 border border-white/10 dark:border-[#262626] relative overflow-hidden">
                 <h3 className="font-headline-md text-xl font-black text-white dark:text-white border-b border-white/15 dark:border-[#262626] pb-4">
                   Order Summary
                 </h3>
 
-                {/* Estimated Delivery Widget */}
                 <div className="bg-white/10 dark:bg-[#201f1f] backdrop-blur-md rounded-2xl p-4 border border-white/15 dark:border-[#262626] flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="font-label-sm text-[10px] uppercase font-black text-primary-fixed-dim dark:text-primary tracking-wider">
@@ -218,14 +201,13 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                     </div>
                   </div>
                   <div className="flex items-start gap-2 mt-1">
-                    <span className="material-symbols-outlined text-primary-fixed dark:text-primary text-[18px] shrink-0">location_on</span>
+                    <MapPin size={18} className="text-primary-fixed dark:text-primary shrink-0" />
                     <p className="text-xs text-white/90 dark:text-on-surface-variant font-medium truncate">
                       {locationText || "Connaught Place, New Delhi"}
                     </p>
                   </div>
                 </div>
 
-                {/* Coupon Code Section */}
                 <div className="flex flex-col gap-2">
                   <span className="font-label-sm text-xs font-bold text-white dark:text-white">Apply Promo Code</span>
                   <form onSubmit={handleApplyInput} className="flex gap-2">
@@ -245,7 +227,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                     </button>
                   </form>
 
-                  {/* Applied Coupon Pill */}
                   {appliedCoupon && (
                     <div className="flex items-center justify-between bg-primary-container/40 dark:bg-primary/15 border border-primary-fixed/40 dark:border-primary/30 px-3 py-1.5 rounded-xl text-xs font-bold text-white dark:text-primary mt-1">
                       <span className="flex items-center gap-1.5">
@@ -260,10 +241,8 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
 
                   {couponError && <span className="text-xs text-red-300 dark:text-error font-bold">{couponError}</span>}
                   {couponSuccess && <span className="text-xs text-primary-fixed dark:text-primary font-bold">Coupon applied successfully!</span>}
-
                 </div>
 
-                {/* INR Bill Breakdown */}
                 <div className="flex flex-col gap-3 pt-4 border-t border-white/15 dark:border-[#262626] text-xs text-white/85 dark:text-on-surface-variant">
                   <div className="flex justify-between font-medium">
                     <span>Items Subtotal</span>
@@ -296,7 +275,6 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                   </div>
                 </div>
 
-                {/* Checkout CTA */}
                 <button
                   onClick={proceedToPay}
                   className="w-full py-4 bg-primary-fixed text-on-primary-fixed dark:bg-primary dark:text-black font-headline-md text-sm font-black rounded-2xl shadow-lg hover:bg-pure-white hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -309,10 +287,9 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
           </div>
         </div>
       ) : (
-        /* Empty Cart State */
         <div className="flex flex-col items-center justify-center py-20 text-center min-h-[calc(100vh-280px)]">
           <div className="w-48 h-48 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-            <span className="material-symbols-outlined text-6xl text-primary">shopping_cart</span>
+            <ShoppingCart size={56} className="text-primary" />
           </div>
           <h2 className="font-display-lg text-2xl sm:text-3xl font-black text-on-surface dark:text-white">Your Cart is Empty</h2>
           <p className="font-body-md text-on-surface-variant mt-2 max-w-sm text-sm">

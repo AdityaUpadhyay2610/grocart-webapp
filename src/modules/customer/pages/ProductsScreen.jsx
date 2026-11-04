@@ -3,7 +3,7 @@ import { useParams, useOutletContext, useNavigate } from "react-router";
 import { useCart } from "../state/CartContext";
 import { matchCategory } from "@global/models/Categories";
 import { formatINR, calculateUnitPrice, getAvailableUnits } from "@global/utils/calculations";
-import { Heart, Plus, Minus, X, Check, SlidersHorizontal } from "lucide-react";
+import { Heart, Plus, Minus, X, Check, SlidersHorizontal, Package, ShoppingCart } from "lucide-react";
 
 const getUniqueImageUrl = (url, id, title) => {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
@@ -14,76 +14,76 @@ const getUniqueImageUrl = (url, id, title) => {
   return url;
 };
 
-// Smoothie Recipe for the aside widget
 const QUICK_RECIPE = {
   id: "green-smoothie",
   title: "Morning Green Smoothie",
   badge: "Quick Recipe",
+  description: "A nutrient-packed detox boost with fresh green spinach, crisp apples, and coconut water.",
   prepTime: "5 mins",
-  description: "A nutrient-packed energizer made with crisp spinach, crisp green apples, bananas, and coconut water.",
   image: "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=400&auto=format&fit=crop&q=80",
   ingredients: [
-    { id: "sm-1", itemName: "Baby Spinach", itemPrice: 40, itemQuantity: "200g", imageUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&auto=format&fit=crop&q=80" },
-    { id: "sm-2", itemName: "Green Apples", itemPrice: 120, itemQuantity: "500g", imageUrl: "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=400&auto=format&fit=crop&q=80" },
-    { id: "sm-3", itemName: "Fresh Bananas", itemPrice: 50, itemQuantity: "1 Dozen", imageUrl: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&auto=format&fit=crop&q=80" },
-    { id: "sm-4", itemName: "Tender Coconut Water", itemPrice: 60, itemQuantity: "1 Pack", imageUrl: "https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=400&auto=format&fit=crop&q=80" }
-  ],
-  instructions: [
-    "Rinse baby spinach leaves thoroughly in cold water.",
-    "Core green apples and dice into bite-sized chunks.",
-    "Add spinach, apple chunks, banana, and coconut water into a blender.",
-    "Blend on high speed for 60 seconds until silky smooth. Serve immediately with ice cubes!"
+    { id: "rec-1", itemName: "Baby Spinach", itemPrice: 45, imageUrl: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=100&auto=format&fit=crop&q=80" },
+    { id: "rec-2", itemName: "Green Apples", itemPrice: 120, imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=100&auto=format&fit=crop&q=80" },
+    { id: "rec-3", itemName: "Fresh Mint", itemPrice: 20, imageUrl: "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=100&auto=format&fit=crop&q=80" }
   ]
 };
 
-export const ProductsScreen = React.memo(({ category: propCategory, products = [] }) => {
-  const { cartItems, addToCart, decreaseCartItem } = useCart();
-  const { setSelectedProduct, categories = [] } = useOutletContext() || {};
+export const ProductsScreen = React.memo(({ products = [] }) => {
   const { categoryId } = useParams();
+  const { setSelectedProduct, categories = [] } = useOutletContext() || {};
+  const { addToCart, cartItems, decreaseCartItem } = useCart();
   const navigate = useNavigate();
 
-  // Wishlist & Filter States
   const [wishlist, setWishlist] = useState(() => new Set());
   const [activeSubcategory, setActiveSubcategory] = useState("All Items");
   const [minPrice, setMinPrice] = useState(0);
-
-  const maxAvailablePrice = useMemo(() => {
-    const highest = Math.max(...(products || []).map(p => Number(p.itemPrice) || 0), 0);
-    return Math.max(highest > 0 ? Math.ceil(highest / 100) * 100 : 5000, 5000);
-  }, [products]);
-
-  const [maxPrice, setMaxPrice] = useState(50000);
-
-  useEffect(() => {
-    setMaxPrice(maxAvailablePrice);
-  }, [maxAvailablePrice]);
+  const [maxPrice, setMaxPrice] = useState(500);
   const [selectedDietary, setSelectedDietary] = useState(() => new Set());
   const [selectedBrands, setSelectedBrands] = useState(() => new Set());
   const [sortBy, setSortBy] = useState("featured");
+  const [selectedUnitMap, setSelectedUnitMap] = useState({});
   const [showRecipeModal, setShowRecipeModal] = useState(false);
   const [addedRecipeToast, setAddedRecipeToast] = useState(false);
-  const [selectedUnitMap, setSelectedUnitMap] = useState({});
+
+  const decodedCategoryParam = useMemo(() => {
+    return categoryId ? decodeURIComponent(categoryId) : "";
+  }, [categoryId]);
 
   const category = useMemo(() => {
-    if (propCategory) return propCategory;
-    if (!categoryId) return null;
-    const decoded = decodeURIComponent(categoryId);
+    if (!decodedCategoryParam) return null;
     return categories.find(c => 
-      String(c.id) === decoded || 
-      c.name.toLowerCase() === decoded.toLowerCase()
-    ) || { name: decoded, nameDisplay: decoded };
-  }, [propCategory, categoryId, categories]);
+      String(c.id).toLowerCase() === decodedCategoryParam.toLowerCase() || 
+      c.name.toLowerCase() === decodedCategoryParam.toLowerCase() ||
+      (c.nameDisplay && c.nameDisplay.toLowerCase() === decodedCategoryParam.toLowerCase())
+    ) || { 
+      name: decodedCategoryParam, 
+      nameDisplay: decodedCategoryParam 
+    };
+  }, [categories, decodedCategoryParam]);
 
-  const categoryName = useMemo(() => {
-    return category?.nameDisplay || category?.name || "Products";
-  }, [category]);
+  const categoryName = category?.nameDisplay || category?.name || decodedCategoryParam;
 
-  const toggleWishlist = useCallback((e, itemId) => {
+  const categoryFilteredProducts = useMemo(() => {
+    if (!categoryName) return products;
+    return products.filter(p => matchCategory(p.itemCategory, categoryName));
+  }, [products, categoryName]);
+
+  const maxAvailablePrice = useMemo(() => {
+    if (categoryFilteredProducts.length === 0) return 500;
+    const highest = Math.max(...categoryFilteredProducts.map(p => Number(p.itemPrice) || 0));
+    return Math.max(500, Math.ceil(highest / 100) * 100);
+  }, [categoryFilteredProducts]);
+
+  useEffect(() => {
+    setMaxPrice(maxAvailablePrice);
+  }, [maxAvailablePrice, categoryId]);
+
+  const toggleWishlist = useCallback((e, id) => {
     e.stopPropagation();
     setWishlist(prev => {
       const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }, []);
@@ -108,57 +108,53 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
 
   const clearFilters = useCallback(() => {
     setMinPrice(0);
-    setMaxPrice(maxAvailablePrice || 50000);
+    setMaxPrice(maxAvailablePrice);
     setSelectedDietary(new Set());
     setSelectedBrands(new Set());
     setActiveSubcategory("All Items");
-  }, []);
+    setSortBy("featured");
+  }, [maxAvailablePrice]);
 
-  // Filtered & Sorted Products
-  const processedProducts = useMemo(() => {
-    let list = products || [];
-    if (category) {
-      list = list.filter(product => matchCategory(product.itemCategory, category.name));
-    }
-
-    // Price Filter
-    list = list.filter(item => {
-      const price = Number(item.itemPrice) || 0;
-      return price >= minPrice && price <= maxPrice;
+  const handleAddAllRecipeIngredients = useCallback((recipe) => {
+    recipe.ingredients.forEach(ing => {
+      addToCart({
+        id: ing.id,
+        itemName: ing.itemName,
+        itemPrice: ing.itemPrice,
+        imageUrl: ing.imageUrl,
+        itemQuantity: "1 pack"
+      });
     });
-
-    // Sort
-    if (sortBy === "price-low") {
-      list.sort((a, b) => a.itemPrice - b.itemPrice);
-    } else if (sortBy === "price-high") {
-      list.sort((a, b) => b.itemPrice - a.itemPrice);
-    } else if (sortBy === "name") {
-      list.sort((a, b) => (a.itemName || "").localeCompare(b.itemName || ""));
-    }
-
-    return list;
-  }, [products, category, minPrice, maxPrice, sortBy]);
-
-  const handleAddAllRecipeIngredients = useCallback(() => {
-    QUICK_RECIPE.ingredients.forEach(item => {
-      addToCart(item);
-    });
-    setShowRecipeModal(false);
     setAddedRecipeToast(true);
     setTimeout(() => setAddedRecipeToast(false), 3000);
   }, [addToCart]);
 
+  const processedProducts = useMemo(() => {
+    let result = [...categoryFilteredProducts];
+
+    result = result.filter(p => {
+      const price = Number(p.itemPrice) || 0;
+      return price >= minPrice && price <= maxPrice;
+    });
+
+    if (sortBy === "price-low") {
+      result.sort((a, b) => (Number(a.itemPrice) || 0) - (Number(b.itemPrice) || 0));
+    } else if (sortBy === "price-high") {
+      result.sort((a, b) => (Number(b.itemPrice) || 0) - (Number(a.itemPrice) || 0));
+    } else if (sortBy === "name") {
+      result.sort((a, b) => (a.itemName || "").localeCompare(b.itemName || ""));
+    }
+
+    return result;
+  }, [categoryFilteredProducts, minPrice, maxPrice, sortBy]);
+
   return (
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-28 select-none min-h-screen text-left animate-fade-in gap-8">
-      
-      {/* ── 1. TEXTURED HEADER BANNER ── */}
       <section className="relative w-full rounded-3xl overflow-hidden bg-surface-container-low dark:bg-[#171717] border border-surface-variant/40 dark:border-[#262626] shadow-lg p-6 sm:p-10 flex flex-col justify-between min-h-[160px] md:min-h-[190px]">
-        {/* Background texture */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low dark:from-[#171717] via-surface-container-low/95 dark:via-[#171717]/95 to-primary/10" />
         </div>
 
-        {/* Breadcrumb & Title */}
         <div className="relative z-10 flex flex-col gap-1">
           <div className="flex items-center gap-2 text-xs font-semibold text-on-surface-variant">
             <span onClick={() => navigate("/home")} className="hover:text-primary cursor-pointer">Home</span>
@@ -176,7 +172,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
           </div>
         </div>
 
-        {/* Subcategory Filter Tabs */}
         <div className="relative z-10 flex items-center gap-2 mt-4 overflow-x-auto hide-scrollbar pt-2">
           {["All Items", "Organic Certified", "Farm Fresh", "Imported / Exotic", "Budget Saver"].map(tab => (
             <button
@@ -194,13 +189,8 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
         </div>
       </section>
 
-      {/* ── 2. MAIN 12-COLUMN LAYOUT ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* ── Left Sidebar: Filters & Recipe Aside Widget (4 cols) ── */}
         <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
-          
-          {/* Filters Card */}
           <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-6">
             <div className="flex items-center justify-between border-b border-surface-variant/30 dark:border-[#262626] pb-4">
               <div className="flex items-center gap-2">
@@ -215,7 +205,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               </button>
             </div>
 
-            {/* Price Range Slider */}
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center text-xs font-bold text-on-surface dark:text-white">
                 <span>Price Range</span>
@@ -237,7 +226,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               </div>
             </div>
 
-            {/* Dietary Preferences */}
             <div className="flex flex-col gap-2.5 pt-4 border-t border-surface-variant/30 dark:border-[#262626]">
               <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface dark:text-white">Dietary & Quality</h4>
               {["100% Organic", "Locally Sourced", "Non-GMO", "Pesticide Free"].map(diet => (
@@ -253,7 +241,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               ))}
             </div>
 
-            {/* Brands / Sourced Regions */}
             <div className="flex flex-col gap-2.5 pt-4 border-t border-surface-variant/30 dark:border-[#262626]">
               <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface dark:text-white">Brand & Farms</h4>
               {["Himalayan Orchards", "Nilgiri Fresh", "Valley Farms", "Organic India"].map(brand => (
@@ -269,7 +256,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               ))}
             </div>
 
-            {/* Quick Category Switcher */}
             <div className="flex flex-col gap-2 pt-4 border-t border-surface-variant/30 dark:border-[#262626]">
               <div className="flex justify-between items-center">
                 <h4 className="font-label-md text-xs font-bold uppercase tracking-wider text-on-surface dark:text-white">All Categories</h4>
@@ -305,8 +291,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
             </div>
           </div>
 
-
-          {/* Quick Recipes Aside Widget */}
           <div className="bg-gradient-to-br from-primary-50 to-primary-100/40 dark:from-[#171717] dark:to-[#171717] border border-primary/20 dark:border-[#262626] rounded-3xl p-6 shadow-md text-on-surface dark:text-white flex flex-col gap-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-xl pointer-events-none" />
             
@@ -334,10 +318,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
           </div>
         </div>
 
-        {/* ── Right: Product Listing Grid (8 cols) ── */}
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
-          
-          {/* Top Sort & Count Bar */}
           <div className="flex justify-between items-center bg-surface-container-low dark:bg-[#171717] rounded-2xl px-5 py-3 border border-surface-variant/40 dark:border-[#262626] shadow-sm">
             <span className="font-body-md text-xs font-bold text-on-surface dark:text-white">
               Showing <span className="text-primary">{processedProducts.length}</span> fresh products
@@ -358,7 +339,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
             </div>
           </div>
 
-          {/* Product Cards Grid */}
           {processedProducts.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-5">
               {processedProducts.map(item => {
@@ -385,7 +365,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                     onClick={() => setSelectedProduct && setSelectedProduct(itemPayload)}
                     className="bg-surface-container-low dark:bg-[#171717] rounded-2xl p-4 border border-surface-variant/40 dark:border-[#262626] shadow-sm hover:shadow-md hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-300 flex flex-col justify-between gap-3 group relative cursor-pointer"
                   >
-                    {/* Wishlist Button */}
                     <button 
                       onClick={(e) => toggleWishlist(e, item.id)}
                       className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-center transition-colors z-10 cursor-pointer ${
@@ -395,7 +374,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                       <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
                     </button>
 
-                    {/* Image */}
                     <div className="h-36 w-full rounded-xl bg-surface-container-lowest dark:bg-[#0e0e0e] flex items-center justify-center overflow-hidden">
                       <img 
                         src={getUniqueImageUrl(item.imageUrl, item.id, item.itemName)}
@@ -405,7 +383,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                       />
                     </div>
 
-                    {/* Info */}
                     <div className="flex flex-col gap-1 text-left">
                       <span className="font-label-sm text-[10px] font-bold text-primary uppercase tracking-wider">
                         {item.itemCategory || categoryName}
@@ -414,7 +391,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                         {item.itemName}
                       </h4>
                       
-                      {/* Unit Size Selector */}
                       <div className="mt-1" onClick={(e) => e.stopPropagation()}>
                         <select 
                           value={selectedUnit}
@@ -428,7 +404,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
                       </div>
                     </div>
 
-                    {/* Price & Stepper / Add */}
                     <div className="flex items-center justify-between pt-3 border-t border-surface-variant/30 dark:border-[#262626] mt-1">
                       <div className="flex flex-col text-left">
                         {unitAdjustedCost && unitAdjustedCost > unitAdjustedPrice && (
@@ -480,7 +455,7 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
             </div>
           ) : (
             <div className="text-center py-24 bg-surface-container-low/50 dark:bg-[#171717]/50 rounded-3xl border border-dashed border-surface-variant/50 dark:border-[#262626]">
-              <span className="material-symbols-outlined text-4xl text-on-surface-variant">inventory_2</span>
+              <Package size={40} className="text-on-surface-variant mx-auto mb-2 opacity-50" />
               <p className="font-headline-md text-base font-bold text-on-surface dark:text-white mt-2">No products found</p>
               <p className="text-xs text-on-surface-variant mt-1">Try adjusting your filters or price range.</p>
               <button
@@ -494,7 +469,6 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
         </div>
       </div>
 
-      {/* ── RECIPE MODAL ── */}
       {showRecipeModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white dark:bg-[#171717] rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl border border-surface-variant/40 dark:border-[#262626] max-h-[90vh] overflow-y-auto text-left">
@@ -532,14 +506,13 @@ export const ProductsScreen = React.memo(({ category: propCategory, products = [
               }}
               className="w-full py-3 bg-primary text-on-primary font-label-md rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-container transition-all cursor-pointer shadow-md"
             >
-              <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+              <ShoppingCart size={16} />
               <span>Add All Ingredients to Cart</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Toast */}
       {addedRecipeToast && (
         <div className="fixed bottom-6 right-6 z-[100] bg-primary text-on-primary px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-xs animate-slide-up">
           <Check size={18} />

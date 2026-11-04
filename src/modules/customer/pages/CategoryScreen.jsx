@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate } from "react-router";
 import { useCategories } from "../hooks/useCategories";
 import { useProducts } from "../hooks/useProducts";
 import { matchCategory } from "@global/models/Categories";
-import { Search, ChevronRight, Sparkles } from "lucide-react";
+import { Search, ChevronRight, Sparkles, LayoutGrid } from "lucide-react";
 
 export const CategoryScreen = React.memo(({ onCategoryClick }) => {
   const context = useOutletContext() || {};
@@ -14,13 +14,10 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSection, setSelectedSection] = useState("All");
 
-  // Merge context categories with hook categories
   const allCategories = useMemo(() => {
-    const list = context.categories && context.categories.length > 0 ? context.categories : hookCategories;
-    return list;
+    return context.categories && context.categories.length > 0 ? context.categories : hookCategories;
   }, [context.categories, hookCategories]);
 
-  // Compute product count per category
   const categoryCounts = useMemo(() => {
     const counts = {};
     allCategories.forEach(cat => {
@@ -30,7 +27,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
     return counts;
   }, [allCategories, products]);
 
-  // Distinct sections list
   const sections = useMemo(() => {
     const set = new Set(["All"]);
     allCategories.forEach(c => {
@@ -39,7 +35,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
     return Array.from(set);
   }, [allCategories]);
 
-  // Filtered categories
   const filteredCategories = useMemo(() => {
     return allCategories.filter(cat => {
       const matchesSearch = !searchQuery.trim() || 
@@ -50,7 +45,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
     });
   }, [allCategories, searchQuery, selectedSection]);
 
-  // Group filtered categories by section
   const groupedCategories = useMemo(() => {
     if (selectedSection !== "All" || searchQuery.trim()) {
       return [{ title: selectedSection === "All" ? "Search Results" : selectedSection, items: filteredCategories }];
@@ -85,8 +79,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
 
   return (
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
-      
-      {/* ── Header Section ── */}
       <div className="pt-2 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-surface-variant/40 dark:border-[#262626] pb-6">
         <div>
           <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-1">
@@ -101,7 +93,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
           </p>
         </div>
 
-        {/* Live Search inside Categories */}
         <div className="w-full md:w-72 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
@@ -114,7 +105,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
         </div>
       </div>
 
-      {/* ── Section Pills Bar ── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {sections.map(sec => {
           const isSelected = selectedSection === sec;
@@ -141,7 +131,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
         })}
       </div>
 
-      {/* ── Directory Sections Grid ── */}
       <div className="flex flex-col gap-10">
         {groupedCategories.map((group, idx) => (
           <section key={idx} className="flex flex-col gap-5">
@@ -162,11 +151,10 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
                   onClick={() => handleSelect(cat)}
                   className="group relative overflow-hidden rounded-2xl bg-surface-container-low dark:bg-[#171717] shadow-xs hover:shadow-lg transition-all duration-300 border border-surface-variant/40 dark:border-[#262626] hover:border-primary/60 dark:hover:border-primary/60 flex flex-col justify-between h-40 p-4 text-left cursor-pointer"
                 >
-                  {/* Category Top details */}
                   <div className="flex justify-between items-start z-10 relative">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-xl bg-primary/15 dark:bg-primary/20 text-primary flex items-center justify-center shadow-xs">
-                        <span className="material-symbols-outlined text-[20px]">{cat.icon || "category"}</span>
+                        <LayoutGrid size={18} className="text-primary" />
                       </div>
                       <div>
                         <span className="font-headline-md text-on-surface dark:text-white text-sm sm:text-base font-bold leading-tight block">
@@ -179,7 +167,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
                     </div>
                   </div>
 
-                  {/* Bottom Action / Subtitle */}
                   <div className="z-10 relative flex justify-between items-center mt-auto pt-2">
                     <span className="text-[11px] font-bold text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                       <span>Shop Now</span>
@@ -187,7 +174,6 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
                     </span>
                   </div>
 
-                  {/* Category Image Overlay in Bottom Corner */}
                   <div className="absolute -bottom-4 -right-4 w-28 h-28 opacity-85 group-hover:scale-110 group-hover:opacity-100 transition-all duration-300 ease-out z-0 pointer-events-none">
                     <img 
                       src={cat.image} 
@@ -204,7 +190,7 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
 
         {groupedCategories.length === 0 && (
           <div className="text-center py-20 bg-surface-container-low/40 dark:bg-[#171717]/40 rounded-3xl border border-dashed border-surface-variant/50 dark:border-[#262626]">
-            <span className="material-symbols-outlined text-4xl text-slate-text">category</span>
+            <LayoutGrid size={36} className="text-slate-text" />
             <p className="font-headline-md text-base font-bold text-on-surface dark:text-white mt-2">No matching categories found</p>
             <p className="text-xs text-on-surface-variant mt-1">Try searching for a different item or clear the filter.</p>
             <button
@@ -221,5 +207,3 @@ export const CategoryScreen = React.memo(({ onCategoryClick }) => {
 });
 
 CategoryScreen.displayName = "CategoryScreen";
-
-

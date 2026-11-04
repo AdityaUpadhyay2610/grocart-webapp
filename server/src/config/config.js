@@ -139,8 +139,8 @@ const bodyLimits = {
   profileJson: process.env.PROFILE_JSON_BODY_LIMIT || '3mb'
 };
 const pagination = {
-  defaultLimit: parseNumber('PAGINATION_DEFAULT_LIMIT', 25),
-  maxLimit: parseNumber('PAGINATION_MAX_LIMIT', 100),
+  defaultLimit: parseNumber('PAGINATION_DEFAULT_LIMIT', 5000),
+  maxLimit: parseNumber('PAGINATION_MAX_LIMIT', 10000),
   maxOffset: parseNumber('PAGINATION_MAX_OFFSET', 1000000)
 };
 const avatarMaxBytes = parseNumber('AVATAR_MAX_BYTES', 1048576);

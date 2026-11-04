@@ -1,64 +1,119 @@
-// Map of category slugs/IDs to their display names for reverse lookup
-const SLUG_TO_NAME = {
-  'fresh-fruits': 'Fresh Fruits',
-  'fresh-vegetables': 'Fresh Vegetables',
-  'dairy': 'Dairy',
-  'meat': 'Meat',
-  'seafood': 'Seafood',
-  'bread-biscuits': 'Bread and Biscuits',
-  'beverages': 'Beverages',
-  'munchies': 'Munchies',
-  'packed-food': 'Packed Food',
-  'chocolates': 'Chocolates',
-  'sweet-tooth': 'Sweet Tooth',
-  'frozen-food': 'Frozen Food',
-  'breakfast-cereals': 'Breakfast & Cereals',
-  'kitchen-essentials': 'Kitchen Essentials',
-  'cleaning-essentials': 'Cleaning Essentials',
-  'home-care': 'Home Care',
-  'bath-body': 'Bath and Body',
-  'pharmacy': 'Pharmacy',
-  'stationery': 'Stationery',
-  'pet-supplies': 'Pet Supplies',
-  'beauty': 'Beauty',
-  'fragrances': 'Fragrances',
-  'mens-clothing': "Men's Clothing",
-  'womens-clothing': "Women's Clothing",
-  'electronics': 'Electronics',
-  'jewelery': 'Jewelery',
-  'furniture': 'Furniture',
+// Mapping all variants (slugs, short names, display names) to their canonical category ID
+const CANONICAL_CATEGORIES = {
+  // Fresh Produce & Dairy
+  'freshfruits': 'fresh-fruits',
+  'fruit': 'fresh-fruits',
+  'fruits': 'fresh-fruits',
+
+  'freshvegetables': 'fresh-vegetables',
+  'vegetable': 'fresh-vegetables',
+  'vegetables': 'fresh-vegetables',
+
+  'dairy': 'dairy',
+  'dairyeggs': 'dairy',
+
+  'meat': 'meat',
+  'freshmeatpoultry': 'meat',
+
+  'seafood': 'seafood',
+  'freshseafoodfish': 'seafood',
+
+  // Bakery, Snacks & Beverages
+  'breadbiscuits': 'bread-biscuits',
+  'breadandbiscuits': 'bread-biscuits',
+
+  'beverages': 'beverages',
+  'beveragesdrinks': 'beverages',
+
+  'munchies': 'munchies',
+  'munchiessnacks': 'munchies',
+
+  'packedfood': 'packed-food',
+  'packagedinstantfood': 'packed-food',
+
+  'chocolates': 'chocolates',
+  'chocolatescandies': 'chocolates',
+
+  'sweettooth': 'sweet-tooth',
+  'sweetsdesserts': 'sweet-tooth',
+
+  'frozenfood': 'frozen-food',
+  'frozenfoodicecream': 'frozen-food',
+
+  'breakfastcereals': 'breakfast-cereals',
+
+  // Home, Hygiene & Cleaning
+  'kitchenessentials': 'kitchen-essentials',
+  'kitchencookingessentials': 'kitchen-essentials',
+
+  'cleaningessentials': 'cleaning-essentials',
+
+  'homecare': 'home-care',
+  'homecaredecor': 'home-care',
+
+  'bathbody': 'bath-body',
+  'bathandbody': 'bath-body',
+  'bathbodycare': 'bath-body',
+
+  'pharmacy': 'pharmacy',
+  'pharmacywellness': 'pharmacy',
+
+  'stationery': 'stationery',
+  'stationeryoffice': 'stationery',
+
+  'petsupplies': 'pet-supplies',
+  'petsuppliesfood': 'pet-supplies',
+
+  // Lifestyle, Fashion & Electronics
+  'beauty': 'beauty',
+  'beautycosmetics': 'beauty',
+
+  'fragrances': 'fragrances',
+  'fragrancesperfumes': 'fragrances',
+
+  'mensclothing': 'mens-clothing',
+  'mensclothingfashion': 'mens-clothing',
+
+  'womensclothing': 'womens-clothing',
+  'womensclothingfashion': 'womens-clothing',
+
+  'electronics': 'electronics',
+  'electronicsgadgets': 'electronics',
+
+  'jewelery': 'jewelery',
+  'jewelry': 'jewelery',
+  'jewelryaccessories': 'jewelery',
+
+  'furniture': 'furniture',
+  'homefurniture': 'furniture',
+};
+
+const cleanStr = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export const getCanonicalCategory = (str) => {
+  if (!str) return '';
+  const cleaned = cleanStr(str);
+  return CANONICAL_CATEGORIES[cleaned] || cleaned;
 };
 
 export const matchCategory = (itemCategory, selectedCategory) => {
   if (!itemCategory || !selectedCategory) return false;
 
-  const dbCat = String(itemCategory).trim().toLowerCase();
-  const uiCat = String(selectedCategory).trim().toLowerCase();
+  const canonItem = getCanonicalCategory(itemCategory);
+  const canonSelected = getCanonicalCategory(selectedCategory);
 
-  if (dbCat === uiCat) return true;
+  // Exact canonical match (e.g. "fresh-fruits" === "fresh-fruits")
+  if (canonItem === canonSelected) return true;
 
-  // Resolve slug to name so "fresh-fruits" matches "Fresh Fruits"
-  const resolvedDb = (SLUG_TO_NAME[dbCat] || dbCat).toLowerCase();
-  const resolvedUi = (SLUG_TO_NAME[uiCat] || uiCat).toLowerCase();
-  if (resolvedDb === resolvedUi) return true;
-
-  // Prevent swapping men's and women's
+  // Prevent Men's / Women's cross-matching
   const isMen = (s) => s.includes('men') && !s.includes('women');
   const isWomen = (s) => s.includes('women');
-  if ((isMen(resolvedDb) && isWomen(resolvedUi)) || (isWomen(resolvedDb) && isMen(resolvedUi))) {
+  if ((isMen(canonItem) && isWomen(canonSelected)) || (isWomen(canonItem) && isMen(canonSelected))) {
     return false;
   }
 
-  // Normalize separators and compare
-  const norm = (s) => s.replace(/[-_&/]/g, ' ').replace(/\s+/g, ' ').trim();
-  const nDb = norm(resolvedDb);
-  const nUi = norm(resolvedUi);
-
-  if (nDb === nUi) return true;
-  if (nUi.includes(nDb) || nDb.includes(nUi)) return true;
-
-  // Word overlap for multi-word categories
-  const dbWords = nDb.split(' ').filter(w => w.length > 3);
-  const uiWords = nUi.split(' ').filter(w => w.length > 3);
-  return dbWords.some(w => uiWords.includes(w));
+  // Fallback: exact cleaned string equality
+  const c1 = cleanStr(itemCategory);
+  const c2 = cleanStr(selectedCategory);
+  return c1 === c2;
 };
