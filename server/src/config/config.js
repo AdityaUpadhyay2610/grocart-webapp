@@ -114,6 +114,16 @@ const registerRateLimit = {
   capacity: parseNumber('REGISTER_RATE_LIMIT_CAPACITY', 5),
   windowMs: parseNumber('REGISTER_RATE_LIMIT_WINDOW_MINUTES', 60) * 60 * 1000
 };
+
+const googleClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+if (googleClientId && !/^\d+-[\w-]+\.apps\.googleusercontent\.com$/.test(googleClientId)) {
+  throw new Error('[Config Error] GOOGLE_CLIENT_ID does not look like a Google OAuth client id.');
+}
+const googleRateLimit = {
+  capacity: parseNumber('GOOGLE_RATE_LIMIT_CAPACITY', 10),
+  windowMs: parseNumber('GOOGLE_RATE_LIMIT_WINDOW_MINUTES', 15) * 60 * 1000
+};
+
 const searchRateLimit = {
   capacity: parseNumber('SEARCH_RATE_LIMIT_CAPACITY', 120),
   refillPerSecond: parseNumber('SEARCH_RATE_LIMIT_REFILL_PER_SECOND', 2),
@@ -232,11 +242,18 @@ module.exports = Object.freeze({
     bulkUploadRateLimit,
     loginRateLimit,
     registerRateLimit,
+    googleRateLimit,
     refreshTokenCleanupIntervalMs,
     cookieRequestHeader: COOKIE_REQUEST_HEADER,
     cookieRequestHeaderValue: COOKIE_REQUEST_HEADER_VALUE,
     cookieRequestHeaderMessage:
       process.env.COOKIE_REQUEST_HEADER_MESSAGE || 'A custom request header is required.'
+  },
+  google:{
+    clientId: googleClientId,
+    enabled: googleClientId !== '',
+    nonceCookie: 'g_nonce',
+    nonceTtlMs: 5*60*1000
   },
   seedAdmin,
   razorpay

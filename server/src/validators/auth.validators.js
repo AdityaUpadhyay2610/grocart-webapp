@@ -63,7 +63,19 @@ const changePasswordRules = [
     .withMessage('New password must be between 8 and 72 characters.')
 ];
 
+//Rules for POST /auth/google
+//A google Id token is a JWT: three base64url parts separated by dots.
+
+const googleLoginRules = [
+  body('credential')
+    .isString().withMessage('Google credential is required.')
+    .isLength({ min: 100, max: 4096 }).withMessage('Google credential is malformed.')
+    .matches(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
+    .withMessage('Google credential is malformed.')
+];
+
 module.exports = {
+  googleLoginRules,
   registerRules,
   loginRules,
   changePasswordRules

@@ -7,7 +7,8 @@ const router = express.Router();
 const {
   loginLimiter,
   registerLimiter,
-  refreshLimiter
+  refreshLimiter,
+  googleLimiter
 } = require('../middleware/rateLimit');
 const validate = require('../middleware/validate');
 const verifyToken = require('../middleware/verifyToken');
@@ -15,7 +16,8 @@ const requireCookieRequestHeader = require('../middleware/requireCookieRequestHe
 const {
   registerRules,
   loginRules,
-  changePasswordRules
+  changePasswordRules,
+  googleLoginRules
 } = require('../validators/auth.validators');
 const {
   register,
@@ -24,12 +26,18 @@ const {
   logout,
   changePassword,
   getMe,
-  resendVerification
+  resendVerification,
+  googleNonce,
+  googleLogin
 } = require('../controllers/auth.controller');
 
 // Public routes — rate limited
 router.post('/register', registerLimiter, registerRules, validate, register);
 router.post('/login', loginLimiter, loginRules, validate, login);
+
+router.get('/google/nonce',requireCookieRequestHeader,googleNonce)
+router.post('/google', googleLimiter, requireCookieRequestHeader,googleLoginRules, validate, googleLogin);
+
 router.post('/refresh', refreshLimiter, requireCookieRequestHeader, refresh);
 router.post('/logout', requireCookieRequestHeader, logout);
 

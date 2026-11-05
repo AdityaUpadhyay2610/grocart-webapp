@@ -199,6 +199,12 @@ module.exports = {
     keyGenerator: getClientIp
   }),
 
+  googleLimiter: createLeakyBucketLimiter({
+    name: 'google',
+    ...config.security.googleRateLimit,
+    keyGenerator: getClientIp
+  }),
+
   // Order placement
   orderLimiter: createTokenBucketLimiter({
     name: 'order',

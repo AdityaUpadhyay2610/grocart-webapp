@@ -272,6 +272,16 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
     completePayment,
     onPaymentConfirmed
   ]);
+  // Place this right above the return statement in PaymentScreen.jsx
+  const getPayButtonLabel = () => {
+    if (selectedPaymentMethod === "COD") {
+      return `Confirm Order (Total = ${formatINR(grandTotal)})`;
+    }
+    if (selectedPaymentMethod === "UPI") {
+      return `Pay and Confirm Order (${formatINR(grandTotal)})`;
+    }
+    return `Pay ${formatINR(grandTotal)}`;
+  };
 
   return (
     <div className="fixed inset-0 w-full h-full bg-surface-container-lowest dark:bg-[#0a0a0a] text-on-surface dark:text-white z-50 overflow-y-auto pb-8 select-none flex flex-col transition-colors duration-300">
@@ -500,9 +510,9 @@ export const PaymentScreen = React.memo(({ onPaymentConfirmed }) => {
             <button
               onClick={handleBuyClick}
               disabled={!selectedPaymentMethod}
-              className="mt-2 w-full py-4 bg-primary text-on-primary dark:text-black font-headline-md text-sm font-black rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary-container disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="mt-2 w-full py-4 bg-primary text-on-primary dark:text-black font-headline-md text-s font-black rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary-container disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Pay {formatINR(grandTotal)}</span>
+              <span className="text-sm">{getPayButtonLabel()}</span>
               <ChevronRight size={18} />
             </button>
           </div>

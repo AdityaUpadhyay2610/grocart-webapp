@@ -14,7 +14,9 @@ const {
 const { formatUser } = require('../utils/formatters');
 const { sendSuccess, sendError } = require('../utils/response');
 const asyncHandler = require('../utils/asyncHandler');
-
+const logger = require('../utils/logger');
+const {USER_ROLE} = require('../config/constants');
+const {createNonce, verifyGoogleCredential } = require('../utils/googleAuth');
 const dummyPasswordHash = bcrypt.hashSync(
   crypto.randomBytes(32).toString('hex'),
   config.security.bcryptRounds
@@ -41,7 +43,137 @@ async function saveRefreshToken(userId, rawToken, client = null) {
     [userId, hash, expiresAt]
   );
 }
+const GOOGLE_FAILED = 'Google sign-in failed. Please try again.';
+const GOOGLE_UNAVAILABLE= 'Google sign-in is not available right now.';
 
+//Cookie that rembers the nonce for a few minutes
+function getNoncecookieOptions(){
+  return {
+    httpOnly: true,
+    secure: config.cookie.secure,
+    sameSite: config.cookie.sameSite,
+    path: '/api/auth',
+    maxAge: config.google.nonceTtlMs
+  };
+}
+
+// Finds, links or creates the GroCart user for a verified Google profile.
+// Returns the user row, or null when Google sign-in is not allowed for this account.
+async function findOrCreateGoogleUser(profile) {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+
+    // 1. Returning Google user: matched by the permanent Google id, never by email.
+    const bySub = await client.query('SELECT * FROM users WHERE google_sub = $1', [profile.sub]);
+    if (bySub.rows.length > 0) {
+      await client.query('COMMIT');
+      return bySub.rows[0];
+    }
+
+    // 2. Same email already registered: link, but only when it is safe to do so.
+    const byEmail = await client.query(
+      'SELECT * FROM users WHERE email = $1 FOR UPDATE',
+      [profile.email]
+    );
+    if (byEmail.rows.length > 0) {
+      const existing = byEmail.rows[0];
+      if (existing.role === USER_ROLE.ADMIN || !profile.emailIsAuthoritative || existing.google_sub) {
+        await client.query('ROLLBACK');
+        return null;
+      }
+
+      // The old password may belong to someone who never owned this email
+      // (registration does not verify email yet). Lock it out and end old sessions.
+      const lockedHash = await bcrypt.hash(
+        crypto.randomBytes(32).toString('hex'),
+        config.security.bcryptRounds
+      );
+      const linked = await client.query(
+        `UPDATE users
+         SET google_sub = $1, auth_provider = 'google', password_hash = $2, email_verified = TRUE
+         WHERE id = $3
+         RETURNING *`,
+        [profile.sub, lockedHash, existing.id]
+      );
+      await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [existing.id]);
+      await client.query('COMMIT');
+      return linked.rows[0];
+    }
+
+    // 3. Brand-new user: always a customer, with a password nobody knows.
+    const unusableHash = await bcrypt.hash(
+      crypto.randomBytes(32).toString('hex'),
+      config.security.bcryptRounds
+    );
+    const created = await client.query(
+      `INSERT INTO users (id, name, email, password_hash, role, google_sub, auth_provider, email_verified, created_at)
+       VALUES ($1, $2, $3, $4, 'customer', $5, 'google', TRUE, $6)
+       ON CONFLICT DO NOTHING
+       RETURNING *`,
+      [crypto.randomUUID(), profile.name, profile.email, unusableHash, profile.sub, Date.now()]
+    );
+    if (created.rows.length === 0) {
+      // Two sign-ins raced each other and the other one won. Ask the user to retry.
+      await client.query('ROLLBACK');
+      return null;
+    }
+    await client.query('COMMIT');
+    return created.rows[0];
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+//GET /api/auth/google/nonce
+//Hands the Browser a one-time value to embed in the Google token request
+const googleNonce = asyncHandler(async (req, res)=>{
+  if (!config.google.enabled){
+    return sendError(res, GOOGLE_UNAVAILABLE, [], 503);
+  }
+  const nonce = createNonce();
+  res.cookie(config.google.nonceCookie,nonce,getNoncecookieOptions());
+  res.set('Cache-Control','no-store');
+  return sendSuccess(res, {nonce});
+});
+
+// POST /api/auth/google
+// Body: { credential } — the ID token Google gave the browser.
+const googleLogin = asyncHandler(async (req, res) => {
+  if (!config.google.enabled) {
+    return sendError(res, GOOGLE_UNAVAILABLE, [], 503);
+  }
+
+  const { credential } = req.body;
+  const expectedNonce = req.cookies[config.google.nonceCookie];
+
+  // A nonce works once. Remove it whether or not this attempt succeeds.
+  const { maxAge, ...clearOptions } = getNonceCookieOptions();
+  res.clearCookie(config.google.nonceCookie, clearOptions);
+
+  let profile;
+  try {
+    profile = await verifyGoogleCredential(credential, expectedNonce);
+  } catch (err) {
+    logger.warn('[GoogleAuth] Credential rejected:', err.message);
+    return sendError(res, GOOGLE_FAILED, [], 401);
+  }
+
+  const user = await findOrCreateGoogleUser(profile);
+  if (!user) {
+    return sendError(res, GOOGLE_FAILED, [], 401);
+  }
+
+  // From here on it is the same session machinery as the password login.
+  const accessToken = createAccessToken(user.id, user.role);
+  const refreshToken = createRefreshToken(user.id);
+  await saveRefreshToken(user.id, refreshToken);
+
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
+  return sendSuccess(res, { user: formatUser(user), accessToken });
+});
 // POST /api/auth/register
 const register = asyncHandler(async (req, res) => {
   const { email, password, name, role, storeName = '' } = req.body;
@@ -224,6 +356,8 @@ const resendVerification = asyncHandler(async (req, res) => {
 
 
 module.exports = {
+  googleNonce,
+  googleLogin,
   register,
   login,
   refresh,
