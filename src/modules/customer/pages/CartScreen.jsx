@@ -106,7 +106,7 @@ export const CartScreen = React.memo(({ onBrowseProducts }) => {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center bg-surface-container dark:bg-[#1e1e1e] rounded-xl border border-surface-variant/40 dark:border-[#2c2c2c] p-1">
                     <button
-                      onClick={() => decreaseCartItem(item.id)}
+                      onClick={() => decreaseCartItem(item)}
                       className="w-7 h-7 flex items-center justify-center text-on-surface hover:text-primary transition-colors cursor-pointer"
                     >
                       <Minus size={14} />

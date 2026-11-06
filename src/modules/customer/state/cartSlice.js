@@ -21,6 +21,12 @@ const initialState = {
   grandTotal: 0
 };
 
+const hasCartItemId = (id) => {
+  if (id == null) return false;
+  const value = String(id).trim().toLowerCase();
+  return value !== "" && value !== "undefined" && value !== "null";
+};
+
 const recalculateTotals = (state) => {
   state.itemTotal = calculateItemTotal(state.cartItems);
   state.handlingCharge = calculateHandlingCharge(state.itemTotal);
@@ -55,6 +61,9 @@ export const addToCartThunk = createAsyncThunk(
     const { auth, cart } = getState();
     const userId = auth.user?.uid || auth.user?.id;
     if (!userId) return rejectWithValue("User not logged in");
+    if (!product || !hasCartItemId(product.id)) {
+      return rejectWithValue("Product ID is missing");
+    }
 
     const unit = product.itemQuantity || product.unit || "500g";
     const cartItemId = product.cartItemId || (unit ? `${product.id}_${unit.replace(/\s+/g, '')}` : product.id);
@@ -97,6 +106,9 @@ export const decreaseCartItemThunk = createAsyncThunk(
     const { auth } = getState();
     const userId = auth.user?.uid || auth.user?.id;
     if (!userId) return rejectWithValue("User not logged in");
+    if (!item || !hasCartItemId(item.id)) {
+      return rejectWithValue("Cart item ID is missing");
+    }
 
     if (item.quantity <= 1) {
       dispatch(cartSlice.actions.removeItemOptimistic(item.id));
@@ -120,6 +132,27 @@ export const decreaseCartItemThunk = createAsyncThunk(
         dispatch(loadCartThunk());
         return rejectWithValue(e.message);
       }
+    }
+  }
+);
+
+export const removeCartItemThunk = createAsyncThunk(
+  "cart/removeCartItem",
+  async (itemId, { getState, rejectWithValue, dispatch }) => {
+    const { auth } = getState();
+    const userId = auth.user?.uid || auth.user?.id;
+    if (!userId) return rejectWithValue("User not logged in");
+    if (!hasCartItemId(itemId)) {
+      return rejectWithValue("Cart item ID is missing");
+    }
+
+    dispatch(cartSlice.actions.removeItemOptimistic(itemId));
+    try {
+      await removeCartItem(userId, itemId);
+    } catch (e) {
+      console.error("Failed to sync remove cart item:", e);
+      dispatch(loadCartThunk());
+      return rejectWithValue(e.message);
     }
   }
 );

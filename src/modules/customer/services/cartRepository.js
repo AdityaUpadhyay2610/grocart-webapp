@@ -7,6 +7,12 @@ import { CartItem } from '@global/models/CartItem';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+function hasCartItemId(id) {
+  if (id == null) return false;
+  const value = String(id).trim().toLowerCase();
+  return value !== '' && value !== 'undefined' && value !== 'null';
+}
+
 function toCartItem(raw) {
   return new CartItem({
     id: raw.id ?? raw.item_id ?? raw.product_id ?? 0,
@@ -65,6 +71,9 @@ export const fetchCart = async (userId) => {
  */
 export const saveCartItem = async (userId, cartItem) => {
   if (!userId || !cartItem) return;
+  if (!hasCartItemId(cartItem.id)) {
+    throw new Error('Cart item ID is missing.');
+  }
 
   if (userId === 'guest_user') {
     const list = guestFetch();
@@ -76,7 +85,7 @@ export const saveCartItem = async (userId, cartItem) => {
   }
 
   try {
-    await apiClient.put(`/cart/items/${cartItem.id}`, {
+    await apiClient.put(`/cart/items/${encodeURIComponent(cartItem.id)}`, {
       productId: cartItem.productId || cartItem.id,
       itemName: cartItem.itemName,
       itemPrice: cartItem.itemPrice,
@@ -96,7 +105,10 @@ export const saveCartItem = async (userId, cartItem) => {
  * Remove a single item from the cart.
  */
 export const removeCartItem = async (userId, itemId) => {
-  if (!userId || !itemId) return;
+  if (!userId) return;
+  if (!hasCartItemId(itemId)) {
+    throw new Error('Cart item ID is missing.');
+  }
 
   if (userId === 'guest_user') {
     const list = guestFetch().filter((i) => i.id !== itemId);
@@ -105,7 +117,7 @@ export const removeCartItem = async (userId, itemId) => {
   }
 
   try {
-    await apiClient.delete(`/cart/items/${itemId}`);
+    await apiClient.delete(`/cart/items/${encodeURIComponent(itemId)}`);
   } catch (error) {
     console.error(`Failed to remove cart item ${itemId} for user ${userId}:`, error);
     throw error;

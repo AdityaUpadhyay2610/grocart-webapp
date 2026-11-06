@@ -5,6 +5,7 @@ import {
   loadCartThunk, 
   addToCartThunk, 
   decreaseCartItemThunk, 
+  removeCartItemThunk,
   placeOrderThunk,
   clearCartThunk,
   triggerAddToCartAnimation as triggerAddToCartAnimationAction,
@@ -28,6 +29,7 @@ export const useCart = () => {
   const loadCart = useCallback(() => dispatch(loadCartThunk()), [dispatch]);
   const addToCart = useCallback((product) => dispatch(addToCartThunk(product)), [dispatch]);
   const decreaseCartItem = useCallback((item) => dispatch(decreaseCartItemThunk(item)), [dispatch]);
+  const removeFromCart = useCallback((itemId) => dispatch(removeCartItemThunk(itemId)), [dispatch]);
   
   const triggerAddToCartAnimation = useCallback((product) => {
     dispatch(triggerAddToCartAnimationAction(product));
@@ -73,6 +75,7 @@ export const useCart = () => {
     loadCart,
     addToCart,
     decreaseCartItem,
+    removeFromCart,
     triggerAddToCartAnimation,
     proceedToPay,
     cancelPayment,
