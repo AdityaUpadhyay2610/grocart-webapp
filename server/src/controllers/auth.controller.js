@@ -46,8 +46,8 @@ async function saveRefreshToken(userId, rawToken, client = null) {
 const GOOGLE_FAILED = 'Google sign-in failed. Please try again.';
 const GOOGLE_UNAVAILABLE= 'Google sign-in is not available right now.';
 
-//Cookie that rembers the nonce for a few minutes
-function getNoncecookieOptions(){
+// Cookie that remembers the nonce for a few minutes
+function getNonceCookieOptions() {
   return {
     httpOnly: true,
     secure: config.cookie.secure,
@@ -134,9 +134,9 @@ const googleNonce = asyncHandler(async (req, res)=>{
     return sendError(res, GOOGLE_UNAVAILABLE, [], 503);
   }
   const nonce = createNonce();
-  res.cookie(config.google.nonceCookie,nonce,getNoncecookieOptions());
-  res.set('Cache-Control','no-store');
-  return sendSuccess(res, {nonce});
+  res.cookie(config.google.nonceCookie, nonce, getNonceCookieOptions());
+  res.set('Cache-Control', 'no-store');
+  return sendSuccess(res, { nonce });
 });
 
 // POST /api/auth/google

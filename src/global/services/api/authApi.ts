@@ -5,6 +5,14 @@
 import { apiClient, setAccessToken, refreshSession } from '@global/utils/axiosInstance';
 import { UserProfile, UserRole } from '@global/models';
 
+const hasSessionHint = (): boolean => {
+  try {
+    return localStorage.getItem('grocart:hasSession') === '1';
+  } catch {
+    return false;
+  }
+};
+
 export const authApi = {
   /**
    * Log in user with email and password.
@@ -16,10 +24,44 @@ export const authApi = {
       const { user, accessToken } = response.data?.data || {};
       if (accessToken) {
         setAccessToken(accessToken);
+        try {
+          localStorage.setItem('grocart:hasSession', '1');
+        } catch {
+          // no-op in restricted browsers
+        }
       }
       return user as UserProfile;
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Login failed';
+      throw new Error(msg);
+    }
+  },
+
+  getGoogleNonce: async (): Promise<string> => {
+    try {
+      const response = await apiClient.get('/auth/google/nonce');
+      return response.data?.data?.nonce || '';
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Google sign-in is unavailable.';
+      throw new Error(msg);
+    }
+  },
+
+  loginWithGoogle: async (credential: string): Promise<UserProfile> => {
+    try {
+      const response = await apiClient.post('/auth/google', { credential });
+      const { user, accessToken } = response.data?.data || {};
+      if (accessToken) {
+        setAccessToken(accessToken);
+        try {
+          localStorage.setItem('grocart:hasSession', '1');
+        } catch {
+          // no-op in restricted browsers
+        }
+      }
+      return user as UserProfile;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Google login failed';
       throw new Error(msg);
     }
   },
@@ -62,6 +104,11 @@ export const authApi = {
       console.warn('Backend logout error (continuing local cleanup):', err);
     } finally {
       setAccessToken(null);
+      try {
+        localStorage.removeItem('grocart:hasSession');
+      } catch {
+        // no-op in restricted browsers
+      }
     }
   },
 
@@ -69,11 +116,28 @@ export const authApi = {
    * Restore user session from httpOnly refresh token cookie on app startup.
    */
   restoreSession: async (): Promise<UserProfile | null> => {
+    if (!hasSessionHint()) {
+      setAccessToken(null);
+      return null;
+    }
+
     try {
       const data = await refreshSession();
+      if (!data?.user) {
+        try {
+          localStorage.removeItem('grocart:hasSession');
+        } catch {
+          // no-op in restricted browsers
+        }
+      }
       return (data?.user as UserProfile) || null;
     } catch (error: any) {
       setAccessToken(null);
+      try {
+        localStorage.removeItem('grocart:hasSession');
+      } catch {
+        // no-op in restricted browsers
+      }
       if (error.response?.status === 401) {
         return null;
       }

@@ -30,6 +30,9 @@ cp .env.example .env
 | `JWT_ISSUER` | JWT issuer | `grocart-api` |
 | `JWT_AUDIENCE` | JWT audience | `grocart-web` |
 | `CLIENT_URL` | Allowed CORS frontend origin | `http://localhost:5173` |
+| `GOOGLE_CLIENT_ID` | Google OAuth web client ID used by `/api/auth/google` | `123...apps.googleusercontent.com` |
+| `GOOGLE_RATE_LIMIT_CAPACITY` | Google login token bucket capacity | `10` |
+| `GOOGLE_RATE_LIMIT_WINDOW_MINUTES` | Google login rate-limit window | `15` |
 | `BCRYPT_ROUNDS` | Bcrypt salt rounds | `12` |
 | `LOG_LEVEL` | Minimum server log level | `info` |
 | `REFRESH_TOKEN_CLEANUP_INTERVAL_MINUTES` | Expired refresh-token cleanup interval | `60` |
@@ -66,6 +69,14 @@ Creates the initial platform admin and starter grocery categories (e.g. Fruits &
   ```bash
   npm start
   ```
+
+### 6. Google Sign-In Setup
+
+1. In Google Cloud Console create an OAuth 2.0 Web client.
+2. Add `http://localhost` and `http://localhost:5173` to Authorized JavaScript origins; add your production frontend origin as well.
+3. Set the same client ID in `server/.env` as `GOOGLE_CLIENT_ID` and in the frontend root `.env` as `VITE_GOOGLE_CLIENT_ID`.
+4. If the OAuth consent screen is in Testing mode, add your Google test account to the list of users.
+5. Existing databases should run `server/sql/migrate_google_auth.sql` once if Google columns are missing.
 
 ---
 

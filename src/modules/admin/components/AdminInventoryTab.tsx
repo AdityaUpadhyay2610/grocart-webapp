@@ -20,8 +20,6 @@ export function AdminInventoryTab({
 }: AdminInventoryTabProps) {
   
   const [vendorLimits, setVendorLimits] = React.useState<Record<string, number>>({});
-  
-  const allProducts = Object.values(groupedProducts).flat();
 
   return (
     <div className="space-y-8 animate-fade-in text-slate-800 dark:text-slate-200 relative z-10">

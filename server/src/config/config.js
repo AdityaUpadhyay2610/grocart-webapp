@@ -1,38 +1,20 @@
-const path = require('path');
-const dotenv = require('dotenv');
 const {
   JWT_ALGORITHM,
   COOKIE_REQUEST_HEADER,
   COOKIE_REQUEST_HEADER_VALUE
 } = require('./constants');
-
-// Load environment variables from server/.env
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+const { requireEnv, readString, readNumber } = require('./env');
 
 const env = process.env.NODE_ENV || 'development';
 const isProduction = env === 'production';
 
-// Helper to check required non-empty string variables
-function requireEnv(key) {
-  const value = process.env[key];
-  if (!value || value.trim() === '') {
-    throw new Error(`[Config Error] Missing required environment variable: ${key}`);
-  }
-  return value.trim();
-}
-
-// Helper to convert numeric variables safely
 function parseNumber(key, defaultValue) {
-  const raw = process.env[key];
-  if (raw === undefined || raw === null || raw.trim() === '') {
+  const rawValue = readString(key);
+  if (rawValue === '') {
     if (defaultValue !== undefined) return defaultValue;
     throw new Error(`[Config Error] Missing required numeric environment variable: ${key}`);
   }
-  const parsed = Number(raw);
-  if (Number.isNaN(parsed)) {
-    throw new Error(`[Config Error] Environment variable ${key} must be a valid number, received: "${raw}"`);
-  }
-  return parsed;
+  return readNumber(key, defaultValue);
 }
 
 // 1. Read required values
@@ -65,11 +47,11 @@ if (isProduction) {
 // 4. Parse numbers and defaults
 const port = parseNumber('PORT', 5000);
 const bcryptRounds = parseNumber('BCRYPT_ROUNDS', 12);
-const accessExpires = process.env.ACCESS_TOKEN_EXPIRES || '15m';
+const accessExpires = readString('ACCESS_TOKEN_EXPIRES', '15m');
 const refreshExpiresDays = parseNumber('REFRESH_TOKEN_EXPIRES_DAYS', 7);
-const jwtIssuer = process.env.JWT_ISSUER || 'grocart-api';
-const jwtAudience = process.env.JWT_AUDIENCE || 'grocart-web';
-const logLevel = process.env.LOG_LEVEL || 'info';
+const jwtIssuer = readString('JWT_ISSUER', 'grocart-api');
+const jwtAudience = readString('JWT_AUDIENCE', 'grocart-web');
+const logLevel = readString('LOG_LEVEL', 'info');
 
 const trustProxy = parseNumber('TRUST_PROXY', isProduction ? 1 : 0);
 const rateLimitStore = {
@@ -108,14 +90,14 @@ const loginRateLimit = {
   email: loginEmailRateLimit,
   ip: loginIpRateLimit,
   lockMs: parseNumber('LOGIN_EMAIL_LOCK_MINUTES', 15) * 60 * 1000,
-  lockMessage: process.env.LOGIN_LOCK_MESSAGE || 'Too many failed sign-in attempts. Try again later.'
+  lockMessage: readString('LOGIN_LOCK_MESSAGE', 'Too many failed sign-in attempts. Try again later.')
 };
 const registerRateLimit = {
   capacity: parseNumber('REGISTER_RATE_LIMIT_CAPACITY', 5),
   windowMs: parseNumber('REGISTER_RATE_LIMIT_WINDOW_MINUTES', 60) * 60 * 1000
 };
 
-const googleClientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+const googleClientId = readString('GOOGLE_CLIENT_ID', '').trim();
 if (googleClientId && !/^\d+-[\w-]+\.apps\.googleusercontent\.com$/.test(googleClientId)) {
   throw new Error('[Config Error] GOOGLE_CLIENT_ID does not look like a Google OAuth client id.');
 }
@@ -145,8 +127,8 @@ const bulkUploadRateLimit = {
 const refreshTokenCleanupIntervalMs =
   parseNumber('REFRESH_TOKEN_CLEANUP_INTERVAL_MINUTES', 60) * 60 * 1000;
 const bodyLimits = {
-  json: process.env.JSON_BODY_LIMIT || '100kb',
-  profileJson: process.env.PROFILE_JSON_BODY_LIMIT || '3mb'
+  json: readString('JSON_BODY_LIMIT', '100kb'),
+  profileJson: readString('PROFILE_JSON_BODY_LIMIT', '3mb')
 };
 const pagination = {
   defaultLimit: parseNumber('PAGINATION_DEFAULT_LIMIT', 5000),
@@ -156,10 +138,9 @@ const pagination = {
 const avatarMaxBytes = parseNumber('AVATAR_MAX_BYTES', 1048576);
 const authMessages = {
   invalidCredentials:
-    process.env.AUTH_INVALID_CREDENTIALS_MESSAGE || 'Invalid email or password.',
+    readString('AUTH_INVALID_CREDENTIALS_MESSAGE', 'Invalid email or password.'),
   registrationNeutral:
-    process.env.REGISTRATION_NEUTRAL_MESSAGE ||
-    'If this email can be registered, the request has been accepted.'
+    readString('REGISTRATION_NEUTRAL_MESSAGE', 'If this email can be registered, the request has been accepted.')
 };
 const allowedLogLevels = ['error', 'warn', 'info', 'debug'];
 if (!allowedLogLevels.includes(logLevel)) {
@@ -174,16 +155,16 @@ const cookieSettings = {
 
 // 6. Seed admin settings (used by scripts/seed.js)
 const seedAdmin = {
-  name: process.env.SEED_ADMIN_NAME || 'Admin',
-  email: process.env.SEED_ADMIN_EMAIL || '',
-  password: process.env.SEED_ADMIN_PASSWORD || ''
+  name: readString('SEED_ADMIN_NAME', 'Admin'),
+  email: readString('SEED_ADMIN_EMAIL', ''),
+  password: readString('SEED_ADMIN_PASSWORD', '')
 };
 
 // 7. Razorpay configuration
 const razorpay = {
-  keyId: process.env.RAZORPAY_KEY_ID || '',
-  keySecret: process.env.RAZORPAY_KEY_SECRET || '',
-  webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || ''
+  keyId: readString('RAZORPAY_KEY_ID', ''),
+  keySecret: readString('RAZORPAY_KEY_SECRET', ''),
+  webhookSecret: readString('RAZORPAY_WEBHOOK_SECRET', '')
 };
 
 // Export one frozen object
@@ -225,12 +206,10 @@ module.exports = Object.freeze({
     pagination,
     avatarMaxBytes,
     avatarValidationMessage:
-      process.env.AVATAR_VALIDATION_MESSAGE ||
-      'Avatar must be a png, jpeg, or webp image within the configured size limit.',
+      readString('AVATAR_VALIDATION_MESSAGE', 'Avatar must be a png, jpeg, or webp image within the configured size limit.'),
     productImageValidationMessage:
-      process.env.PRODUCT_IMAGE_VALIDATION_MESSAGE ||
-      'Product images must use HTTPS or a local public path.',
-    rateLimitMessage: process.env.RATE_LIMIT_MESSAGE || 'Too many requests. Please try again later.',
+      readString('PRODUCT_IMAGE_VALIDATION_MESSAGE', 'Product images must use HTTPS or a local public path.'),
+    rateLimitMessage: readString('RATE_LIMIT_MESSAGE', 'Too many requests. Please try again later.'),
     rateLimitStore,
     generalRateLimit,
     searchRateLimit,
@@ -247,7 +226,7 @@ module.exports = Object.freeze({
     cookieRequestHeader: COOKIE_REQUEST_HEADER,
     cookieRequestHeaderValue: COOKIE_REQUEST_HEADER_VALUE,
     cookieRequestHeaderMessage:
-      process.env.COOKIE_REQUEST_HEADER_MESSAGE || 'A custom request header is required.'
+      readString('COOKIE_REQUEST_HEADER_MESSAGE', 'A custom request header is required.')
   },
   google:{
     clientId: googleClientId,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronUp, ChevronDown, Printer, Download, RefreshCw, PackageSearch, ArrowRight } from 'lucide-react';
 
 interface RetailerOrdersTabProps {

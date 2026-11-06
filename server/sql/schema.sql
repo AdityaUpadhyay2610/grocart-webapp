@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_seed            TEXT NOT NULL DEFAULT '',
   avatar_url             TEXT NOT NULL DEFAULT '',      -- can hold a base64 image, so TEXT
   email_verified         BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at             BIGINT NOT NULL
+  created_at             BIGINT NOT NULL,
   google_sub             TEXT,
-  auth_provider          TEXT NOT NULL DEFAULT 'local' CHECK (auth_provider IN ('local','google')),
+  auth_provider          TEXT NOT NULL DEFAULT 'local' CHECK (auth_provider IN ('local','google'))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub) WHERE google_sub IS NOT NULL;

@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi, storefrontApi } from '@global/services/api/appApis';
 import { useSelector } from 'react-redux';
+import { UserProfile } from '@global/models';
 
 export const useAdminData = ({ limit, offset }: { limit?: number; offset?: number } = {}) => {
   const queryClient = useQueryClient();
   const user = useSelector((state: any) => state.auth.user);
   const isAdmin = user?.role === 'admin';
 
-  const { data: users = [], isLoading: usersLoading } = useQuery({
+  const { data: users = [] as UserProfile[], isLoading: usersLoading } = useQuery({
     queryKey: ['admin-all-users', limit, offset],
     queryFn: () => adminApi.fetchAllUsers({ limit, offset }),
     enabled: isAdmin,
@@ -35,9 +36,9 @@ export const useAdminData = ({ limit, offset }: { limit?: number; offset?: numbe
     retry: false
   });
 
-  const { data: allProducts = [], isLoading: productsLoading } = useQuery({
+  const { data: allProducts = [] as any[], isLoading: productsLoading } = useQuery({
     queryKey: ['admin-all-products'],
-    queryFn: storefrontApi.fetchAllProducts,
+    queryFn: () => storefrontApi.fetchAllProducts(),
   });
 
   const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
@@ -47,9 +48,9 @@ export const useAdminData = ({ limit, offset }: { limit?: number; offset?: numbe
     retry: false
   });
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+  const { data: categories = [] as any[], isLoading: categoriesLoading } = useQuery({
     queryKey: ['admin-all-categories'],
-    queryFn: storefrontApi.fetchCategories,
+    queryFn: () => storefrontApi.fetchCategories(),
   });
 
   const createCategoryMutation = useMutation({
@@ -63,7 +64,7 @@ export const useAdminData = ({ limit, offset }: { limit?: number; offset?: numbe
   const retailers = users.filter((u: any) => u.role === 'retailer');
   const customers = users.filter((u: any) => u.role === 'customer' || !u.role);
   
-  const validUserIds = new Set(users.map((u: any) => u.uid));
+  const validUserIds = new Set(users.map((u: any) => u.uid ?? u.id));
   const validProducts = allProducts.filter((p: any) => validUserIds.has(p.retailerId));
   const orphanedProducts = allProducts.filter((p: any) => !validUserIds.has(p.retailerId));
 

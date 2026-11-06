@@ -301,7 +301,10 @@ const verifyRazorpayPayment = asyncHandler(async (req, res) => {
     .update(bodyData)
     .digest('hex');
 
-  if (expectedSignature !== razorpay_signature) {
+  const sigBuffer = Buffer.from(razorpay_signature, 'utf8');
+  const expBuffer = Buffer.from(expectedSignature, 'utf8');
+
+  if (sigBuffer.length !== expBuffer.length || !crypto.timingSafeEqual(sigBuffer, expBuffer)) {
     console.error(`[Security Alert] Signature mismatch for customer ${customerId}`);
     return sendError(res, 'Payment verification failed: invalid signature.', [], 400);
   }

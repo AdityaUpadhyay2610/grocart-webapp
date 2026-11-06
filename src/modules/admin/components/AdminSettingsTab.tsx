@@ -1,4 +1,3 @@
-import React from 'react';
 import { Settings, Save, Store, Bell, Shield, Wallet } from 'lucide-react';
 
 export function AdminSettingsTab() {

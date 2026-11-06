@@ -1,146 +1,53 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useAuth } from '@global/context/AuthContext';
-import { useOrders } from "../hooks/useOrders";
+import React from "react";
 import { formatINR } from "@global/utils/calculations";
 import { 
   User, MapPin, CreditCard, Bell, Shield, LogOut, 
-  Plus, Trash2, Check, Home, Briefcase, ChevronRight, Save 
+  Plus, Trash2, Home, Briefcase, ChevronRight, Save 
 } from "lucide-react";
 import { useOutletContext } from "react-router";
 
-const AVATARS = [
-  { emoji: "🍎", label: "Apple" },
-  { emoji: "🥑", label: "Avocado" },
-  { emoji: "🍪", label: "Cookie" },
-  { emoji: "🥛", label: "Milk" },
-  { emoji: "☕", label: "Coffee" },
-  { emoji: "🍉", label: "Watermelon" },
-  { emoji: "🧁", label: "Cupcake" },
-  { emoji: "🍕", label: "Pizza" }
-];
+import { AVATARS } from "../constants/profileConstants";
+import { useProfileScreen } from "../hooks/useProfileScreen";
 
 export const ProfileScreen = React.memo(({ onNavigateBack: _onNavigateBack }) => {
-  const { user, savedAddress, updateProfile, logout, isLoading } = useAuth();
-  const { orders = [] } = useOrders();
   const { locationText } = useOutletContext() || {};
 
-  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "addresses" | "payments" | "notifications" | "security"
-  
-  // Profile form state
-  const [name, setName] = useState(user?.username || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState("+91 98765 43210");
-  const [selectedAvatar, setSelectedAvatar] = useState(() => {
-    return localStorage.getItem("grocart_avatar") || "🍎";
-  });
-
-  // Saved Addresses State
-  const [savedAddresses, setSavedAddresses] = useState(() => {
-    try {
-      const stored = localStorage.getItem("grocart_saved_locations");
-      return stored ? JSON.parse(stored) : [
-        { id: "1", label: "Home", isDefault: true, address: "742 Evergreen Terrace, DLF Phase 5", city: "Gurugram", state: "Haryana", pincode: "122002" },
-        { id: "2", label: "Work", isDefault: false, address: "Cyber City, Building 10, Tower B, 4th Floor", city: "Gurugram", state: "Haryana", pincode: "122002" }
-      ];
-    } catch {
-      return [];
-    }
-  });
-
-  // New Address Form State
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [newTag, setNewTag] = useState("Home");
-  const [newStreet, setNewStreet] = useState("");
-  const [newCity, setNewCity] = useState("New Delhi");
-  const [newState, setNewState] = useState("Delhi");
-  const [newPincode, setNewPincode] = useState("110001");
-  const [pinError, setPinError] = useState("");
-
-  // Notification toggles (state kept for UI, setter would be wired to API calls)
-  const [notifications] = useState({
-    orderUpdates: true,
-    flashDeals: true,
-    weeklyRecipes: false,
-    whatsappAlerts: true
-  });
-
-  // Save changes toast
-  const [savedToast, setSavedToast] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setName(user.username || "");
-      setEmail(user.email || "");
-    }
-  }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem("grocart_saved_locations", JSON.stringify(savedAddresses));
-  }, [savedAddresses]);
-
-  const handleAvatarSelect = (emoji) => {
-    setSelectedAvatar(emoji);
-    localStorage.setItem("grocart_avatar", emoji);
-    window.dispatchEvent(new Event("storage"));
-  };
-
-  const handleProfileSave = async (e) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert("Name is required!");
-      return;
-    }
-    const defaultAddr = savedAddresses.find(a => a.isDefault)?.address || savedAddress || "";
-    await updateProfile(name, defaultAddr, locationText || "");
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 3000);
-  };
-
-  const handleAddAddress = (e) => {
-    e.preventDefault();
-    if (!newStreet.trim() || !newPincode.trim()) {
-      alert("Street address and PIN code are required!");
-      return;
-    }
-
-    // Indian 6-digit PIN validation
-    if (!/^\d{6}$/.test(newPincode.trim())) {
-      setPinError("Please enter a valid 6-digit Indian PIN code (e.g. 110001).");
-      return;
-    }
-    setPinError("");
-
-    const newEntry = {
-      id: Date.now().toString(),
-      label: newTag,
-      isDefault: savedAddresses.length === 0,
-      address: newStreet.trim(),
-      city: newCity.trim(),
-      state: newState.trim(),
-      pincode: newPincode.trim()
-    };
-
-    setSavedAddresses(prev => [...prev, newEntry]);
-    setNewStreet("");
-    setNewPincode("110001");
-    setShowAddressForm(false);
-  };
-
-  const handleDeleteAddress = (id) => {
-    setSavedAddresses(prev => prev.filter(a => a.id !== id));
-  };
-
-  const handleSetDefaultAddress = (id) => {
-    setSavedAddresses(prev => prev.map(a => ({
-      ...a,
-      isDefault: a.id === id
-    })));
-  };
-
-  const totalOrders = orders.length;
-  const totalSpent = useMemo(() => {
-    return orders.reduce((sum, o) => sum + (o.totalPaid || 0), 0);
-  }, [orders]);
+  const {
+    user: _user,
+    isLoading,
+    logout,
+    activeTab,
+    setActiveTab,
+    name,
+    setName,
+    email,
+    phone,
+    setPhone,
+    selectedAvatar,
+    handleAvatarSelect,
+    savedAddresses,
+    showAddressForm,
+    setShowAddressForm,
+    newTag,
+    setNewTag,
+    newStreet,
+    setNewStreet,
+    newCity,
+    setNewCity,
+    newState,
+    setNewState,
+    newPincode,
+    setNewPincode,
+    pinError,
+    notifications,
+    savedToast,
+    handleProfileSave,
+    handleAddAddress,
+    handleDeleteAddress,
+    handleSetDefaultAddress,
+    totalOrders,
+    totalSpent
+  } = useProfileScreen(locationText);
 
   return (
     <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
@@ -547,8 +454,9 @@ export const ProfileScreen = React.memo(({ onNavigateBack: _onNavigateBack }) =>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-headline-md text-sm font-bold text-on-surface dark:text-white">HDFC Bank Visa Card</span>
+                        <span className="text-[10px] text-on-surface-variant">•••• 4029</span>
                       </div>
-                      <p className="text-[11px] text-on-surface-variant">Ending in •••• 4242 (Exp 08/28)</p>
+                      <p className="text-[11px] text-on-surface-variant">Expires 08/28</p>
                     </div>
                   </div>
                   <button className="text-xs text-on-surface-variant hover:text-error cursor-pointer">Remove</button>
@@ -565,80 +473,66 @@ export const ProfileScreen = React.memo(({ onNavigateBack: _onNavigateBack }) =>
               </h3>
 
               <div className="flex flex-col gap-4">
-                <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626]">
-                  <div>
-                    <p className="font-headline-md text-xs font-bold text-on-surface dark:text-white">Live Order Status Tracking (SMS & WhatsApp)</p>
-                    <p className="text-[11px] text-on-surface-variant">Receive real-time rider updates when out for delivery</p>
+                {Object.entries(notifications).map(([key, val]) => (
+                  <div key={key} className="flex items-center justify-between p-3.5 bg-surface-container dark:bg-[#201f1f] rounded-2xl border border-surface-variant/30 dark:border-[#262626]">
+                    <div>
+                      <span className="font-headline-md text-sm font-bold text-on-surface dark:text-white capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </span>
+                      <p className="text-[11px] text-on-surface-variant">
+                        Receive instant updates via SMS, push and WhatsApp
+                      </p>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      defaultChecked={val}
+                      className="w-5 h-5 accent-primary rounded cursor-pointer"
+                    />
                   </div>
-                  <input 
-                    type="checkbox" 
-                    defaultChecked 
-                    className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626]">
-                  <div>
-                    <p className="font-headline-md text-xs font-bold text-on-surface dark:text-white">Flash Deal & Seasonal Harvest Alerts</p>
-                    <p className="text-[11px] text-on-surface-variant">Get notified when organic produce arrives at promotional rates</p>
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    defaultChecked 
-                    className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626]">
-                  <div>
-                    <p className="font-headline-md text-xs font-bold text-on-surface dark:text-white">Weekly Organic Recipe & Nutrition Digest</p>
-                    <p className="text-[11px] text-on-surface-variant">Curated farm recipes with 1-click add ingredients</p>
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    defaultChecked 
-                    className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
-                  />
-                </label>
+                ))}
               </div>
             </div>
           )}
 
-          {/* TAB 5: SECURITY & SETTINGS */}
+          {/* TAB 5: SECURITY & PRIVACY */}
           {activeTab === "security" && (
             <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 sm:p-8 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-6">
               <h3 className="font-headline-md text-lg font-black text-on-surface dark:text-white border-b border-surface-variant/30 dark:border-[#262626] pb-4">
-                Security & Privacy
+                Security & Account Privacy
               </h3>
 
-              <div className="flex flex-col gap-4 text-xs text-on-surface dark:text-white">
-                <div className="p-4 rounded-2xl bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-between">
+              <div className="flex flex-col gap-4">
+                <div className="p-4 bg-surface-container dark:bg-[#201f1f] rounded-2xl border border-surface-variant/30 dark:border-[#262626] flex items-center justify-between">
                   <div>
-                    <p className="font-bold text-on-surface dark:text-white">Two-Factor Authentication (2FA)</p>
-                    <p className="text-[11px] text-on-surface-variant">Secured via your GroCart account</p>
+                    <span className="font-headline-md text-sm font-bold text-on-surface dark:text-white">Active Sessions</span>
+                    <p className="text-[11px] text-on-surface-variant">Manage devices connected to your GroCart account</p>
                   </div>
-                  <span className="px-2.5 py-0.5 bg-primary/20 text-primary font-black rounded text-[10px]">ENABLED</span>
+                  <button className="px-3 py-1.5 rounded-lg border border-surface-variant text-xs font-bold text-on-surface dark:text-white hover:bg-surface-container-high cursor-pointer">
+                    Log out other devices
+                  </button>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-surface-container dark:bg-[#201f1f] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-between">
+                <div className="p-4 bg-surface-container dark:bg-[#201f1f] rounded-2xl border border-surface-variant/30 dark:border-[#262626] flex items-center justify-between">
                   <div>
-                    <p className="font-bold text-on-surface dark:text-white">Data Retention & Privacy</p>
-                    <p className="text-[11px] text-on-surface-variant">Your location and address are strictly used for quick-delivery routing</p>
+                    <span className="font-headline-md text-sm font-bold text-on-surface dark:text-white">Delete Account</span>
+                    <p className="text-[11px] text-on-surface-variant">Permanently wipe personal data and order history</p>
                   </div>
-                  <span className="text-primary font-bold">Encrypted</span>
+                  <button 
+                    onClick={() => alert("Please contact support at support@grocart.com to request full data deletion.")}
+                    className="px-3 py-1.5 rounded-lg border border-error/40 text-error hover:bg-error-container/20 text-xs font-bold cursor-pointer"
+                  >
+                    Request Deletion
+                  </button>
                 </div>
               </div>
             </div>
           )}
-
         </div>
       </div>
 
-      {/* Toast */}
       {savedToast && (
-        <div className="fixed bottom-6 right-6 z-[100] bg-primary text-on-primary dark:text-black px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-xs animate-slide-up">
-          <Check size={18} />
-          <span>Profile changes saved!</span>
+        <div className="fixed bottom-8 right-8 z-50 bg-primary text-black font-bold px-6 py-3 rounded-2xl shadow-xl animate-bounce">
+          Profile changes saved successfully!
         </div>
       )}
     </div>

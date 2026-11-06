@@ -8,7 +8,7 @@ import { useProducts } from "./modules/customer/hooks/useProducts";
 import { useCategories } from "./modules/customer/hooks/useCategories";
 import { useLocation as useGPSLocation } from "@global/hooks/useLocation";
 
-import { LoginScreen } from "./modules/customer/pages/LoginScreen";
+import LoginPage from "./modules/customer/pages/LoginPage";
 import { HomeScreen } from "./modules/customer/pages/HomeScreen";
 import { CategoryScreen } from "./modules/customer/pages/CategoryScreen";
 import { ProductsScreen } from "./modules/customer/pages/ProductsScreen";
@@ -212,7 +212,7 @@ function AppShellWrapper() {
     <Routes>
       <Route path="/login" element={
         <PublicRoute>
-          <LoginScreen />
+          <LoginPage />
         </PublicRoute>
       } />
       

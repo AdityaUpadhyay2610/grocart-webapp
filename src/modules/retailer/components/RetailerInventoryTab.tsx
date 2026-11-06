@@ -1,7 +1,7 @@
 import React from 'react';
-import { ChevronUp, ChevronDown, Plus, Upload, FileJson, X, Search, Trash2, RefreshCw, CheckCircle2, AlertCircle, Edit2, Download } from 'lucide-react';
+import { ChevronUp, ChevronDown, Plus, Upload, FileJson, X, Search, Trash2, RefreshCw, CheckCircle2, Edit2, Download } from 'lucide-react';
 
-const getUniqueImageUrl = (url: string, id: string, title?: string) => {
+const getUniqueImageUrl = (url: string, title?: string) => {
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent((title || 'Product').trim())}&background=random&color=fff&size=400&font-size=0.33&length=2&bold=true`;
   if (!url) return fallback;
   if (typeof url === 'string' && (url.includes("loremflickr.com") || url.includes("pollinations.ai"))) {
@@ -261,7 +261,7 @@ export function RetailerInventoryTab({
                   <div key={`prod-${item.id}-${i}`} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-white dark:border-slate-700/50 rounded-[1.5rem] overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all">
                     <div className="h-32 w-full relative bg-slate-100 dark:bg-slate-700">
                       <img 
-                        src={getUniqueImageUrl(item.imageUrl, item.id, item.title)} 
+                        src={getUniqueImageUrl(item.imageUrl, item.title)} 
                         alt={item.title} 
                         className="w-full h-full object-cover" 
                         onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/400x400/e2e8f0/64748b?text=${encodeURIComponent((item.title || 'P').substring(0,2).toUpperCase())}`; }} 

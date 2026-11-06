@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   const {
-    users, usersLoading, handleDeleteUser, platformStats,
+    users, handleDeleteUser, platformStats,
     retailers, customers, validProducts,
     categories, categoriesLoading, createCategoryMutation,
     allOrders

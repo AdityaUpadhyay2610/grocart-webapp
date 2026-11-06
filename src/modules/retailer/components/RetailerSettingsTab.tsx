@@ -4,7 +4,7 @@ import { authApi } from '@global/services/api/authApi';
 import { useToast } from '@global/context/ToastContext';
 import { useDispatch } from 'react-redux';
 import { setUserProfile } from '@global/store/authSlice';
-import { RefreshCw, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 
 interface RetailerSettingsTabProps {
   user: UserProfile;

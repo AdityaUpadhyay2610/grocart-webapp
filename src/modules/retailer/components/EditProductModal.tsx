@@ -55,7 +55,7 @@ export function EditProductModal({ product, categories, onClose, onSave, isSavin
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Category</label>
                 <select value={form.categoryId} onChange={handleCategoryChange} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-blue-500 outline-none bg-slate-50 dark:bg-slate-800/50">
-                  {categories.map((c, i) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
+                  {categories.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
                 </select>
               </div>
 

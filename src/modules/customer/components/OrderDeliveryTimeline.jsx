@@ -1,7 +1,31 @@
 import React from "react";
 import { Check, Package, Truck, Home, ShoppingBag, Phone } from "lucide-react";
 
-export function OrderDeliveryTimeline({ currentStage, isDelivered, formattedTimer, onCallDriver }) {
+export function OrderDeliveryTimeline({
+  currentStage,
+  status = "placed",
+  progressPercent = 0,
+  isDelivered = status === "delivered",
+  formattedTimer = "15:00",
+  onCallDriver
+}) {
+  const statusSteps = {
+    placed: 1,
+    pending: 1,
+    processing: 2,
+    shipped: 3,
+    out_for_delivery: 3,
+    delivered: 4,
+    cancelled: 0
+  };
+  const step = statusSteps[String(status).toLowerCase()] ?? 1;
+  const stage = currentStage || {
+    step,
+    progressPct: Math.max(0, Math.min(100, Number(progressPercent) || 0)),
+    driverText: status === "cancelled" ? "Order cancelled" : "Your order is on its way",
+    driverSubtext: status === "cancelled" ? "Please contact support if you need help" : "We’ll keep you updated"
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 sm:p-8 border border-surface-variant/40 dark:border-[#262626] shadow-sm">
@@ -16,16 +40,16 @@ export function OrderDeliveryTimeline({ currentStage, isDelivered, formattedTime
           <div className="absolute top-4 left-6 right-6 h-1 bg-surface-container dark:bg-[#201f1f] -translate-y-1/2 z-0" />
           <div 
             className="absolute top-4 left-6 h-1 bg-primary -translate-y-1/2 z-0 transition-all duration-700" 
-            style={{ width: `${currentStage.progressPct}%` }}
+            style={{ width: `${stage.progressPct}%` }}
           />
 
           <div className="flex flex-col items-center gap-2 z-10">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${
-              currentStage.step >= 1 ? 'bg-primary text-white dark:text-black' : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
+              stage.step >= 1 ? 'bg-primary text-white dark:text-black' : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
             }`}>
               <Check size={16} className="stroke-[3]" />
             </div>
-            <span className={`font-label-md text-xs font-bold ${currentStage.step >= 1 ? 'text-on-surface dark:text-white' : 'text-on-surface-variant'}`}>
+            <span className={`font-label-md text-xs font-bold ${stage.step >= 1 ? 'text-on-surface dark:text-white' : 'text-on-surface-variant'}`}>
               Order Placed
             </span>
             <span className="text-[10px] text-on-surface-variant font-medium">Confirmed</span>
@@ -33,11 +57,11 @@ export function OrderDeliveryTimeline({ currentStage, isDelivered, formattedTime
 
           <div className="flex flex-col items-center gap-2 z-10">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${
-              currentStage.step >= 2 ? 'bg-primary text-white dark:text-black' : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
+              stage.step >= 2 ? 'bg-primary text-white dark:text-black' : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
             }`}>
-              {currentStage.step >= 2 ? <Check size={16} className="stroke-[3]" /> : <Package size={14} />}
+              {stage.step >= 2 ? <Check size={16} className="stroke-[3]" /> : <Package size={14} />}
             </div>
-            <span className={`font-label-md text-xs font-bold ${currentStage.step >= 2 ? 'text-on-surface dark:text-white' : 'text-on-surface-variant'}`}>
+            <span className={`font-label-md text-xs font-bold ${stage.step >= 2 ? 'text-on-surface dark:text-white' : 'text-on-surface-variant'}`}>
               Order Packed
             </span>
             <span className="text-[10px] text-on-surface-variant font-medium">Ready</span>
@@ -45,19 +69,19 @@ export function OrderDeliveryTimeline({ currentStage, isDelivered, formattedTime
 
           <div className="flex flex-col items-center gap-2 z-10">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition-all ${
-              currentStage.step === 3 
+              stage.step === 3
                 ? 'bg-primary-container text-white shadow-emerald-500/30 animate-bounce' 
-                : currentStage.step > 3 
+                : stage.step > 3
                   ? 'bg-primary text-white dark:text-black' 
                   : 'bg-surface-container dark:bg-[#201f1f] border border-surface-variant/40 dark:border-[#262626] text-on-surface-variant'
             }`}>
-              {currentStage.step > 3 ? (
+              {stage.step > 3 ? (
                 <Check size={16} className="stroke-[3]" />
               ) : (
                 <Truck size={18} />
               )}
             </div>
-            <span className={`font-label-md text-xs font-bold ${currentStage.step >= 3 ? 'text-primary font-black' : 'text-on-surface-variant'}`}>
+            <span className={`font-label-md text-xs font-bold ${stage.step >= 3 ? 'text-primary font-black' : 'text-on-surface-variant'}`}>
               Out for Delivery
             </span>
             <span className="text-[10px] text-on-surface-variant font-medium">On the road</span>
@@ -65,17 +89,17 @@ export function OrderDeliveryTimeline({ currentStage, isDelivered, formattedTime
 
           <div className="flex flex-col items-center gap-2 z-10">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-              currentStage.step >= 4 
+              stage.step >= 4
                 ? 'bg-primary text-white dark:text-black shadow-md' 
                 : 'bg-surface-container dark:bg-[#201f1f] border-2 border-surface-variant/60 dark:border-[#262626] text-on-surface-variant'
             }`}>
-              {currentStage.step >= 4 ? (
+              {stage.step >= 4 ? (
                 <Check size={16} className="stroke-[3]" />
               ) : (
                 <Home size={16} />
               )}
             </div>
-            <span className={`font-label-md text-xs ${currentStage.step >= 4 ? 'text-primary font-black' : 'text-on-surface-variant font-medium'}`}>
+            <span className={`font-label-md text-xs ${stage.step >= 4 ? 'text-primary font-black' : 'text-on-surface-variant font-medium'}`}>
               Delivered
             </span>
             <span className="text-[10px] text-on-surface-variant font-medium">At Doorstep</span>
@@ -90,10 +114,10 @@ export function OrderDeliveryTimeline({ currentStage, isDelivered, formattedTime
           </div>
           <div>
             <h4 className="font-headline-md text-sm font-bold text-on-surface dark:text-white">
-              {currentStage.driverText}
+              {stage.driverText}
             </h4>
             <p className="font-body-md text-xs text-on-surface-variant mt-0.5">
-              {currentStage.driverSubtext}
+              {stage.driverSubtext}
             </p>
           </div>
         </div>

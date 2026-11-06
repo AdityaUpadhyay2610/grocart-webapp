@@ -1,497 +1,295 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useOrders } from "../hooks/useOrders";
-import { useCart } from "../state/CartContext";
-import { formatINR, calculateGST } from "@global/utils/calculations";
+import React from "react";
+import { formatINR } from "@global/utils/calculations";
 import { printOrderInvoice, formatTimestamp } from "../services/invoiceService";
 import { OrderDeliveryTimeline } from "../components/OrderDeliveryTimeline";
 import { Download, Clock, Package, ChevronDown, ChevronUp, RotateCcw, Wallet, Phone } from "lucide-react";
-
-const TOTAL_ORDER_SECONDS = 15 * 60;
-
-const DEMO_ORDER = {
-  id: "GC-89421",
-  timestamp: Date.now() - 3600000,
-  status: "delivered",
-  deliveryAddress: "742 Evergreen Terrace, Sector 45, Gurugram 122003",
-  paymentMethod: "Cash on Delivery (COD)",
-  items: [
-    { id: "demo-1", itemName: "Organic Gala Apples", itemQuantity: "1 kg", itemPrice: 180, quantity: 2, imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&auto=format&fit=crop&q=80" },
-    { id: "demo-2", itemName: "Farm Fresh Whole Milk", itemQuantity: "1 L", itemPrice: 75, quantity: 1, imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&auto=format&fit=crop&q=80" },
-    { id: "demo-3", itemName: "Artisan Sourdough Loaf", itemQuantity: "400g", itemPrice: 120, quantity: 1, imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=80" }
-  ],
-  couponDiscount: 35,
-  deliveryFee: 0,
-  handlingCharge: 15
-};
+import { useOrdersScreen } from "../hooks/useOrdersScreen";
 
 export const OrdersScreen = React.memo(() => {
-  const { orders = [] } = useOrders();
-  const { addToCart } = useCart();
+  const {
+    sortedOrders,
+    activeOrder,
+    selectedOrderId,
+    setSelectedOrderId,
+    supportModal,
+    setSupportModal,
+    remainingSeconds,
+    showAllItems,
+    setShowAllItems,
+    progressPercent,
+    orderSubtotal,
+    gst,
+    totalPaid,
+    orderSavings,
+    handleReorder
+  } = useOrdersScreen();
 
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [supportModal, setSupportModal] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [showAllItems, setShowAllItems] = useState(false);
-
-  const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-  }, [orders]);
-
-  useEffect(() => {
-    if (sortedOrders.length > 0 && !selectedOrderId) {
-      setSelectedOrderId(sortedOrders[0].id);
-    }
-  }, [sortedOrders, selectedOrderId]);
-
-  const activeOrder = useMemo(() => {
-    if (sortedOrders.length === 0) return DEMO_ORDER;
-    const found = sortedOrders.find(o => o.id === selectedOrderId);
-    return found || sortedOrders[0];
-  }, [sortedOrders, selectedOrderId]);
-
-  useEffect(() => {
-    setShowAllItems(false);
-    if (!activeOrder?.timestamp) {
-      setRemainingSeconds(0);
-      return;
-    }
-
-    const elapsedSeconds = Math.floor((Date.now() - Number(activeOrder.timestamp)) / 1000);
-    if (elapsedSeconds >= 0 && elapsedSeconds < TOTAL_ORDER_SECONDS) {
-      setRemainingSeconds(TOTAL_ORDER_SECONDS - elapsedSeconds);
-    } else {
-      setRemainingSeconds(0);
-    }
-  }, [activeOrder?.id, activeOrder?.timestamp]);
-
-  useEffect(() => {
-    if (remainingSeconds <= 0) return;
-    const timer = setInterval(() => {
-      setRemainingSeconds(prev => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [remainingSeconds]);
-
-  const isDelivered = remainingSeconds === 0;
-
-  const currentStage = useMemo(() => {
-    if (isDelivered) {
-      return {
-        step: 4,
-        label: "Delivered",
-        badge: "Delivered Successfully",
-        color: "text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300",
-        progressPct: 100,
-        statusText: "Package handed over safely at doorstep",
-        driverText: "Delivered",
-        driverSubtext: "Order arrived at your doorstep"
-      };
-    }
-    if (remainingSeconds > 12 * 60) {
-      return {
-        step: 1,
-        label: "Order Placed",
-        badge: "Order Confirmed",
-        color: "text-primary bg-primary/15",
-        progressPct: 15,
-        statusText: "Store is picking your items",
-        driverText: "Driver assigned at Local Store",
-        driverSubtext: "Estimated 15 mins to doorstep"
-      };
-    }
-    if (remainingSeconds > 8 * 60) {
-      return {
-        step: 2,
-        label: "Order Packed",
-        badge: "Packed & Ready",
-        color: "text-amber-600 bg-amber-500/15",
-        progressPct: 45,
-        statusText: "Items freshly packed in bags",
-        driverText: "Driver loaded package & moving out",
-        driverSubtext: "Estimated 10 mins to doorstep"
-      };
-    }
-    return {
-      step: 3,
-      label: "Out for Delivery",
-      badge: "Out for Delivery",
-      color: "text-emerald-600 bg-emerald-500/15",
-      progressPct: 80,
-      statusText: "Driver is riding to your doorstep",
-      driverText: "Driver on the way",
-      driverSubtext: "Arriving shortly"
-    };
-  }, [remainingSeconds, isDelivered]);
-
-  const minutesRemaining = Math.floor(remainingSeconds / 60);
-  const secondsRemaining = remainingSeconds % 60;
-  const formattedTimer = `${String(minutesRemaining).padStart(2, "0")}:${String(secondsRemaining).padStart(2, "0")}`;
-
-  const orderSubtotal = useMemo(() => {
-    if (!activeOrder?.items) return 0;
-    return activeOrder.items.reduce(
-      (sum, item) => sum + Number(item.itemPrice || 0) * (item.quantity || 1),
-      0
-    );
-  }, [activeOrder]);
-
-  const orderGst = useMemo(() => calculateGST(orderSubtotal), [orderSubtotal]);
-  const orderTotal = useMemo(() => {
-    return (
-      activeOrder?.totalPaid ||
-      orderSubtotal + orderGst + (activeOrder?.deliveryFee || 0) + (activeOrder?.handlingCharge || 15) - (activeOrder?.couponDiscount || 0)
-    );
-  }, [orderSubtotal, orderGst, activeOrder]);
-
-  const handleReorder = (order) => {
-    if (!order?.items) return;
-    order.items.forEach(item => {
-      addToCart({
-        id: item.productId || item.id,
-        itemName: item.itemName,
-        itemPrice: item.itemPrice,
-        itemQuantity: item.itemQuantity || "500g",
-        imageUrl: item.imageUrl,
-        quantity: item.quantity || 1
-      });
-    });
-    alert("All items from this order have been added to your cart!");
-  };
-
-  const currentOrderId = activeOrder?.id
-    ? (activeOrder.id.startsWith("GC-") ? activeOrder.id : `GC-${activeOrder.id.substring(activeOrder.id.length - 5).toUpperCase()}`)
-    : "GC-89421";
-
-  const topFiveOrders = sortedOrders.slice(0, 5);
-  const dropdownOrders = sortedOrders.slice(5);
-
-  const activeItems = activeOrder?.items || [];
-  const visibleItems = showAllItems ? activeItems : activeItems.slice(0, 5);
-  const hiddenItemCount = Math.max(0, activeItems.length - 5);
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  const timeString = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   return (
-    <div className="flex flex-col w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-10 pb-32 select-none min-h-screen text-left animate-fade-in gap-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-surface-variant/40 dark:border-[#262626] pb-6">
+    <div className="max-w-6xl mx-auto px-4 py-8 select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-surface-variant/40 dark:border-[#262626] gap-2">
         <div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="font-display-lg text-on-surface dark:text-white text-2xl sm:text-3xl font-black">
-              Order #{currentOrderId}
-            </h1>
-            <span className={`px-3 py-1 text-xs font-black rounded-full uppercase tracking-wider ${currentStage.color}`}>
-              {currentStage.badge}
-            </span>
-          </div>
-          <p className="text-xs text-on-surface-variant mt-1">
-            Placed on <span className="font-bold text-on-surface dark:text-white">{formatTimestamp(activeOrder.timestamp)}</span> • <span className="text-primary font-bold">{currentStage.statusText}</span>
+          <h1 className="font-headline-md text-2xl sm:text-3xl font-black text-on-surface dark:text-white">
+            Your Orders
+          </h1>
+          <p className="text-xs text-on-surface-variant font-medium mt-0.5">
+            Track active deliveries and view your order receipts
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {!isDelivered && (
-            <div className="flex items-center gap-2 bg-primary/10 dark:bg-primary/20 border border-primary/30 px-3.5 py-2 rounded-2xl shadow-xs">
-              <Clock size={16} className="text-primary animate-spin" style={{ animationDuration: "6s" }} />
-              <div className="flex flex-col text-left">
-                <span className="text-[9px] uppercase tracking-wider font-extrabold text-primary">15-Min Delivery ETA</span>
-                <span className="text-sm font-black font-mono text-on-surface dark:text-white">{formattedTimer} remaining</span>
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={() => printOrderInvoice(activeOrder)}
-            className="px-4 py-2.5 bg-surface-container-low dark:bg-[#171717] border border-surface-variant/50 dark:border-[#262626] hover:border-primary text-on-surface dark:text-white hover:text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-          >
-            <Download size={16} />
-            <span>Download Invoice</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setSupportModal(true)}
+          className="flex items-center gap-1.5 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors cursor-pointer self-start sm:self-auto"
+        >
+          <Phone size={14} />
+          <span>Need Help? Contact Support</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
-          <OrderDeliveryTimeline
-            currentStage={currentStage}
-            isDelivered={isDelivered}
-            formattedTimer={formattedTimer}
-            onCallDriver={() => setSupportModal(true)}
-          />
+        {/* Left Side: Order Selector List */}
+        <div className="lg:col-span-5 flex flex-col gap-3">
+          <span className="text-xs font-black uppercase tracking-wider text-on-surface-variant px-1">
+            Order History ({sortedOrders.length})
+          </span>
 
-          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-surface-variant/30 dark:border-[#262626] pb-3">
-              <div className="flex items-center gap-2">
-                <Package size={18} className="text-primary" />
-                <h3 className="text-base font-bold text-on-surface dark:text-white">
-                  Items in This Order ({activeItems.length})
-                </h3>
-              </div>
-              <button
-                onClick={() => handleReorder(activeOrder)}
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <RotateCcw size={14} />
-                <span>Reorder Items</span>
-              </button>
+          {sortedOrders.length === 0 ? (
+            <div className="p-8 text-center bg-surface-container-low dark:bg-[#141414] rounded-3xl border border-surface-variant/40 dark:border-[#262626] flex flex-col items-center">
+              <Package size={36} className="text-on-surface-variant/50 mb-3" />
+              <p className="text-sm font-bold text-on-surface dark:text-white">No previous orders</p>
+              <p className="text-xs text-on-surface-variant mt-1">Showing sample active delivery demo</p>
             </div>
+          ) : (
+            sortedOrders.map((order) => {
+              const isSelected = (selectedOrderId || sortedOrders[0]?.id) === order.id;
+              const isDelivered = order.status === "delivered";
+              const isCancelled = order.status === "cancelled";
 
-            <div className="divide-y divide-surface-variant/20 dark:divide-[#262626]">
-              {visibleItems.map((item, idx) => (
-                <div key={idx} className="py-3.5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.itemName} 
-                      className="w-12 h-12 rounded-xl object-cover bg-surface-container-lowest dark:bg-[#0e0e0e] border border-surface-variant/30 dark:border-[#262626]"
-                      onError={(e) => { e.target.src = "https://placehold.co/80x80/f1f5f9/10b981?text=Produce"; }}
-                    />
-                    <div>
-                      <h4 className="text-sm font-bold text-on-surface dark:text-white">{item.itemName}</h4>
-                      <p className="text-xs text-on-surface-variant">{item.itemQuantity || "500g"} • Qty: {item.quantity || 1}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-black text-on-surface dark:text-white">
-                      {formatINR(item.itemPrice * (item.quantity || 1))}
+              return (
+                <div
+                  key={order.id}
+                  onClick={() => setSelectedOrderId(order.id)}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2.5 ${
+                    isSelected
+                      ? "bg-surface-container-high dark:bg-[#1e1e1e] border-primary shadow-md shadow-primary/5"
+                      : "bg-surface-container-low dark:bg-[#141414] border-surface-variant/40 dark:border-[#262626] hover:border-surface-variant hover:bg-surface-container dark:hover:bg-[#1a1a1a]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-headline-md text-xs font-black text-on-surface dark:text-white">
+                      #{order.id.slice(-8).toUpperCase()}
                     </span>
-                    <p className="text-[11px] text-on-surface-variant">@{formatINR(item.itemPrice)}/unit</p>
+                    <span
+                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                        isDelivered
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                          : isCancelled
+                          ? "bg-red-500/10 text-red-500 border-red-500/20"
+                          : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                      }`}
+                    >
+                      {order.status || "processing"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-on-surface-variant font-medium">
+                    <span>{formatTimestamp(order.timestamp)}</span>
+                    <span className="font-bold text-on-surface dark:text-white">
+                      {formatINR(order.totalPaid || order.total_paid || 0)}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-on-surface-variant/80 truncate">
+                    {(order.items || []).map((i) => `${i.itemName || i.item_name} (x${i.quantity})`).join(", ")}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {hiddenItemCount > 0 && (
-              <button
-                onClick={() => setShowAllItems(prev => !prev)}
-                className="mt-2 py-2 px-4 rounded-xl bg-surface-container dark:bg-[#201f1f] hover:bg-surface-container-high border border-surface-variant/40 dark:border-[#262626] text-xs font-bold text-primary flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                {showAllItems ? (
-                  <>
-                    <ChevronUp size={16} />
-                    <span>Show less</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown size={16} />
-                    <span>View {hiddenItemCount} more items in this order</span>
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+              );
+            })
+          )}
         </div>
 
-        <div className="col-span-1 lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
-          <div className="bg-surface-container-low dark:bg-[#171717] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] shadow-sm flex flex-col gap-4">
-            <h3 className="text-base font-bold text-on-surface dark:text-white border-b border-surface-variant/30 dark:border-[#262626] pb-3">
-              Payment Summary
-            </h3>
+        {/* Right Side: Active Order Details & Timeline */}
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          {/* Timeline Card */}
+          <div className="bg-surface-container-lowest dark:bg-[#121212] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] flex flex-col gap-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-surface-variant/20 dark:border-[#202020]">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-on-surface-variant">Active Delivery</span>
+                <span className="font-headline-md text-lg font-black text-on-surface dark:text-white">
+                  Order #{activeOrder.id.slice(-8).toUpperCase()}
+                </span>
+              </div>
 
-            <div className="flex flex-col gap-3 text-xs text-on-surface-variant">
+              {activeOrder.status !== "delivered" && activeOrder.status !== "cancelled" && (
+                <div className="flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary px-3.5 py-1.5 rounded-xl font-headline-md text-sm font-black animate-pulse">
+                  <Clock size={16} />
+                  <span>Arriving in {timeString}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Stepper Timeline Visual */}
+            <OrderDeliveryTimeline
+              status={activeOrder.status}
+              progressPercent={progressPercent}
+            />
+
+            {/* Delivery Partner Details */}
+            <div className="p-4 rounded-2xl bg-surface-container dark:bg-[#1c1c1c] border border-surface-variant/30 dark:border-[#262626] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                  🚴
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-on-surface dark:text-white">Ramesh Kumar</span>
+                  <span className="text-[10px] text-on-surface-variant font-medium">GroCart Express Delivery Partner (4.9★)</span>
+                </div>
+              </div>
+
+              <a
+                href="tel:+919876543210"
+                className="px-3 py-1.5 rounded-xl bg-surface-container-high dark:bg-[#262626] text-xs font-bold text-on-surface dark:text-white hover:text-primary transition-colors flex items-center gap-1.5 border border-surface-variant/40 dark:border-[#333]"
+              >
+                <Phone size={12} />
+                <span>Call Partner</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Items & Invoice Summary */}
+          <div className="bg-surface-container-lowest dark:bg-[#121212] rounded-3xl p-6 border border-surface-variant/40 dark:border-[#262626] flex flex-col gap-4 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-surface-variant/20 dark:border-[#202020]">
+              <span className="font-headline-md text-sm font-black text-on-surface dark:text-white">
+                Ordered Items ({(activeOrder.items || []).length})
+              </span>
+              <button
+                onClick={() => printOrderInvoice(activeOrder)}
+                className="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline cursor-pointer"
+              >
+                <Download size={14} />
+                <span>Download Invoice (PDF)</span>
+              </button>
+            </div>
+
+            {/* Order Items List */}
+            <div className="flex flex-col divide-y divide-surface-variant/20 dark:divide-[#202020]">
+              {(activeOrder.items || [])
+                .slice(0, showAllItems ? undefined : 5)
+                .map((item, idx) => (
+                  <div key={item.id || idx} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-surface-container dark:bg-[#1c1c1c] p-1.5 flex items-center justify-center shrink-0">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.itemName}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.target.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=100&auto=format&fit=crop&q=80";
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-on-surface dark:text-white">
+                          {item.itemName || item.title}
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Qty: {item.quantity} • {item.itemQuantity || "500g"}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs font-black text-on-surface dark:text-white">
+                      {formatINR((item.itemPrice || item.price || 0) * (item.quantity || 1))}
+                    </span>
+                  </div>
+                ))}
+            </div>
+
+            {/* Show More Items Toggle */}
+            {(activeOrder.items || []).length > 5 && (
+              <button
+                onClick={() => setShowAllItems(!showAllItems)}
+                className="text-xs font-bold text-primary flex items-center justify-center gap-1 py-1 hover:underline cursor-pointer"
+              >
+                <span>{showAllItems ? "Show Less" : `View all ${(activeOrder.items || []).length} items`}</span>
+                {showAllItems ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            )}
+
+            {/* Bill Details */}
+            <div className="mt-2 pt-4 border-t border-surface-variant/20 dark:border-[#202020] flex flex-col gap-2 text-xs text-on-surface-variant font-medium">
               <div className="flex justify-between">
-                <span>Items Subtotal</span>
+                <span>Subtotal</span>
                 <span className="font-bold text-on-surface dark:text-white">{formatINR(orderSubtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>GST (5%)</span>
-                <span className="font-bold text-on-surface dark:text-white">{formatINR(orderGst)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
+                <span>Delivery &amp; Handling</span>
                 <span className="font-bold text-primary">
                   {activeOrder.deliveryFee === 0 ? "FREE" : formatINR(activeOrder.deliveryFee || 0)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>Handling Fee</span>
-                <span className="font-bold text-on-surface dark:text-white">{formatINR(activeOrder.handlingCharge || 15)}</span>
-              </div>
-              {activeOrder.couponDiscount > 0 && (
-                <div className="flex justify-between font-bold text-primary">
-                  <span>Coupon Discount</span>
+              {Number(activeOrder.couponDiscount || 0) > 0 && (
+                <div className="flex justify-between text-primary font-bold">
+                  <span>Discount</span>
                   <span>-{formatINR(activeOrder.couponDiscount)}</span>
                 </div>
               )}
-
-              <div className="flex justify-between items-baseline pt-3 border-t border-surface-variant/30 dark:border-[#262626] text-base font-black text-on-surface dark:text-white">
+              <div className="flex justify-between text-[11px] text-on-surface-variant/70">
+                <span>GST (Estimated)</span>
+                <span>{formatINR(gst)}</span>
+              </div>
+              <div className="flex justify-between items-baseline pt-2 border-t border-surface-variant/30 dark:border-[#262626] text-sm font-black text-on-surface dark:text-white">
                 <span>Total Paid</span>
-                <span className="text-lg text-primary font-black">{formatINR(orderTotal)}</span>
+                <span className="text-base text-primary font-black">{formatINR(totalPaid)}</span>
               </div>
             </div>
 
-            <div className="mt-2 bg-surface-container dark:bg-[#201f1f] rounded-xl p-3 flex items-center justify-between border border-surface-variant/30 dark:border-[#262626]">
-              <div className="flex items-center gap-2">
-                <Wallet size={16} className="text-primary" />
-                <span className="text-xs font-bold text-on-surface dark:text-white">{activeOrder.paymentMethod || "Cash on Delivery (COD)"}</span>
-              </div>
-              <span className="text-[10px] font-black text-primary uppercase">
-                {activeOrder.paymentStatus === "paid" ? "PAID" : (activeOrder.paymentMethod === "COD" ? "CASH ON DELIVERY" : "PENDING")}
-              </span>
-            </div>
+            {/* Action Buttons: Re-order & View Saved */}
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={handleReorder}
+                className="flex-1 py-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <RotateCcw size={14} />
+                <span>Order Again</span>
+              </button>
 
-            <div className="pt-3 border-t border-surface-variant/30 dark:border-[#262626] text-xs">
-              <p className="font-bold text-on-surface dark:text-white mb-1">Delivery Address</p>
-              <p className="text-on-surface-variant leading-relaxed">{activeOrder.deliveryAddress || "Customer Residence"}</p>
+              {orderSavings > 0 && (
+                <div className="flex items-center gap-1.5 px-4 py-3 bg-surface-container dark:bg-[#1a1a1a] rounded-xl text-xs font-bold text-on-surface-variant">
+                  <Wallet size={14} className="text-primary" />
+                  <span>Saved {formatINR(orderSavings)}</span>
+                </div>
+              )}
             </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-surface-tint to-primary dark:from-[#171717] dark:to-[#171717] border border-transparent dark:border-[#262626] rounded-3xl p-6 text-white shadow-md flex flex-col gap-3">
-            <h4 className="text-base font-extrabold text-white">Need Help?</h4>
-            <p className="text-xs text-white/90 dark:text-on-surface-variant leading-relaxed">
-              Our 24/7 customer care team is available to assist with replacements, refunds, or delivery instructions.
-            </p>
-            <button
-              onClick={() => setSupportModal(true)}
-              className="mt-1 w-full py-2.5 bg-white text-primary dark:bg-[#201f1f] dark:text-white dark:border dark:border-[#353534] text-xs font-bold rounded-xl hover:bg-white/90 transition-all cursor-pointer shadow-sm"
-            >
-              Contact Support
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 mt-6 pt-6 border-t border-surface-variant/40 dark:border-[#262626]">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black text-on-surface dark:text-white">
-            Order History ({sortedOrders.length})
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-0.5">
-            Click any order below to view the items and receipt from that time.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topFiveOrders.map((ord) => {
-            const isSelected = ord.id === activeOrder.id;
-            const ordDisplayId = ord.id ? (ord.id.startsWith("GC-") ? ord.id : `GC-${ord.id.substring(ord.id.length - 5).toUpperCase()}`) : "GC-ORDER";
-            const itemCount = ord.items?.length || 0;
-            const previewItems = (ord.items || []).slice(0, 3);
-
-            return (
-              <div
-                key={ord.id}
-                onClick={() => setSelectedOrderId(ord.id)}
-                className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                  isSelected 
-                    ? "bg-primary/5 dark:bg-primary/10 border-primary shadow-md ring-2 ring-primary/20" 
-                    : "bg-surface-container-low dark:bg-[#171717] border-surface-variant/40 dark:border-[#262626] hover:border-primary/50 shadow-xs"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs font-black text-on-surface dark:text-white">
-                      #{ordDisplayId}
-                    </span>
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                      isSelected ? "bg-primary text-black" : "bg-surface-container dark:bg-[#201f1f] text-on-surface-variant"
-                    }`}>
-                      {isSelected ? "Viewing" : "Delivered"}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-on-surface-variant mt-1">
-                    {formatTimestamp(ord.timestamp)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 py-1">
-                  {previewItems.map((it, idx) => (
-                    <img
-                      key={idx}
-                      src={it.imageUrl}
-                      alt={it.itemName}
-                      title={it.itemName}
-                      className="w-9 h-9 rounded-lg object-cover bg-surface-container-lowest dark:bg-[#0e0e0e] border border-surface-variant/30 dark:border-[#262626]"
-                      onError={(e) => { e.target.src = "https://placehold.co/60x60/f1f5f9/10b981?text=Item"; }}
-                    />
-                  ))}
-                  {itemCount > 3 && (
-                    <span className="text-[11px] font-bold text-on-surface-variant bg-surface-container dark:bg-[#201f1f] px-2 py-1 rounded-lg">
-                      +{itemCount - 3}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-surface-variant/20 dark:border-[#262626]">
-                  <span className="text-xs font-bold text-on-surface dark:text-white">
-                    {itemCount} {itemCount === 1 ? "item" : "items"} • {formatINR(ord.totalPaid || 0)}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleReorder(ord);
-                    }}
-                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <RotateCcw size={12} />
-                    <span>Reorder</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {dropdownOrders.length > 0 && (
-          <div className="mt-2 bg-surface-container-low dark:bg-[#171717] p-5 rounded-2xl border border-surface-variant/40 dark:border-[#262626] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold text-on-surface dark:text-white">
-                View Older Orders ({dropdownOrders.length} more)
-              </p>
-              <p className="text-[11px] text-on-surface-variant">
-                Select from your older past orders to load its items and invoice
-              </p>
-            </div>
-
-            <div className="w-full sm:w-auto min-w-[280px]">
-              <select
-                value={dropdownOrders.some(o => o.id === selectedOrderId) ? selectedOrderId : ""}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedOrderId(e.target.value);
-                  }
-                }}
-                className="w-full bg-surface-container dark:bg-[#201f1f] border border-surface-variant/50 dark:border-[#262626] rounded-xl px-3.5 py-2.5 text-xs font-bold text-on-surface dark:text-white focus:outline-none focus:border-primary cursor-pointer"
-              >
-                <option value="">-- Choose an older order --</option>
-                {dropdownOrders.map((ord) => {
-                  const ordId = ord.id ? (ord.id.startsWith("GC-") ? ord.id : `GC-${ord.id.substring(ord.id.length - 5).toUpperCase()}`) : "GC-ORDER";
-                  const dateText = formatTimestamp(ord.timestamp);
-                  const itemsCount = ord.items?.length || 0;
-                  const total = formatINR(ord.totalPaid || 0);
-
-                  return (
-                    <option key={ord.id} value={ord.id}>
-                      #{ordId} • {dateText} • {itemsCount} items ({total})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          </div>
-        )}
-      </div>
-
+      {/* Support Modal */}
       {supportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#171717] rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-surface-variant/40 dark:border-[#262626] text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
-              <Phone size={24} />
-            </div>
-            <h3 className="text-lg font-bold text-on-surface dark:text-white">Customer Support</h3>
-            <p className="text-xs text-on-surface-variant mt-1">Our customer support team is available 24/7 at:</p>
-            <p className="text-base font-black text-primary mt-3">+91 98765 43210</p>
-            <div className="flex gap-3 mt-6">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface dark:bg-[#1c1c1c] rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border border-surface-variant/40 dark:border-[#333]">
+            <h3 className="font-headline-md text-base font-black text-on-surface dark:text-white mb-2">
+              GroCart Priority Support
+            </h3>
+            <p className="text-xs text-on-surface-variant leading-relaxed mb-6">
+              Our 24x7 Quick Care team is ready to help you with delays, missing items, or refunds.
+            </p>
+            <div className="flex flex-col gap-2.5">
+              <a
+                href="tel:1800123456"
+                className="w-full py-3 bg-primary text-on-primary dark:text-black font-headline-md text-xs font-black rounded-xl"
+              >
+                Call Toll Free (1800-123-456)
+              </a>
               <button
                 onClick={() => setSupportModal(false)}
-                className="flex-1 py-2.5 bg-surface-container-low dark:bg-[#201f1f] text-on-surface dark:text-white text-xs font-bold rounded-xl cursor-pointer"
+                className="w-full py-2.5 bg-surface-container dark:bg-[#262626] text-on-surface text-xs font-bold rounded-xl"
               >
                 Close
               </button>
-              <a
-                href="tel:+919876543210"
-                className="flex-1 py-2.5 bg-primary text-black text-xs font-bold rounded-xl flex items-center justify-center cursor-pointer"
-              >
-                Call Now
-              </a>
             </div>
           </div>
         </div>

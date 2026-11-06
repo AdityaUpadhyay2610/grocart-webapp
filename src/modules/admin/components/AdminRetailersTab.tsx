@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, ArrowUp, ArrowDown, Banknote } from 'lucide-react';
 
 interface AdminRetailersTabProps {

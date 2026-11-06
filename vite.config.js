@@ -14,6 +14,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:5000'
+    },
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups'
+    }
+  },
+  preview: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups'
     }
   },
   plugins: [

@@ -91,6 +91,7 @@ export default function RetailerOperationsPage() {
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [progress, setProgress] = useState<{ type: 'import' | 'delete' | null, current: number, total: number }>({ type: null, current: 0, total: 0 });
   const [isBulkUploading, setIsBulkUploading] = useState(false);
+  void isBulkUploading;
 
   const handleLogout = async () => {
     try {

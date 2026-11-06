@@ -53,10 +53,20 @@ export const refreshSession = async (): Promise<any> => {
       const data = response.data?.data;
       if (data?.accessToken) {
         setAccessToken(data.accessToken);
+        try {
+          localStorage.setItem('grocart:hasSession', '1');
+        } catch {
+          // no-op in restricted browsers
+        }
       }
       return data;
     } catch (err) {
       setAccessToken(null);
+      try {
+        localStorage.removeItem('grocart:hasSession');
+      } catch {
+        // no-op in restricted browsers
+      }
       throw err;
     } finally {
       refreshPromise = null;

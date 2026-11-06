@@ -117,3 +117,4 @@ export const matchCategory = (itemCategory, selectedCategory) => {
   const c2 = cleanStr(selectedCategory);
   return c1 === c2;
 };
+

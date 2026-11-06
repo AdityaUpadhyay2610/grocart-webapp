@@ -21,7 +21,9 @@ const webhookRoutes = require('./routes/webhook.routes');
 const app = express();
 app.set('trust proxy', config.trustProxy);
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
+}));
 app.use(cors({
   origin: config.clientUrl,
   credentials: true

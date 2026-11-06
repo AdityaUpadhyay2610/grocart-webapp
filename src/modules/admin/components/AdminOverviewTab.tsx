@@ -1,4 +1,3 @@
-import React from 'react';
 import { IndianRupee, Users, ClipboardList, UserCheck } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 
@@ -52,7 +51,7 @@ const GaugeChart = ({ data, label, subLabel }: any) => {
   );
 };
 
-export function AdminOverviewTab({ platformStats, retailers, customers, allOrders = [] }: AdminOverviewTabProps) {
+export function AdminOverviewTab({ retailers, customers, allOrders = [] }: AdminOverviewTabProps) {
   // Compute Real Data
   const realGmv = allOrders.filter(o => !['cancelled', 'returned'].includes(o.status)).reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
   const platformMargin = realGmv * 0.03; // Assuming 3% platform fee
