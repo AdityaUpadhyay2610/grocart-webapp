@@ -47,9 +47,12 @@ export const authApi = {
     }
   },
 
-  loginWithGoogle: async (credential: string): Promise<UserProfile> => {
+  loginWithGoogle: async (
+    credential: string,
+    options: { intent?: 'login' | 'register'; role?: UserRole; storeName?: string } = {}
+  ): Promise<UserProfile> => {
     try {
-      const response = await apiClient.post('/auth/google', { credential });
+      const response = await apiClient.post('/auth/google', { credential, ...options });
       const { user, accessToken } = response.data?.data || {};
       if (accessToken) {
         setAccessToken(accessToken);

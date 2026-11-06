@@ -71,7 +71,24 @@ const googleLoginRules = [
     .isString().withMessage('Google credential is required.')
     .isLength({ min: 100, max: 4096 }).withMessage('Google credential is malformed.')
     .matches(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
-    .withMessage('Google credential is malformed.')
+    .withMessage('Google credential is malformed.'),
+
+  body('intent')
+    .optional()
+    .isIn(['login', 'register'])
+    .withMessage('Google auth intent must be either "login" or "register".'),
+
+  body('role')
+    .optional()
+    .isIn(['customer', 'retailer'])
+    .withMessage('Role must be either "customer" or "retailer".'),
+
+  body('storeName')
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Store name must be under 100 characters.')
 ];
 
 module.exports = {

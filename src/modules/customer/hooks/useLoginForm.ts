@@ -97,7 +97,10 @@ export function useLoginForm() {
           setLoading(true);
           setErrorMsg('');
           try {
-            const user = await authApi.loginWithGoogle(response.credential);
+            const user = await authApi.loginWithGoogle(
+              response.credential,
+              isRegister ? { intent: 'register', role, storeName } : { intent: 'login' }
+            );
             dispatch(setUserProfile(user));
             redirectByRole(user.role, navigate);
           } catch (err: any) {
@@ -133,7 +136,7 @@ export function useLoginForm() {
       isMounted = false;
       cancelGoogle();
     };
-  }, [isDark, dispatch, navigate]);
+  }, [isDark, dispatch, navigate, isRegister, role, storeName]);
 
   return {
     showPassword,
@@ -161,4 +164,3 @@ export function useLoginForm() {
     handleSubmit,
   };
 }
-

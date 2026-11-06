@@ -91,6 +91,7 @@ The API uses in-memory token buckets for general requests, refresh, order placem
 
 ### 2. Authentication (`/api/auth`)
 - `POST /api/auth/register` — Register a new customer or retailer account; returns `409` if the email is already registered
+- `POST /api/auth/google` — Sign in with Google; send `intent: "register"` to reject existing accounts during signup (retailer signup also sends `role` and `storeName`)
 - `POST /api/auth/login` — Sign in with email and password (sets httpOnly refresh cookie)
 - `POST /api/auth/refresh` — Rotate refresh token cookie and issue new 15-minute access token
 - `POST /api/auth/logout` — Invalidate refresh token and clear cookie

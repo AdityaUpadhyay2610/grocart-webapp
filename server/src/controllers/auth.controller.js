@@ -57,9 +57,9 @@ function getNonceCookieOptions() {
   };
 }
 
-// Finds, links or creates the GroCart user for a verified Google profile.
-// Returns the user row, or null when Google sign-in is not allowed for this account.
-async function findOrCreateGoogleUser(profile) {
+// Finds, links or creates a user for a verified Google profile.
+// Registration mode rejects existing accounts instead of linking or signing them in.
+async function findOrCreateGoogleUser(profile, { isRegistration = false, role = USER_ROLE.CUSTOMER, storeName = '' } = {}) {
   const client = await getClient();
   try {
     await client.query('BEGIN');
@@ -67,8 +67,12 @@ async function findOrCreateGoogleUser(profile) {
     // 1. Returning Google user: matched by the permanent Google id, never by email.
     const bySub = await client.query('SELECT * FROM users WHERE google_sub = $1', [profile.sub]);
     if (bySub.rows.length > 0) {
+      if (isRegistration) {
+        await client.query('ROLLBACK');
+        return { user: null, emailAlreadyRegistered: true };
+      }
       await client.query('COMMIT');
-      return bySub.rows[0];
+      return { user: bySub.rows[0], emailAlreadyRegistered: false };
     }
 
     // 2. Same email already registered: link, but only when it is safe to do so.
@@ -78,9 +82,13 @@ async function findOrCreateGoogleUser(profile) {
     );
     if (byEmail.rows.length > 0) {
       const existing = byEmail.rows[0];
+      if (isRegistration) {
+        await client.query('ROLLBACK');
+        return { user: null, emailAlreadyRegistered: true };
+      }
       if (existing.role === USER_ROLE.ADMIN || !profile.emailIsAuthoritative || existing.google_sub) {
         await client.query('ROLLBACK');
-        return null;
+        return { user: null, emailAlreadyRegistered: false };
       }
 
       // The old password may belong to someone who never owned this email
@@ -98,28 +106,30 @@ async function findOrCreateGoogleUser(profile) {
       );
       await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [existing.id]);
       await client.query('COMMIT');
-      return linked.rows[0];
+      return { user: linked.rows[0], emailAlreadyRegistered: false };
     }
 
-    // 3. Brand-new user: always a customer, with a password nobody knows.
+    // New Google users get an unusable password; signup may choose the retailer role.
     const unusableHash = await bcrypt.hash(
       crypto.randomBytes(32).toString('hex'),
       config.security.bcryptRounds
     );
     const created = await client.query(
-      `INSERT INTO users (id, name, email, password_hash, role, google_sub, auth_provider, email_verified, created_at)
-       VALUES ($1, $2, $3, $4, 'customer', $5, 'google', TRUE, $6)
+      `INSERT INTO users (id, name, email, password_hash, role, store_name, google_sub, auth_provider, email_verified, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'google', TRUE, $8)
        ON CONFLICT DO NOTHING
        RETURNING *`,
-      [crypto.randomUUID(), profile.name, profile.email, unusableHash, profile.sub, Date.now()]
+      [crypto.randomUUID(), profile.name, profile.email, unusableHash, role, storeName, profile.sub, Date.now()]
     );
     if (created.rows.length === 0) {
-      // Two sign-ins raced each other and the other one won. Ask the user to retry.
+      const emailExists = isRegistration
+        ? await client.query('SELECT 1 FROM users WHERE email = $1', [profile.email])
+        : null;
       await client.query('ROLLBACK');
-      return null;
+      return { user: null, emailAlreadyRegistered: Boolean(emailExists?.rows.length) };
     }
     await client.query('COMMIT');
-    return created.rows[0];
+    return { user: created.rows[0], emailAlreadyRegistered: false };
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -161,7 +171,18 @@ const googleLogin = asyncHandler(async (req, res) => {
     return sendError(res, GOOGLE_FAILED, [], 401);
   }
 
-  const user = await findOrCreateGoogleUser(profile);
+  const isRegistration = req.body.intent === 'register';
+  const role = isRegistration ? req.body.role || USER_ROLE.CUSTOMER : USER_ROLE.CUSTOMER;
+  const storeName = isRegistration ? (req.body.storeName || '').trim() : '';
+  if (isRegistration && role === USER_ROLE.RETAILER && !storeName) {
+    return sendError(res, 'Store name is required for retailer accounts.', [], 400);
+  }
+
+  const result = await findOrCreateGoogleUser(profile, { isRegistration, role, storeName });
+  if (result.emailAlreadyRegistered) {
+    return sendError(res, 'This email is already registered. Please sign in.', [], 409);
+  }
+  const user = result.user;
   if (!user) {
     return sendError(res, GOOGLE_FAILED, [], 401);
   }
