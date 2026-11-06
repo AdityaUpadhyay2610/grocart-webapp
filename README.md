@@ -120,6 +120,8 @@ VITE_GOOGLE_CLIENT_ID=
 VITE_RAZORPAY_KEY_ID=
 ```
 
+For production, `VITE_API_URL` may be the backend origin (for example, `https://your-api.onrender.com`) or that origin ending in `/api`. The frontend adds `/api` when it is omitted.
+
 ### Backend variables
 
 ```env
