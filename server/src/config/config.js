@@ -138,9 +138,7 @@ const pagination = {
 const avatarMaxBytes = parseNumber('AVATAR_MAX_BYTES', 1048576);
 const authMessages = {
   invalidCredentials:
-    readString('AUTH_INVALID_CREDENTIALS_MESSAGE', 'Invalid email or password.'),
-  registrationNeutral:
-    readString('REGISTRATION_NEUTRAL_MESSAGE', 'If this email can be registered, the request has been accepted.')
+    readString('AUTH_INVALID_CREDENTIALS_MESSAGE', 'Invalid email or password.')
 };
 const allowedLogLevels = ['error', 'warn', 'info', 'debug'];
 if (!allowedLogLevels.includes(logLevel)) {

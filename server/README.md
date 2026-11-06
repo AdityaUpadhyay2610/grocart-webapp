@@ -84,13 +84,13 @@ Creates the initial platform admin and starter grocery categories (e.g. Fruits &
 
 ## Rate limiting
 
-The API uses in-memory token buckets for general requests, refresh, order placement, and profile updates. Login failures are tracked separately by email and IP, while registration requests are tracked by IP. Configure `TRUST_PROXY`, `RATE_LIMIT_STORE_CLEANUP_INTERVAL_MS`, `RATE_LIMIT_STORE_IDLE_TIMEOUT_MS`, `RATE_LIMIT_MESSAGE`, `LOGIN_LOCK_MESSAGE`, `COOKIE_REQUEST_HEADER_MESSAGE`, `AUTH_INVALID_CREDENTIALS_MESSAGE`, `REGISTRATION_NEUTRAL_MESSAGE`, `API_RATE_LIMIT_CAPACITY`, `API_RATE_LIMIT_REFILL_PER_SECOND`, `API_RATE_LIMIT_WINDOW_SECONDS`, `REFRESH_RATE_LIMIT_CAPACITY`, `REFRESH_RATE_LIMIT_REFILL_PER_SECOND`, `REFRESH_RATE_LIMIT_WINDOW_SECONDS`, `ORDER_RATE_LIMIT_CAPACITY`, `ORDER_RATE_LIMIT_REFILL_PER_SECOND`, `ORDER_RATE_LIMIT_WINDOW_SECONDS`, `PROFILE_RATE_LIMIT_CAPACITY`, `PROFILE_RATE_LIMIT_REFILL_PER_SECOND`, `PROFILE_RATE_LIMIT_WINDOW_SECONDS`, `LOGIN_EMAIL_FAILURE_CAPACITY`, `LOGIN_EMAIL_FAILURE_WINDOW_MINUTES`, `LOGIN_EMAIL_LOCK_MINUTES`, `LOGIN_IP_FAILURE_CAPACITY`, `LOGIN_IP_FAILURE_WINDOW_MINUTES`, `REGISTER_RATE_LIMIT_CAPACITY`, and `REGISTER_RATE_LIMIT_WINDOW_MINUTES` in `.env`. The store exposes `get` and `set` methods so it can be replaced with Redis when the application needs multiple server instances.
+The API uses in-memory token buckets for general requests, refresh, order placement, and profile updates. Login failures are tracked separately by email and IP, while registration requests are tracked by IP. Configure `TRUST_PROXY`, `RATE_LIMIT_STORE_CLEANUP_INTERVAL_MS`, `RATE_LIMIT_STORE_IDLE_TIMEOUT_MS`, `RATE_LIMIT_MESSAGE`, `LOGIN_LOCK_MESSAGE`, `COOKIE_REQUEST_HEADER_MESSAGE`, `AUTH_INVALID_CREDENTIALS_MESSAGE`, `API_RATE_LIMIT_CAPACITY`, `API_RATE_LIMIT_REFILL_PER_SECOND`, `API_RATE_LIMIT_WINDOW_SECONDS`, `REFRESH_RATE_LIMIT_CAPACITY`, `REFRESH_RATE_LIMIT_REFILL_PER_SECOND`, `REFRESH_RATE_LIMIT_WINDOW_SECONDS`, `ORDER_RATE_LIMIT_CAPACITY`, `ORDER_RATE_LIMIT_REFILL_PER_SECOND`, `ORDER_RATE_LIMIT_WINDOW_SECONDS`, `PROFILE_RATE_LIMIT_CAPACITY`, `PROFILE_RATE_LIMIT_REFILL_PER_SECOND`, `PROFILE_RATE_LIMIT_WINDOW_SECONDS`, `LOGIN_EMAIL_FAILURE_CAPACITY`, `LOGIN_EMAIL_FAILURE_WINDOW_MINUTES`, `LOGIN_EMAIL_LOCK_MINUTES`, `LOGIN_IP_FAILURE_CAPACITY`, `LOGIN_IP_FAILURE_WINDOW_MINUTES`, `REGISTER_RATE_LIMIT_CAPACITY`, and `REGISTER_RATE_LIMIT_WINDOW_MINUTES` in `.env`. The store exposes `get` and `set` methods so it can be replaced with Redis when the application needs multiple server instances.
 
 ### 1. Health
 - `GET /api/health` — Server health & database connectivity check
 
 ### 2. Authentication (`/api/auth`)
-- `POST /api/auth/register` — Register new customer or retailer account
+- `POST /api/auth/register` — Register a new customer or retailer account; returns `409` if the email is already registered
 - `POST /api/auth/login` — Sign in with email and password (sets httpOnly refresh cookie)
 - `POST /api/auth/refresh` — Rotate refresh token cookie and issue new 15-minute access token
 - `POST /api/auth/logout` — Invalidate refresh token and clear cookie

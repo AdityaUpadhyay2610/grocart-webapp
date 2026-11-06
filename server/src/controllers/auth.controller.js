@@ -182,16 +182,20 @@ const register = asyncHandler(async (req, res) => {
   const userId = crypto.randomUUID();
   const createdAt = Date.now();
 
-  await query(
+  const result = await query(
     `INSERT INTO users (id, name, email, password_hash, role, store_name, created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (email) DO NOTHING`,
     [userId, name.trim(), normalizedEmail, passwordHash, role, storeName.trim(), createdAt]
   );
 
+  if (result.rowCount === 0) {
+    return sendError(res, 'This email is already registered. Please sign in.', [], 409);
+  }
+
   return sendSuccess(
     res,
-    { message: config.security.authMessages.registrationNeutral },
+    { message: 'Account created successfully.' },
     202
   );
 });

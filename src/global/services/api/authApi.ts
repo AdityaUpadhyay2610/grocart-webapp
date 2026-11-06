@@ -68,7 +68,7 @@ export const authApi = {
 
   /**
    * Register a new customer or retailer account.
-   * Returns a neutral confirmation without revealing whether the email was registered.
+   * Rejects addresses that already belong to an account.
    */
   registerUser: async (
     email: string,
