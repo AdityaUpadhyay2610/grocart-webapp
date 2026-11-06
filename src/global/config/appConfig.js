@@ -1,10 +1,11 @@
 const env = import.meta.env;
 const configuredApiUrl = (env.VITE_API_URL || '/api').replace(/\/+$/, '');
-const apiUrl = !configuredApiUrl
+const configuredApiBase = !configuredApiUrl
   ? '/api'
   : configuredApiUrl.endsWith('/api')
     ? configuredApiUrl
     : `${configuredApiUrl}/api`;
+const apiUrl = env.PROD ? '/api' : configuredApiBase;
 
 export const appConfig = {
   apiUrl,
