@@ -21,7 +21,7 @@ function parseNumber(key, defaultValue) {
 const databaseUrl = requireEnv('DATABASE_URL');
 const jwtAccessSecret = requireEnv('JWT_ACCESS_SECRET');
 const jwtRefreshSecret = requireEnv('JWT_REFRESH_SECRET');
-const clientUrl = requireEnv('CLIENT_URL');
+const clientUrl = requireEnv('CLIENT_URL').replace(/\/+$/, '');
 
 // 2. Validate JWT secrets
 if (jwtAccessSecret.length < 32) {

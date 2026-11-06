@@ -136,6 +136,7 @@ TRUST_PROXY=0
 ```
 
 Use strong random values for the JWT secrets and keep them different from each other.
+`CLIENT_URL` should be the frontend origin; a trailing slash is ignored.
 
 ## Google Sign-In Setup
 

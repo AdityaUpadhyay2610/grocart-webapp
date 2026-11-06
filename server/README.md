@@ -29,7 +29,7 @@ cp .env.example .env
 | `REFRESH_TOKEN_EXPIRES_DAYS` | Refresh token lifespan in days | `7` |
 | `JWT_ISSUER` | JWT issuer | `grocart-api` |
 | `JWT_AUDIENCE` | JWT audience | `grocart-web` |
-| `CLIENT_URL` | Allowed CORS frontend origin | `http://localhost:5173` |
+| `CLIENT_URL` | Allowed CORS frontend origin (trailing slash is ignored) | `http://localhost:5173` |
 | `GOOGLE_CLIENT_ID` | Google OAuth web client ID used by `/api/auth/google` | `123...apps.googleusercontent.com` |
 | `GOOGLE_RATE_LIMIT_CAPACITY` | Google login token bucket capacity | `10` |
 | `GOOGLE_RATE_LIMIT_WINDOW_MINUTES` | Google login rate-limit window | `15` |
